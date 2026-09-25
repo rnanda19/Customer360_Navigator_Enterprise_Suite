@@ -1,0 +1,155 @@
+# Per-BP config - filled in at Gate 1 (Business Understanding & Policy)
+# Gate 1 owns bp_id through random_state below via write_front_matter() (src/utils/bp1_config_sync.py,
+# reused as-is from BP1/BP2/BP3/BP4 - fully generic, parameterized by config_path); Gates 2-5 each own
+# exactly one marker-delimited block appended after it via write_gate_block() - do not hand-edit either
+# section, re-run the owning notebook instead.
+bp_id: "bp7"
+bp_name: "bp7_customer_navigator_decision_engine"
+status: "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed"   # not_started|gate1|gate2|gate3|gate4|gate5|gate6_complete
+target_definition:
+  primary_target: "customer360_priority_decision"
+  primary_target_description: "NOT a single trained ML target - a transparent, auditable
+    decision-rule layer (Master Plan Section 5.1/7) combining BP1-BP5's own already-computed
+    prediction fields into priority_score, intervention_flag, and recommended_action per
+    in-scope complaint, with reason_codes and thresholds recorded on every row. See
+    policy.json target_definition for the full schema and Gate 3/4 the numeric weights."
+  combining_methodology: "Documented deterministic weighted rule, never a black-box model score
+    passed through as the final decision. A Gate 3/4 scope decision may add an interpretable
+    model (logistic regression) as one additional reason-coded input, never as a replacement
+    for the rule framework itself."
+  upstream_inputs:
+    bp1_customer_intent_classification: "OPTIONAL_CONTEXT_ONLY - real, 6.55% CFPB coverage"
+    bp2_customer_friction_classification: "CORE_INPUT - real, predicted_label friction tier"
+    bp3_complaint_escalation_prediction: "CORE_INPUT - real, predicted_probability"
+    bp4_customer_journey_analytics: "CORE_INPUT - real, cluster-grain, joined via product-taxonomy key"
+    bp5_root_cause_driver_analytics: "PENDING - live status 'gate1_confirmed', no field name assumed"
+leakage_rules:
+  - "Raw CFPB 'Company response to consumer' never read/used directly by BP7 - it is the field
+     BP2's/BP3's own targets are defined from."
+  - "No upstream BP's true_label ever used by BP7 - only each BP's predicted_* fields."
+  - "'Tags' barred from every BP7 input - live re-checked and confirmed demographic-adjacent,
+     matching BP1-4's own precedent."
+  - "'Timely response?', 'Date received', 'Date sent to company' barred as direct BP7 inputs,
+     same reasoning BP2/BP3 used."
+  - "BP4's review_priority_score/tier combined only as one input among several - never BP7's
+     decision alone (BP4 Gate 5's own explicit disclosure)."
+  - "No BP7 output row for an unjoinable complaint - reported as UNSCORED_MISSING_UPSTREAM_INPUT,
+     never silently defaulted."
+  - "No field name for BP5's eventual output hardcoded anywhere - PENDING placeholder only."
+assumptions:
+  - "BP2's LOW_FRICTION and BP3's positive class share the identical real CFPB value 'Closed
+     with monetary relief' - not leakage between BP2/BP3, but not assumed independent/additive
+     for BP7 either; Gate 3/4 must check this correlation empirically."
+  - "BP1's real BANKING77-derived coverage is only 6.55% of CFPB rows - optional context only."
+  - "BP5 has not yet real-run its Gate 1 (live status 'gate1_confirmed',
+     target_definition null, both live-verified) - this policy is forward-compatible and will be
+     amended via write_front_matter once BP5 delivers its own real Gate 1."
+  - "Final numeric weights and the intervention_flag threshold are a Gate 3/4 decision, not
+     fixed at Gate 1."
+  - "BP4's cluster tier joins onto complaint rows via the real (Company, Product, Sub-product,
+     Issue, Sub-issue) key present on every real CFPB row."
+  - "src/utils/bp1_config_sync.py reused unmodified for BP7's own config file - its fifth reuse."
+  - "random_state=42 reused for consistency, though BP7's rule-based core has no stochastic
+     fitting step of its own at Gate 1."
+random_state: 42
+
+# --- Gate 2 (Data Verification & Feature/Taxonomy Engineering) results (appended, idempotent overwrite) ---
+live_row_count: 1048575
+complaint_id_is_unique_and_nonnull: True
+bp2_bundle_available: True
+bp3_bundle_available: True
+bp5_gate5_artifacts_available: True
+gold_layer_path: "data/processed/cfpb_decision_engine_context_gold.parquet"
+gold_layer_rows_written: 1048575
+feature_lineage_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate2_feature_lineage.csv"
+gate2_summary_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate2_rescoring_summary.json"
+
+# --- Gate 3 (Decision-Rule-Scheme Benchmark & Champion Selection) results (appended, idempotent overwrite) ---
+candidates_total: 4
+candidates_structurally_passing: 4
+candidate_structurally_passes:
+  equal_weight_baseline: True
+  domain_informed_weighted: True
+  correlation_aware: True
+  correlation_aware_plus_lr_diagnostic: True
+bp2_bp3_cramers_v: 0.21443806441558086
+bp2_bp3_association_strength: "weak"
+bp2_bp3_low_friction_conditional_positive_rate: 1.0
+bp4_join_coverage: 0.975368
+bp2_f1_macro: 0.4559281112767134
+bp3_pr_auc: 0.3496
+intervention_threshold: 0.5
+champion_rule_scheme: "correlation_aware_plus_lr_diagnostic"
+champion_weight_bp2: 0.222714
+champion_weight_bp3: 0.170774
+champion_weight_bp4: 0.606512
+champion_redundancy_double_counting_score: 0.08437880509075808
+champion_bp3_agreement_rate: 0.285865
+champion_coverage_pct: 100.0
+lr_diagnostic_held_out_roc_auc: 0.895153
+disparate_impact_carry_forward_deferred_to_gate4: True
+bp2_bp3_correlation_check_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_bp2_bp3_correlation_check.json"
+lr_diagnostic_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_lr_diagnostic.json"
+disparate_impact_carry_forward_check_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_disparate_impact_carry_forward_check.json"
+benchmark_results_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_benchmark_results.csv"
+gate3_summary_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_decision_rule_benchmark_summary.json"
+
+# --- Gate 4 (Statistical Validation & Explainability) results (appended, idempotent overwrite) ---
+gate4_champion_reproduced_bit_exact: True
+gate4_reproduced_intervention_flag_rate: 0.768415
+gate4_intervention_flag_rate_bootstrap_ci_95: [0.767609, 0.769243]
+gate4_bp3_agreement_rate_point_estimate: 0.285865
+gate4_bp3_agreement_rate_bootstrap_ci_95: [0.284984, 0.286725]
+gate4_bootstrap_n_resamples: 1000
+gate4_contribution_decomposition_max_abs_reconstruction_error: 0.0
+gate4_leakage_reconfirmed_clean: True
+gate4_disparate_impact_check_performed: True
+gate4_disparate_impact_deferred_at_gate3_now_resolved: True
+gate4_disparate_impact_join_coverage_pct: 100.0
+gate4_disparate_impact_adverse_impact_ratio: 0.908127
+gate4_disparate_impact_flagged_four_fifths_rule: False
+gate4_disparate_impact_lowest_selection_rate_group: "Servicemember"
+gate4_disparate_impact_highest_selection_rate_group: "Older American"
+gate4_disparate_impact_bp3_own_adverse_impact_ratio_for_comparison: 0.139
+gate4_reproduction_check_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_reproduction_check.json"
+gate4_bootstrap_ci_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_bootstrap_ci.json"
+gate4_bp3_agreement_crosstab_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_bp3_agreement_crosstab.json"
+gate4_contribution_decomposition_summary_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_contribution_decomposition_summary.json"
+gate4_leakage_reconfirmation_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_leakage_reconfirmation.json"
+gate4_disparate_impact_audit_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_disparate_impact_audit.json"
+gate4_summary_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_statistical_validation_explainability_summary.json"
+
+# --- Gate 5 (Decision Layer & Reporting) results (appended, idempotent overwrite) ---
+gate5_champion_rule_scheme: "correlation_aware_plus_lr_diagnostic"
+gate5_intervention_threshold: 0.5
+gate5_n_decision_records: 1048575
+gate5_coverage_pct: 100.0
+gate5_intervention_flag_rate: 0.768415
+gate5_bp3_agreement_rate: 0.285865
+gate5_contribution_reconstruction_exact: True
+gate5_disparate_impact_rederived_this_run: True
+gate5_disparate_impact_adverse_impact_ratio: 0.908127
+gate5_weight_rederivation_matches_config: True
+gate5_cross_checks_vs_gate3_gate4_all_passed: True
+genai_api_used: false
+records_csv_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv"
+action_breakdown_csv_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_recommended_action_breakdown.csv"
+tier_crosstab_csv_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_bp4_tier_intervention_crosstab.csv"
+gate5_summary_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_decision_layer_summary.json"
+gate5_generated_at_utc: "2026-09-25T06:13:24.780323+00:00"
+
+# --- Gate 6 (Productization, Monitoring & Governance) results (appended, idempotent overwrite) ---
+gate6_pytest_all_passed: True
+gate6_pytest_n_passed: 410
+gate6_pytest_n_failed: 0
+gate6_notebook_syntax_all_passed: True
+gate6_fastapi_self_test_all_checks_passed: True
+gate6_fastapi_self_test_n_rows_checked: 100
+gate6_fastapi_self_test_real_external_api_call_made: False
+gate6_bp4_unscored_rate_detected: True
+gate6_low_bp3_agreement_rate_detected: True
+gate6_model_card_path: "reports/bp7_customer_navigator_decision_engine/MODEL_CARD.md"
+gate6_changelog_path: "reports/bp7_customer_navigator_decision_engine/CHANGELOG.md"
+gate6_fastapi_service_path: "src/services/bp7_decision_engine_service.py"
+gate6_fastapi_self_test_result_path: "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate6_fastapi_self_test_result.json"
+gate6_generated_at_utc: "2026-09-25T06:49:02.757522+00:00"

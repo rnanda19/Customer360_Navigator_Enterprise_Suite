@@ -1,0 +1,13 @@
+driver_field,outcome_field,n_rows_tested,n_distinct_levels,chi2_statistic,degrees_of_freedom,p_value,cramers_v,association_strength,control_field
+Sub-issue,outcome_1_intervention_required,815453,222,140876.44325839324,221,0.0,0.4156422831612538,moderate,False
+Issue,outcome_1_intervention_required,815453,96,132917.08770528712,95,0.0,0.4037299250313842,moderate,False
+Sub-product,outcome_1_intervention_required,815453,61,101206.11483557253,60,0.0,0.3522929150589172,moderate,False
+Product,outcome_1_intervention_required,815453,15,96581.76174377846,14,0.0,0.34415025377596287,moderate,False
+Submitted via,outcome_1_intervention_required,815453,4,6764.859004725845,3,0.0,0.09108144399644573,negligible,False
+State,outcome_1_intervention_required,815453,62,3248.9613681690275,61,0.0,0.06312084531132212,negligible,True
+Sub-product,outcome_2_timely_response_failure,1048575,61,28387.774914435617,60,0.0,0.1645378912420309,weak,False
+Sub-issue,outcome_2_timely_response_failure,1048575,222,24032.19118245991,221,0.0,0.15138991166801094,weak,False
+Issue,outcome_2_timely_response_failure,1048575,96,23243.741784682567,95,0.0,0.1488857975003348,weak,False
+Product,outcome_2_timely_response_failure,1048575,15,20158.2442396874,14,0.0,0.13865214794249647,weak,False
+State,outcome_2_timely_response_failure,1048575,62,589.9992776573922,61,1.2744002404776384e-87,0.02372061749621674,negligible,True
+Submitted via,outcome_2_timely_response_failure,1048575,4,168.43341318294682,3,2.7724203934292327e-36,0.012674019621519499,negligible,False

@@ -1,0 +1,33 @@
+{
+  "checked_at_utc": "2026-09-24T10:33:33.878681+00:00",
+  "passed": true,
+  "n_sentences_scanned": 76,
+  "n_sentences_failing": 0,
+  "failing_sentences": [],
+  "banned_terms_found": [],
+  "n_banned_matches": 0,
+  "quoted_real_source_values_containing_banned_terms": [
+    "Problem caused by your funds being low"
+  ],
+  "n_chars_scanned": 16281,
+  "n_narrative_sentences_scanned": 76,
+  "banned_patterns_checklist": [
+    "causes",
+    "cause of",
+    "caused by",
+    "due to",
+    "because of",
+    "results from",
+    "results in",
+    "resulting in",
+    "leads to",
+    "led to",
+    "is responsible for",
+    "are responsible for",
+    "the reason for",
+    "the reason is",
+    "attributable to",
+    "on account of",
+    "as a result of"
+  ]
+}

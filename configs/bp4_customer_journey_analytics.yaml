@@ -1,0 +1,157 @@
+# Per-BP config - filled in at Gate 1 (Business Understanding & Policy)
+# Gate 1 owns bp_id through random_state below via write_front_matter() (src/utils/bp1_config_sync.py,
+# reused as-is from BP1/BP2/BP3 - fully generic, parameterized by config_path); Gates 2-5 each own
+# exactly one marker-delimited block appended after it via write_gate_block() - do not hand-edit
+# either section, re-run the owning notebook instead.
+bp_id: "bp4"
+bp_name: "bp4_customer_journey_analytics"
+status: "gate6_complete"   # not_started|gate1|gate2|gate3|gate4|gate5|gate6_complete
+journey_definition:
+  no_customer_identifier_in_scope: true
+  naming_commitment: "Event/issue journey analytics only - never customer/longitudinal journey
+    analytics (Master Plan Section 5.1/7's own explicit instruction for BP4)."
+  unit_1_complaint_event_journey: "Row-level, keyed by real 'Complaint ID'; 'Date received' ->
+    'Date sent to company' with a real computed response_lag_days duration."
+  unit_2_issue_cluster_journey: "Aggregate-level, keyed by real (Company, Product, Sub-product,
+    Issue, Sub-issue); ordered by 'Date received' into a real monthly volume time series per
+    cluster. Optionally overlaid with the Gold-layer 'common_taxonomy_bucket' column for its real
+    6.55%-of-rows in-scope subset only."
+scope_boundaries:
+  - "'Complaint ID' identifies one real complaint (one event), never a person."
+  - "'Tags' barred from every BP4 journey-grouping key (conservative, HYPER-consistent with
+     BP1-BP3's own precedent, though ECOA/Reg B does not map to BP4 per Master Plan Section 9)."
+  - "'ZIP code' barred as a fine-grained quasi-identifier; 'State' is the only sanctioned
+     geographic dimension."
+  - "No BP4 gate may construct, infer, or approximate a persistent customer/consumer identifier
+     from any combination of real fields."
+  - "No BP4 gate may run BP1's text-intent classifier against CFPB rows - this extract carries no
+     narrative-text column; only the already-built Gold-layer 'common_taxonomy_bucket' overlay is
+     sanctioned."
+assumptions:
+  - "This real CFPB extract carries no customer/consumer identifier of any kind (live-verified,
+     consistent with every prior BP1-BP3 Gate 1 finding on the same schema)."
+  - "'Complaint ID' is a real, unique event identifier (live-verified 1:1 with rows)."
+  - "The (Company, Product, Sub-product, Issue, Sub-issue) issue-cluster key is real-data-
+     supported: 37,160 real distinct clusters, 41.85% recurring, covering 97.94% of all real rows."
+  - "The Gold-layer 'common_taxonomy_bucket' column real-covers only 6.55% of rows - used as an
+     optional secondary overlay only."
+  - "'response_lag_days' is safe for BP4 to use directly (unlike BP3's leakage-driven bar on the
+     same two Date fields) - BP4 has no supervised target for this duration to leak into."
+  - "src/utils/bp1_config_sync.py reused unmodified for BP4's own config file."
+random_state: 42
+
+# --- Gate 2 (Data Verification & Feature/Taxonomy Engineering) results (appended, idempotent overwrite) ---
+null_count_drift_vs_gate1: none
+narrative_text_column_found: False
+journey_relevant_null_counts:
+  Company: 0
+  Issue: 0
+  Product: 0
+  State: 2193
+  Sub-issue: 25808
+  Sub-product: 21
+journey_row_count: 1048575
+journey_row_count_matches_raw: True
+n_clusters: 37160
+n_recurring_clusters: 15551
+cluster_count_matches_gate1: True
+cluster_monthly_row_count: 74415
+feature_lineage_path: "notebooks/bp4_customer_journey_analytics/artifacts/gate2_feature_lineage.csv"
+no_barred_column_used_as_feature: True
+journey_event_gold_path: "data/processed/cfpb_journey_event_gold.parquet"
+journey_event_gold_rows_written: 1048575
+cluster_monthly_gold_path: "data/processed/cfpb_issue_cluster_monthly_gold.parquet"
+cluster_summary_gold_path: "data/processed/cfpb_issue_cluster_summary_gold.parquet"
+
+# --- Gate 3 (Aggregation-Pipeline Benchmark & Champion Selection) results (appended, idempotent overwrite) ---
+candidates_total: 5
+candidates_available: 5
+candidates_correct: 5
+candidate_status:
+  pandas_groupby: CORRECT
+  polars_eager: CORRECT
+  polars_lazy: CORRECT
+  polars_lazy_streaming: CORRECT
+  duckdb_sql: CORRECT
+champion_pipeline: "polars_lazy_streaming"
+champion_min_seconds: 0.103927
+champion_mean_seconds: 0.10541
+champion_matches_current_production_implementation: False
+n_timing_repeats: 5
+duckdb_live_installed: True
+polars_max_threads_configured: 15
+benchmark_results_path: "notebooks/bp4_customer_journey_analytics/artifacts/gate3_benchmark_results.csv"
+
+# --- Gate 4 (Statistical Validation) results (appended, idempotent overwrite) ---
+mean_response_lag_days:
+  point_estimate: 0.4652266170755549
+  ci_95_low: 0.457265574708533
+  ci_95_high: 0.47372591374007583
+response_lag_days_diff_in_scope_vs_out_of_scope:
+  point_estimate: 1.3768343100332174
+  ci_95_low: 1.3148259016483774
+  ci_95_high: 1.4356504773089491
+recurring_cluster_rate:
+  point_estimate: 0.4184876210979548
+  ci_95_low: 0.4133476856835307
+  ci_95_high: 0.42333423035522066
+mean_cluster_size:
+  point_estimate: 28.217841765339074
+  ci_95_low: 21.003661867599572
+  ci_95_high: 36.86651305166846
+n_bootstrap: 1000
+reproducibility_confirmed: True
+ecoa_disparate_impact_applicability: "NOT_APPLICABLE"
+no_barred_column_in_cluster_key: True
+performance_report:
+  baseline_seconds: 3.067079
+  champion_seconds: 0.103927
+  speedup_factor: 29.51185928584487
+  champion_pipeline: "polars_lazy_streaming"
+
+# --- Gate 5 (Decision Layer & Reporting) results (appended, idempotent overwrite) ---
+n_clusters_reported: 37160
+n_with_reason_codes: 19237
+gate4_population_mean_lag_reference: 0.4652266170755549
+live_p90_high_volume_threshold: 8.0
+tier_rollup:
+  HIGH:
+    n_clusters: 2284
+    n_complaint_rows_covered: 94410
+  LOW:
+    n_clusters: 12033
+    n_complaint_rows_covered: 29630
+  MEDIUM:
+    n_clusters: 4920
+    n_complaint_rows_covered: 906612
+  NONE:
+    n_clusters: 17923
+    n_complaint_rows_covered: 17923
+total_rows_covered_matches_gate1: True
+genai_api_used: false
+generated_at_utc: "2026-09-23T15:00:20.192069+00:00"
+
+# --- Gate 6 (Productization, Monitoring & Governance) results (appended, idempotent overwrite) ---
+gate6_governance:
+  champion_pipeline: "polars_lazy_streaming"
+  pytest_all_passed: true
+  pytest_passed: 219
+  pytest_failed: 0
+  pytest_skipped: 5
+  notebook_syntax_all_passed: true
+  n_gate3_failed_candidates: 0
+  n_gate3_slow_but_correct_candidates: 2
+  model_inventory_applicability: "NOT_APPLICABLE"
+  generated_at_utc: "2026-09-23T15:18:29.558475+00:00"
+
+# --- Decision Artifact Persistence (Hardening Step 2) results (appended, idempotent overwrite) ---
+decision_artifact_persistence:
+  parquet_relative_path: "models/bp4_customer_journey_analytics/bp4_decision_artifact_index.parquet"
+  parquet_sha256: "561f28b5c039ddfbcfe2fe51346091ebbc583caeebaa905114844b83270b21f4"
+  source_csv_sha256: "ca94fc92197b7f4ab2aa9ca407a9bc74f3f317fa863332e2ca462b85f579c047"
+  n_rows: 37160
+  n_columns: 19
+  sort_key: ['Company', 'Product', 'Sub-product', 'Issue', 'Sub-issue']
+  idempotent_rewrite_verified: True
+  round_trip_verified: True
+  generated_at_utc: "2026-09-25T16:06:53.297129+00:00"

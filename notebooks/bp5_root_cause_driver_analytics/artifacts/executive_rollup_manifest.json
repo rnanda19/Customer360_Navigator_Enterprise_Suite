@@ -1,0 +1,30 @@
+{
+  "bp_id": "bp5",
+  "gate": 7,
+  "report_name": "BP5 Root-Cause & Driver Analytics - Executive Rollup",
+  "outcomes": [
+    "outcome_1_intervention_required",
+    "outcome_2_timely_response_failure"
+  ],
+  "production_recommendation_tier": "Recommended for Decision-Support Use, With Monitoring",
+  "production_recommendation_tier_code": 2,
+  "ecoa_reg_b_disparate_impact_applicability": "NOT_APPLICABLE",
+  "output_paths": {
+    "dashboard_html": "reports\\bp5_root_cause_driver_analytics\\executive_rollup\\bp5_executive_rollup_dashboard.html",
+    "report_docx": "reports\\bp5_root_cause_driver_analytics\\executive_rollup\\bp5_executive_rollup_report.docx",
+    "workbook_xlsx": "reports\\bp5_root_cause_driver_analytics\\executive_rollup\\bp5_executive_rollup_workbook.xlsx",
+    "deck_pptx": "reports\\bp5_root_cause_driver_analytics\\executive_rollup\\bp5_executive_rollup_deck.pptx"
+  },
+  "output_sizes_bytes": {
+    "dashboard_html": 79564,
+    "report_docx": 364891,
+    "workbook_xlsx": 18840,
+    "deck_pptx": 367762
+  },
+  "contains_financial_impact_section": false,
+  "contains_assumption_based_content": false,
+  "n_negligible_strength_fields_detected": 2,
+  "n_near_zero_precision_outcomes_detected": 1,
+  "association_not_causation_disclaimer_carried_forward": true,
+  "generated_at_utc": "2026-09-24T11:23:27.353785+00:00"
+}

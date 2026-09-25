@@ -1,0 +1,28 @@
+{
+  "outcome_1_intervention_required": {
+    "driver_field": "_company_freq_full",
+    "outcome_field": "outcome_1_intervention_required",
+    "n_rows_tested": 815453,
+    "encoding": "z-scored (real mean=229239.3191, real std=120891.3808) prior to fitting",
+    "coefficient_per_1sd": -2.5830202567473552,
+    "odds_ratio_per_1sd": 0.075545492331616,
+    "ci_95_low_odds_ratio_per_1sd": 0.06949143527416339,
+    "ci_95_high_odds_ratio_per_1sd": 0.08212697563534331,
+    "p_value": 0.0,
+    "converged": true,
+    "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+  },
+  "outcome_2_timely_response_failure": {
+    "driver_field": "_company_freq_full",
+    "outcome_field": "outcome_2_timely_response_failure",
+    "n_rows_tested": 1048575,
+    "encoding": "z-scored (real mean=242296.9546, real std=113329.6202) prior to fitting",
+    "coefficient_per_1sd": -13.880803073916756,
+    "odds_ratio_per_1sd": 9.367933962822671e-07,
+    "ci_95_low_odds_ratio_per_1sd": 1.9861904720850907e-07,
+    "ci_95_high_odds_ratio_per_1sd": 4.418417466260346e-06,
+    "p_value": 7.089985132322455e-69,
+    "converged": true,
+    "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+  }
+}

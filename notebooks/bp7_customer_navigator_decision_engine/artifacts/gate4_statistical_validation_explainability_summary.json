@@ -1,0 +1,53 @@
+{
+  "bp_id": "bp7",
+  "gate": 4,
+  "generated_at_utc": "2026-09-25T06:13:17.857281+00:00",
+  "live_row_count": 1048575,
+  "champion_rule_scheme": "correlation_aware_plus_lr_diagnostic",
+  "reproduction_check": {
+    "reproduction_bit_exact_within_tolerance": true,
+    "path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_reproduction_check.json"
+  },
+  "bootstrap_ci": {
+    "intervention_flag_rate": {
+      "point_estimate": 0.768415,
+      "ci_lower_95": 0.767609,
+      "ci_upper_95": 0.769243,
+      "n_bootstrap": 1000,
+      "n_rows_resampled": 1048575,
+      "random_state": 42
+    },
+    "bp3_agreement_rate": {
+      "point_estimate": 0.285865,
+      "ci_lower_95": 0.284984,
+      "ci_upper_95": 0.286725,
+      "n_bootstrap": 1000,
+      "n_rows_resampled": 1048575,
+      "random_state": 42
+    },
+    "path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_bootstrap_ci.json"
+  },
+  "bp3_agreement_crosstab": {
+    "agreement_rate": 0.285865,
+    "path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_bp3_agreement_crosstab.json"
+  },
+  "contribution_decomposition": {
+    "max_abs_reconstruction_error": 0.0,
+    "reconstruction_exact_within_tolerance": true,
+    "summary_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_contribution_decomposition_summary.json",
+    "sample_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_contribution_decomposition_sample.csv"
+  },
+  "leakage_reconfirmation": {
+    "leakage_reconfirmed_clean": true,
+    "path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_leakage_reconfirmation.json"
+  },
+  "disparate_impact_audit": {
+    "performed": true,
+    "deferred_at_gate3_now_resolved": true,
+    "join_coverage_pct": 100.0,
+    "adverse_impact_ratio": 0.908127,
+    "flagged_four_fifths_rule": false,
+    "audit_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_disparate_impact_audit.json",
+    "breakdown_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_disparate_impact_breakdown.csv"
+  }
+}

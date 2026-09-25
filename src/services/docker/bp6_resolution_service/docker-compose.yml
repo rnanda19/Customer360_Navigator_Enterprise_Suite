@@ -1,0 +1,28 @@
+# Customer360 Navigator - BP6 GenAI Resolution Assistant service
+# Run from the project ROOT (this file's build context matches the Dockerfile's - see its header):
+#   GEMINI_API_KEY=<your real key> docker compose -f src/services/docker/bp6_resolution_service/docker-compose.yml up --build
+# Then: curl http://localhost:8006/health
+#
+# GEMINI_API_KEY is REQUIRED at run time (never baked into the image - see Dockerfile header).
+# Every real /resolve or /resolve/self-test call this container serves makes a real, live, paid-
+# quota-consuming call to the Google Gemini API using that key.
+
+services:
+  bp6-resolution-service:
+    build:
+      context: ../../../..
+      dockerfile: src/services/docker/bp6_resolution_service/Dockerfile
+    image: c360-bp6-resolution-service:latest
+    container_name: c360-bp6-resolution-service
+    ports:
+      - "8006:8006"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:?GEMINI_API_KEY must be set - export it or pass -e GEMINI_API_KEY=...}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8006/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

@@ -1,0 +1,14 @@
+{
+  "outcome_1_intervention_required": {
+    "n_rows_train": 652362,
+    "n_rows_test": 163091,
+    "held_out_roc_auc": 0.9705232858366627,
+    "held_out_pr_auc": 0.2532549265056703
+  },
+  "outcome_2_timely_response_failure": {
+    "n_rows_train": 838860,
+    "n_rows_test": 209715,
+    "held_out_roc_auc": 0.9525777650228792,
+    "held_out_pr_auc": 0.07031748355716386
+  }
+}

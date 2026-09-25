@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BP6 GenAI Resolution Assistant — Executive Dashboard</title>
+<!-- defer: an unreachable/slow CDN must never block the page from painting at all (real failure
+     mode seen on a real machine: a plain, non-deferred <script src> in <head> blocks HTML parsing
+     - and therefore the whole page's first paint - until the network request resolves, which can
+     hang indefinitely on a restrictive network and make the page look completely blank). -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer id="plotly-cdn"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root {
+    --navy: #1E2761;
+    --navy-deep: #12173f;
+    --accent: #4C6EF5;
+    --ice: #CADCFC;
+    --success: #1B998B;
+    --warning: #E8A33D;
+    --danger: #C1292E;
+    --gray: #6B7280;
+    --surface: #AFBEE6;
+    --card: #D2DBF6;
+    --card-border: #9FADDB;
+    --ink: #101828;
+    --ink-muted: #40495F;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(16, 24, 40, 0.14);
+    --shadow-hover: 0 10px 32px rgba(16, 24, 40, 0.20);
+    --font-display: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); line-height: 1.5;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(76,110,245,0.24) 0%, rgba(76,110,245,0) 46%),
+      radial-gradient(circle at 100% 18%, rgba(27,153,139,0.18) 0%, rgba(27,153,139,0) 40%),
+      linear-gradient(180deg, #B4C2E8 0%, #A7B7E3 45%, #98AADC 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  header.hero {
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 55%, #2c3a8c 100%);
+    color: #fff; padding: 48px 32px 64px; position: relative; overflow: hidden;
+  }
+  header.hero::after {
+    content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(76,110,245,0.35) 0%, rgba(76,110,245,0) 70%);
+    animation: auroraPulse 6.5s ease-in-out infinite;
+  }
+  header.hero::before {
+    content: ""; position: absolute; left: -70px; bottom: -110px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(27,153,139,0.28) 0%, rgba(27,153,139,0) 70%);
+    animation: auroraPulse 7.5s ease-in-out infinite reverse;
+  }
+  @keyframes auroraPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.65; transform: scale(1.1); } }
+  .hero-inner { max-width: 1320px; margin: 0 auto; position: relative; z-index: 1; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--ice); font-weight: 600; }
+  h1.title { font-size: clamp(26px, 3.6vw, 38px); margin: 10px 0 8px; font-weight: 700; font-family: var(--font-display); }
+  .title-accent { color: var(--ice); }
+  .subtitle { color: rgba(255,255,255,0.82); font-size: 15px; max-width: 820px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22); padding: 7px 14px; border-radius: 999px; font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .badge.warn .dot { background: var(--warning); }
+  .badge.fail .dot { background: var(--danger); animation: pulseDot 1.8s ease-in-out infinite; }
+  @keyframes pulseDot { 0%, 100% { box-shadow: 0 0 0 0 rgba(193,41,46,0.45); } 50% { box-shadow: 0 0 0 5px rgba(193,41,46,0); } }
+
+  .prod-banner {
+    margin-top: 22px; padding: 16px 20px; border-radius: var(--radius); font-size: 14.5px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; backdrop-filter: blur(4px);
+  }
+  .prod-banner .tier-label { font-weight: 800; font-size: 17px; font-family: var(--font-display); }
+  .prod-banner.tier-1 { background: rgba(27,153,139,0.22); border: 1px solid rgba(27,153,139,0.55); }
+  .prod-banner.tier-2 { background: rgba(232,163,61,0.22); border: 1px solid rgba(232,163,61,0.6); }
+  .prod-banner.tier-3 { background: rgba(193,41,46,0.22); border: 1px solid rgba(193,41,46,0.6); }
+  .prod-banner .tier-2-note { font-size: 12px; opacity: 0.85; width: 100%; margin-top: 2px; }
+
+  main { max-width: 1320px; margin: -40px auto 0; padding: 0 24px 64px; position: relative; z-index: 2; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 20px 18px; box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; opacity: 0; transform: translateY(14px);
+    animation: rise 0.6s ease forwards; position: relative; overflow: hidden; border: 1px solid transparent;
+  }
+  .kpi-card::before {
+    content: ""; position: absolute; top: -34px; right: -34px; width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-color, var(--accent)) 0%, transparent 72%); opacity: 0.16; pointer-events: none;
+  }
+  .kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--accent-color, var(--accent)); }
+  .kpi-top { display: flex; align-items: center; gap: 8px; }
+  .kpi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-color, var(--accent)); flex: none; }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 600; }
+  .kpi-value {
+    font-size: 28px; font-weight: 800; color: var(--navy); margin-top: 6px; font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word; word-break: break-word; line-height: 1.18; font-family: var(--font-display);
+  }
+  .kpi-value--text { font-size: clamp(15px, 2.1vw, 20px); line-height: 1.3; }
+  .kpi-sub { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  section.panel {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 26px 22px;
+    margin-bottom: 24px; opacity: 0; animation: rise 0.6s ease forwards;
+  }
+  section.panel h2 { font-size: 18px; margin: 0 0 4px; color: var(--navy); display: flex; align-items: center; gap: 9px; font-family: var(--font-display); }
+  section.panel .panel-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+  .panel-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+  .chart-box { min-height: 340px; }
+  .chart-box.wide { min-height: 300px; }
+
+  .recommendation-callout {
+    background: #fff; border: 1.5px solid var(--card-border); border-left: 6px solid var(--accent);
+    border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; font-size: 15px; font-style: italic;
+    color: var(--ink); position: relative;
+  }
+  .recommendation-callout .rc-label {
+    display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--accent); font-style: normal; margin-bottom: 8px;
+  }
+  .checklist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 10px; margin-top: 6px; }
+  .checklist-row {
+    display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 10px 14px; font-size: 13px;
+  }
+  .checklist-row .check-icon {
+    width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: #fff; flex: none;
+  }
+  .checklist-row.pass .check-icon { background: var(--success); }
+  .checklist-row.fail .check-icon { background: var(--danger); }
+  .checklist-row .check-text { display: flex; flex-direction: column; gap: 2px; }
+  .checklist-row .check-label { font-weight: 700; color: var(--navy); }
+  .checklist-row .check-detail { font-size: 11.5px; color: var(--ink-muted); }
+
+  .filters-bar { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 14px; }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+  .filter-group label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  select, input[type="search"] {
+    font-family: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--card-border);
+    background: #fff; color: var(--ink); min-width: 190px;
+  }
+  select:focus, input[type="search"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .used-pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .used-pill {
+    cursor: pointer; user-select: none; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    border: 1.5px solid var(--card-border); background: #fff; color: var(--ink-muted); transition: all 0.15s ease;
+  }
+  .used-pill.active { color: #fff; border-color: transparent; background: var(--navy); }
+  .used-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(16,24,40,0.14); }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data-table th {
+    text-align: left; padding: 10px 12px; background: var(--surface); color: var(--ink-muted);
+    text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; position: sticky; top: 0; cursor: pointer;
+    user-select: none; white-space: nowrap;
+  }
+  table.data-table th.sortable:hover { color: var(--navy); }
+  table.data-table th .sort-arrow { font-size: 10px; margin-left: 4px; opacity: 0.6; }
+  table.data-table td { padding: 9px 12px; border-top: 1px solid var(--card-border); }
+  table.data-table tr:hover td { background: #BECBF0; }
+  .table-scroll { max-height: 440px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 10px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .pill.used-yes { background: rgba(27,153,139,0.16); color: var(--success); }
+  .pill.used-no { background: rgba(107,114,128,0.14); color: var(--gray); }
+  .table-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .table-toolbar .count-label { font-size: 12.5px; color: var(--ink-muted); }
+
+  .assumption-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed var(--card-border); font-size: 13px; }
+  .assumption-row .a-label { color: var(--ink-muted); max-width: 70%; }
+  .assumption-row .a-value { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 28px; margin-bottom: 4px; }
+  .detail-heading { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 13px; }
+
+  .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .suggestion-card {
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 16px 18px; background: var(--card);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .suggestion-card:hover { box-shadow: var(--shadow); border-color: var(--accent-color, var(--accent)); transform: translateY(-2px); }
+  .suggestion-card h3 { font-size: 14.5px; margin: 0 0 8px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .suggestion-card .smart-row { font-size: 12.5px; margin-bottom: 5px; }
+  .smart-tag { font-weight: 700; color: var(--accent); margin-right: 4px; }
+
+  footer { max-width: 1320px; margin: 0 auto; padding: 8px 24px 40px; font-size: 12px; color: var(--ink-muted); text-align: center; }
+
+  @media (max-width: 640px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    header.hero { padding: 36px 18px 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Customer360 Navigator &middot; BP6 Executive Rollup</div>
+    <h1 class="title">GenAI Resolution Assistant <span class="title-accent">— Executive Dashboard</span></h1>
+    <p class="subtitle">Real results from BP6 Gates 1&ndash;6, generated 2026-09-24T17:09:55.782349+00:00. BP6 fits no
+      model and has no supervised outcome — it is a retrieval-strategy benchmark plus a real,
+      human-in-the-loop, citation-grounded GenAI recommendation layer over BP1&ndash;BP5's own real
+      Gate 7 outputs. Every recommendation remains <strong>PENDING_HUMAN_REVIEW</strong> and is
+      never auto-applied — a governance feature, not a current limitation.</p>
+    <div class="badge-row" id="governance-badges"></div>
+    <div class="prod-banner" id="prod-banner"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <section class="panel">
+    <h2>Gate 3/4 — Retrieval Strategy Benchmark &amp; Independent Validation</h2>
+    <div class="panel-desc">Real coverage of BP6's champion retrieval strategy (taxonomy-bucket match)
+      vs. its runner-up over real query buckets, Gate 4's real bucket-availability crosstab, and the
+      real bootstrap 95% CI on the champion's coverage, independently reproduced at Gate 4.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-retrieval-coverage"></div>
+      <div class="chart-box" id="chart-bucket-crosstab"></div>
+      <div class="chart-box" id="chart-bootstrap-ci"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 4 — Taxonomy-Bucket Crosswalk (Explainability Trace)</h2>
+    <div class="panel-desc">BP6 fits no black-box model, so there is no SHAP feature-importance chart
+      here. This real, 3-entry crosswalk trace is BP6's fully transparent, by-design equivalent —
+      the real rationale for every real taxonomy bucket with a cross-corpus hit on both BANKING77
+      and CFPB.</div>
+    <div class="table-scroll">
+      <table class="data-table" id="crosswalk-table">
+        <thead>
+          <tr>
+            <th>Bucket</th>
+            <th>Crosswalk Confidence</th>
+            <th>Real BANKING77 Categories Mapped</th>
+            <th>Real CFPB Product Candidates</th>
+            <th>Rationale</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 5 — GenAI Recommendation &amp; Grounding</h2>
+    <div class="panel-desc">The real recommendation text below is quoted verbatim from Gate 5's own
+      saved artifact — never paraphrased or re-generated by this dashboard. Every factual claim in
+      it must carry at least one real citation into BP1&ndash;BP5's own real Gate 7 outputs.</div>
+    <div class="recommendation-callout">
+      <span class="rc-label">Real, GenAI-generated recommendation (quoted verbatim)</span>
+      <span id="recommendation-text"></span>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-citation-donut"></div>
+      <div class="chart-box" id="chart-governance-checklist"></div>
+    </div>
+    <div class="detail-heading">Real governance checklist (6 rows)</div>
+    <div class="checklist-grid" id="checklist-grid"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 5 — Citation Table (Real Evidence Bundle)</h2>
+    <div class="panel-desc">All real evidence items retrieved from BP1&ndash;BP5's own real Gate 7
+      outputs and made available to Gate 5's GenAI call. Rows marked "Used" are the real evidence
+      IDs the generated recommendation actually cited.</div>
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label>Filter</label>
+        <div class="used-pill-group" id="used-pill-group">
+          <span class="used-pill active" data-used="ALL">All evidence</span>
+          <span class="used-pill" data-used="YES">Used in recommendation</span>
+          <span class="used-pill" data-used="NO">Available, not cited</span>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label for="citation-search">Search evidence ID / source BP / field</label>
+        <input type="search" id="citation-search" placeholder="e.g. EV-BP4, champion_pipeline&hellip;">
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" id="citation-table">
+        <thead>
+          <tr>
+            <th data-key="evidence_id">Evidence ID</th>
+            <th data-key="used_in_recommendation">Used</th>
+            <th data-key="source_bp">Source BP</th>
+            <th data-key="source_gate">Gate</th>
+            <th data-key="source_field_or_metric">Field / Metric</th>
+            <th data-key="extracted_value">Real Extracted Value</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="table-toolbar">
+      <span class="count-label" id="citation-count-label"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 1 — Business Understanding &amp; Policy</h2>
+    <div class="panel-desc">Real scope, upstream-dependency status, GenAI governance policy, and
+      compliance touchpoints recorded at Gate 1.</div>
+    <div id="gate1-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 6 — Governance &amp; Known Limitations</h2>
+    <div class="panel-desc">Real governance status from this run, plus open items carried forward
+      honestly rather than hidden.</div>
+    <div id="gate6-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>SMART Suggestions</h2>
+    <div class="panel-desc">Specific, Measurable, Achievable, Relevant, Time-bound recommendations —
+      each grounded in a real number from Gates 1&ndash;6, not freeform text.</div>
+    <div class="suggestion-grid" id="suggestion-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Generated by <code>bp6_genai_resolution_assistant_g7_executive_rollup_report.ipynb</code> &middot;
+  Governance: ================ 363 passed, 6 skipped, 182 warnings in 21.06s ================ &middot; Notebook syntax audit: returncode=0 &middot;
+  Customer360 Navigator Enterprise Suite &mdash; BP6 GenAI Resolution Assistant
+</footer>
+
+<script id="rollup-data" type="application/json">{"palette": {"primary_navy": "#1E2761", "accent_blue": "#4C6EF5", "ice_blue": "#CADCFC", "success_green": "#1B998B", "warning_amber": "#E8A33D", "danger_red": "#C1292E", "neutral_gray": "#6B7280", "surface_light": "#F7F8FC", "ink": "#101828", "ink_muted": "#4B5468"}, "categorical_sequence": ["#1E2761", "#4C6EF5", "#1B998B", "#E8A33D", "#C1292E", "#6B7280"], "kpis": {"genai_call_first_occurs_at_gate": 5, "n_rows_screened": 13083, "n_rows_flagged": 0, "pct_rows_flagged": 0.0, "pii_categories_checked": ["email", "phone", "ssn_like", "card_like"], "n_upstream_bps_with_live_artifacts": 5, "n_total_upstream_artifact_files_registered": 79, "champion_strategy": "taxonomy_bucket_match", "champion_coverage": 0.333333, "runner_up_strategy": "raw_string_match", "runner_up_coverage": 0.0, "n_query_buckets": 9, "bootstrap_ci_point_estimate": 0.333333, "bootstrap_ci_low": 0.0, "bootstrap_ci_high": 0.666667, "bootstrap_n": 1000, "crosstab_both_sides_n": 3, "crosstab_banking77_only_n": 6, "crosstab_cfpb_only_n": 0, "n_explainability_trace_entries": 3, "leakage_reconfirmed": true, "ecoa_reg_b_disparate_impact_applicability": "NOT_APPLICABLE", "model_used": "gemini-3.5-flash", "input_tokens": 1032, "output_tokens": 113, "finish_reason": "FinishReason.STOP", "generated_recommendation_text": "To address this unrecognized withdrawal report, we should review BP4, which utilizes a polars_lazy_streaming champion pipeline [EV-BP4-1] and is currently recommended for the production tier [EV-BP4-2]. Additionally, we should note that BP4 represents two slow but correct candidates from gate 3 [EV-BP4-5] and embeds 7,204 high and medium tier clusters [EV-BP4-6]. Please verify these system specifications before initiating the standard investigation process for the customer's transaction.", "n_evidence_citations_available": 28, "n_citations_used": 4, "citation_reuse_ratio": 0.14285714285714285, "citation_check_passed": true, "udaap_check_passed": true, "n_udaap_sentences_scanned": 3, "nist_ai_rmf_risk_category": "MEDIUM", "approval_status": "PENDING_HUMAN_REVIEW", "auto_applied": false, "human_in_the_loop_required": true, "gate6_pytest_n_passed": 363, "gate6_pytest_n_failed": 0, "gate6_pytest_all_passed": true, "gate6_notebook_syntax_all_passed": true, "gate6_fastapi_self_test_identical": true, "gate6_fastapi_health_check_status": "ok", "gate6_fastapi_self_test_real_gemini_call_made": true, "gate3_gate4_champion_retrieval_strategy_agree": true, "low_citation_reuse_ratio_detected": true, "short_generated_recommendation_text_detected": false, "generated_recommendation_text_length_chars": 492, "gemini_model_env_override_at_gate6_runtime": "gemini-3.6-flash", "model_drift_vs_gate5_saved_artifact": true, "production_recommendation": {"tier": "RECOMMENDED FOR PRODUCTION", "tier_code": 1, "reason": "All 6 gates real-run confirmed (each gate's own config marker block present with a real generated_at_utc timestamp); every real structural/governance check passed (pytest 363 passed/0 failed, notebook-syntax audit all passed, retrieval champion 'taxonomy_bucket_match' agrees across Gate 3/Gate 4, coverage independently reproduces exactly, leakage reconfirmed, citation/UDAAP checks passed, finish_reason='FinishReason.STOP' (never truncated), NIST AI RMF risk category 'MEDIUM' (never LOW), human-in-the-loop enforced (approval_status=PENDING_HUMAN_REVIEW, auto_applied=False), and Gate 6's own real FastAPI self-test reported identical=True). Tier 2 (CONDITIONAL - GOVERNANCE REVIEW REQUIRED) is structurally unreachable for BP6: Gate 4's real ecoa_reg_b_status is NOT_APPLICABLE (BP6's real inputs - BANKING77's text/category columns and the real common_taxonomy_bucket join field - carry no ECOA/Reg B protected-class or demographic-adjacent field), so BP6 carries no disparate-impact check that could ever trigger Tier 2 - this differs from BP3, which does run that check and can land in Tier 2, and matches BP4's own precedent exactly.", "structural_checks": {"gate1_real_run_confirmed": true, "gate2_real_run_confirmed": true, "gate3_real_run_confirmed": true, "gate4_real_run_confirmed": true, "gate5_real_run_confirmed": true, "gate6_real_run_confirmed": true, "gate2_zero_pii_rows_flagged": true, "gate3_gate4_champion_retrieval_strategy_agree": true, "gate4_coverage_reproduces_gate3_exactly": true, "gate4_leakage_reconfirmed": true, "gate4_ecoa_reg_b_confirmed_not_applicable": true, "gate5_citation_check_passed": true, "gate5_udaap_check_passed": true, "gate5_finish_reason_not_truncated": true, "gate5_approval_status_pending_human_review": true, "gate5_never_auto_applied": true, "gate5_nist_risk_category_not_low": true, "gate5_zero_phantom_citations_referenced": true, "gate5_at_least_one_real_citation_used": true, "gate6_pytest_all_passed": true, "gate6_notebook_syntax_all_passed": true, "gate6_fastapi_self_test_identical": true, "gate6_fastapi_health_check_ok": true}, "all_structural_checks_passed": true, "ecoa_reg_b_disparate_impact_applicability": "NOT_APPLICABLE", "tier_2_reachable_for_this_bp": false, "tier_2_trigger_mechanism": "None - structurally unreachable. BP6 carries no disparate-impact check (Gate 4's real ecoa_reg_b_status == 'NOT_APPLICABLE'), unlike BP3."}, "generated_at_utc": "2026-09-24T17:09:51.901460+00:00"}, "governance_checklist": [{"label": "Citation check passed", "passed": true, "detail": "4 real evidence ID(s) referenced, 0 phantom"}, {"label": "UDAAP check passed", "passed": true, "detail": "3 narrative sentence(s) scanned, 0 failing"}, {"label": "Truncation guard (finish_reason != MAX_TOKENS)", "passed": true, "detail": "real finish_reason = 'FinishReason.STOP'"}, {"label": "NIST AI RMF risk category not LOW", "passed": true, "detail": "real risk_category_value = 'MEDIUM'"}, {"label": "Human-in-the-loop enforced (never auto-applied)", "passed": true, "detail": "approval_status='PENDING_HUMAN_REVIEW', auto_applied=False"}, {"label": "FastAPI self-test identical", "passed": true, "detail": "health_check_status='ok', real_gemini_call_made=True"}], "citation_table": [{"evidence_id": "EV-BP1-1", "used_in_recommendation": false, "source_bp": "bp1", "source_gate": 7, "source_field_or_metric": "champion_model", "extracted_value": "logistic_regression", "source_artifact_relative_path": "notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP1-2", "used_in_recommendation": false, "source_bp": "bp1", "source_gate": 7, "source_field_or_metric": "contains_financial_impact_section", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP1-3", "used_in_recommendation": false, "source_bp": "bp1", "source_gate": 7, "source_field_or_metric": "contains_assumption_based_content", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP2-1", "used_in_recommendation": false, "source_bp": "bp2", "source_gate": 7, "source_field_or_metric": "champion_model", "extracted_value": "xgboost", "source_artifact_relative_path": "notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP2-2", "used_in_recommendation": false, "source_bp": "bp2", "source_gate": 7, "source_field_or_metric": "contains_financial_impact_section", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP2-3", "used_in_recommendation": false, "source_bp": "bp2", "source_gate": 7, "source_field_or_metric": "contains_assumption_based_content", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP2-4", "used_in_recommendation": false, "source_bp": "bp2", "source_gate": 7, "source_field_or_metric": "n_gate3_failed_candidates_represented", "extracted_value": 0, "source_artifact_relative_path": "notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP3-1", "used_in_recommendation": false, "source_bp": "bp3", "source_gate": 7, "source_field_or_metric": "champion_model", "extracted_value": "xgboost", "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP3-2", "used_in_recommendation": false, "source_bp": "bp3", "source_gate": 7, "source_field_or_metric": "recommended_for_production_tier", "extracted_value": "CONDITIONAL - GOVERNANCE REVIEW REQUIRED", "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP3-3", "used_in_recommendation": false, "source_bp": "bp3", "source_gate": 7, "source_field_or_metric": "contains_financial_impact_section", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP3-4", "used_in_recommendation": false, "source_bp": "bp3", "source_gate": 7, "source_field_or_metric": "contains_assumption_based_content", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP3-5", "used_in_recommendation": false, "source_bp": "bp3", "source_gate": 7, "source_field_or_metric": "n_gate3_near_zero_recall_anomalies_represented", "extracted_value": 2, "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP3-6", "used_in_recommendation": false, "source_bp": "bp3", "source_gate": 7, "source_field_or_metric": "disparate_impact_flagged", "extracted_value": true, "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP4-1", "used_in_recommendation": true, "source_bp": "bp4", "source_gate": 7, "source_field_or_metric": "champion_pipeline", "extracted_value": "polars_lazy_streaming", "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP4-2", "used_in_recommendation": true, "source_bp": "bp4", "source_gate": 7, "source_field_or_metric": "recommended_for_production_tier", "extracted_value": "RECOMMENDED FOR PRODUCTION", "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP4-3", "used_in_recommendation": false, "source_bp": "bp4", "source_gate": 7, "source_field_or_metric": "contains_financial_impact_section", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP4-4", "used_in_recommendation": false, "source_bp": "bp4", "source_gate": 7, "source_field_or_metric": "contains_assumption_based_content", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP4-5", "used_in_recommendation": true, "source_bp": "bp4", "source_gate": 7, "source_field_or_metric": "n_gate3_slow_but_correct_candidates_represented", "extracted_value": 2, "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP4-6", "used_in_recommendation": true, "source_bp": "bp4", "source_gate": 7, "source_field_or_metric": "n_high_and_medium_tier_clusters_embedded", "extracted_value": 7204, "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP4-7", "used_in_recommendation": false, "source_bp": "bp4", "source_gate": 7, "source_field_or_metric": "tier_2_reachable_for_this_bp", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP5-1", "used_in_recommendation": false, "source_bp": "bp5", "source_gate": 7, "source_field_or_metric": "production_recommendation_tier", "extracted_value": "Recommended for Decision-Support Use, With Monitoring", "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP5-2", "used_in_recommendation": false, "source_bp": "bp5", "source_gate": 7, "source_field_or_metric": "production_recommendation_tier_code", "extracted_value": 2, "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP5-3", "used_in_recommendation": false, "source_bp": "bp5", "source_gate": 7, "source_field_or_metric": "ecoa_reg_b_disparate_impact_applicability", "extracted_value": "NOT_APPLICABLE", "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP5-4", "used_in_recommendation": false, "source_bp": "bp5", "source_gate": 7, "source_field_or_metric": "contains_financial_impact_section", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP5-5", "used_in_recommendation": false, "source_bp": "bp5", "source_gate": 7, "source_field_or_metric": "contains_assumption_based_content", "extracted_value": false, "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP5-6", "used_in_recommendation": false, "source_bp": "bp5", "source_gate": 7, "source_field_or_metric": "n_negligible_strength_fields_detected", "extracted_value": 2, "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP5-7", "used_in_recommendation": false, "source_bp": "bp5", "source_gate": 7, "source_field_or_metric": "n_near_zero_precision_outcomes_detected", "extracted_value": 1, "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"}, {"evidence_id": "EV-BP5-8", "used_in_recommendation": false, "source_bp": "bp5", "source_gate": 7, "source_field_or_metric": "association_not_causation_disclaimer_carried_forward", "extracted_value": true, "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"}], "bucket_crosswalk": [{"bucket": "ATM_CASH_WITHDRAWAL", "crosswalk_confidence": "LOW", "n_real_banking77_categories_mapped_here": 7, "real_cfpb_product_candidates": "Checking or savings account, Credit card or prepaid card", "crosswalk_rationale": "CFPB does not have a dedicated ATM/cash-withdrawal product; ATM disputes are typically filed under the deposit-account product. This is an inference, not a confirmed CFPB coding rule \u2014 flagged LOW until cross-checked against real Issue values."}, {"bucket": "CARD_ISSUANCE_AND_LIFECYCLE", "crosswalk_confidence": "MEDIUM", "n_real_banking77_categories_mapped_here": 15, "real_cfpb_product_candidates": "Credit card or prepaid card, Credit card, Prepaid card", "crosswalk_rationale": "BANKING77 categories about receiving/activating/losing/replacing a physical or virtual card map to CFPB's card-product family. CFPB does not separately code 'card lifecycle' as an Issue, so this is a product-level match only, not issue-level."}, {"bucket": "TRANSFERS", "crosswalk_confidence": "HIGH", "n_real_banking77_categories_mapped_here": 11, "real_cfpb_product_candidates": "Money transfer, virtual currency, or money service, Checking or savings account", "crosswalk_rationale": "CFPB's 'Money transfer, virtual currency, or money service' product is a direct, named match for BANKING77's transfer-related categories (sent/received/cancelled/declined/failed transfers, beneficiary and timing issues)."}], "gate1": {"scope_definition": {"purpose": "Retrieve structured evidence from BP1-BP5's real outputs, summarize it, and recommend a next action with a citation/evidence field on every claim, per Master Plan Section 5.1/7 - human-in-the-loop approval required before any recommendation is treated as final.", "genai_call_occurs_at_this_gate": false, "genai_call_first_occurs_at_gate": 5, "this_gate_establishes": "Scope, real upstream-dependency status (live-checked), and the GenAI governance policy every later gate's output must satisfy - no retrieval, no generation, no external API call of any kind happens in this notebook."}, "upstream_dependency_policy": {"bp1": {"bp_id": "bp1", "bp_name": "bp1_customer_intent_classification", "config_status_string_live": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed", "highest_confirmed_gate_live": 6, "gate1_policy_artifact_exists_live": true, "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY", "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp1_customer_intent_classification_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"}, "bp2": {"bp_id": "bp2", "bp_name": "bp2_customer_friction_classification", "config_status_string_live": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed", "highest_confirmed_gate_live": 6, "gate1_policy_artifact_exists_live": true, "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY", "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp2_customer_friction_classification_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"}, "bp3": {"bp_id": "bp3", "bp_name": "bp3_complaint_escalation_prediction", "config_status_string_live": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed", "highest_confirmed_gate_live": 6, "gate1_policy_artifact_exists_live": true, "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY", "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp3_complaint_escalation_prediction_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"}, "bp4": {"bp_id": "bp4", "bp_name": "bp4_customer_journey_analytics", "config_status_string_live": "gate6_complete", "highest_confirmed_gate_live": 6, "gate1_policy_artifact_exists_live": true, "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY", "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp4_customer_journey_analytics_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"}, "bp5": {"bp_id": "bp5", "bp_name": "bp5_root_cause_driver_analytics", "config_status_string_live": "gate1_confirmed", "highest_confirmed_gate_live": 1, "gate1_policy_artifact_exists_live": true, "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY", "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp5_root_cause_driver_analytics_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"}}, "genai_usage_policy": {"grounding_definition": "A BP6 claim is 'grounded' only if every factual statement in it carries at least one citation/evidence record (schema below) pointing to a real field in a real upstream BP artifact - never an ungrounded free-text generation presented as fact.", "citation_evidence_schema": {"evidence_id": "A stable identifier for one cited piece of evidence within a single BP6 recommendation - unique within that recommendation, never reused across recommendations.", "source_bp": "Which upstream BP (bp1-bp5) this evidence was retrieved from.", "source_gate": "Which gate of that upstream BP produced the artifact this evidence was read from (e.g. 1, 3, 6) - never assumed to be Gate 1 by default.", "source_artifact_relative_path": "The real, project-root-relative file path this evidence was read from (e.g. notebooks/bp1_customer_intent_classification/artifacts/policy.json) - always a real path to a real file that exists at retrieval time, never a description.", "source_field_or_metric": "The exact field, column, or metric name inside that artifact this evidence value was read from - never paraphrased.", "extracted_value": "The real value read from that field at retrieval time, copied verbatim (numbers as numbers, strings as strings) - never summarized or rounded without saying so.", "retrieval_timestamp_utc": "When this evidence was actually retrieved, in ISO-8601 UTC - so a later audit can tell whether the upstream artifact has since changed.", "verification_method": "How this evidence's presence in the source artifact was confirmed (e.g. 'read directly from JSON key path X') - never 'assumed' or 'recalled'."}, "human_in_the_loop": {"required": true, "auto_apply_allowed": false, "description": "No BP6 recommendation is ever applied, sent, or treated as final without an explicit human approval step - Master Plan Section 5.1's own words: 'human-in-the-loop approval gate before any recommendation is treated as final.'"}, "udaap_language_review": {"required": true, "applies_to": "Every GenAI-drafted customer-facing recommendation, before human approval (Master Plan Section 9, UDAAP row).", "description": "Reviewed for deceptive/misleading language before a human may approve it - this review is separate from, and precedes, the human-in-the-loop approval step above."}, "nist_ai_rmf": {"functions_mapped": "Govern / Map / Measure / Manage mapped onto Gates 1-6 (Master Plan Section 9, NIST AI RMF row) - this Gate 1 notebook is the 'Govern' function for BP6: the policy itself, not yet a Measure/Manage check on a real GenAI output.", "risk_category_field_required": true, "risk_category_value": "TBD_PENDING_FIRST_REAL_GATE5_GENAI_OUTPUT", "description": "Every GenAI output requires human-in-loop approval plus a documented risk category - the field is declared here (Govern); it is populated with a real value only once a real Gate 5 output exists to categorize (Measure/Manage)."}, "glba_pii_masking": {"required": true, "applies_before": "Any GenAI call (BP6) or external API use (Gate 2 compliance touchpoint, Master Plan Section 8's gate table) - stated as policy here; the actual screen is a Gate 2 compliance touchpoint, not performed by this Gate 1 notebook.", "in_scope_narrative_text_source": "BANKING77's real 'text' field, surfaced via BP1's evidence - the only real narrative-text source in this suite, since the real CFPB extract carries no narrative-text column (Section 4 above, RAW_DATA_MANIFEST.md Finding 2).", "description": "Any PII surfaced in narrative text evidence is screened and masked before that text is placed into a GenAI prompt or returned in a GenAI output."}}, "grounding_integrity_rules": ["No BP6 recommendation may be treated as final without at least one citation/evidence record per factual claim, each conforming to the schema above - verified structurally below (citation_evidence_schema_has_required_fields).", "No BP6 recommendation may be auto-applied - human_in_the_loop.required and human_in_the_loop.auto_apply_allowed are both verified structurally below.", "Evidence retrieved from a CFPB-derived upstream BP (e.g. BP3, BP4, BP5) and evidence retrieved from a BANKING77-derived upstream BP (e.g. BP1) must never be silently merged into one row via a fabricated join key - each citation record references its own source BP's real key independently (Section 4 above: zero shared columns between the two real schemas, so no identifier-based join is possible by construction).", "This notebook itself makes zero external API calls and loads zero GenAI SDK module - verified live in Section 6 (genai_sdk_modules_loaded_this_run must be empty)."], "compliance_touchpoints": {"gate1_baseline": {"requirement": "Data-minimization & purpose-limitation statement (GLBA/GDPR-aligned) - Master Plan Section 8's own Gate 1 row, applied to every BP.", "statement": "This Gate 1 notebook processes only real column NAMES (CFPB's 15-column schema, read as metadata, never row-level CFPB data) and the real BANKING77 `text`/`category` fields (anonymized customer-service utterances, no real-customer PII), for the stated purpose of recording BP6's scope and GenAI governance policy. No BP1-BP5 row-level output is retrieved, read, or processed by this notebook."}, "udaap": "See genai_usage_policy.udaap_language_review above (Master Plan Section 9).", "nist_ai_rmf": "See genai_usage_policy.nist_ai_rmf above (Master Plan Section 9).", "glba": "See genai_usage_policy.glba_pii_masking above (Master Plan Section 9)."}, "assumptions": ["BP6 retrieves evidence from BP1-BP5's real outputs (Master Plan Section 5.1) - this notebook does not require those outputs to exist yet to define this policy; it records, live, which of the five already have a real Gate 1 policy.json today (Section 7 above).", "The real CFPB extract used in this project carries no narrative-text column (RAW_DATA_MANIFEST.md Finding 2, re-verified live in Section 4) - BANKING77's real `text` field, surfaced only via BP1's own evidence, is the sole real narrative-text source the GLBA PII-masking policy above needs to cover.", "BP6's citation/evidence schema is deliberately generic (source_bp/source_gate/source_artifact_relative_path/source_field_or_metric) rather than hardcoded to any upstream BP's internal field names, so it remains valid even as BP2/BP5's own schemas continue to evolve before BP6's own Gate 5 first retrieves from them.", "The NIST AI RMF risk-category value cannot be populated with a real category until a real Gate 5 GenAI output exists to categorize - recorded here as a required field with an explicit TBD value, never a guessed category.", "src/utils/bp1_config_sync.py is reused unmodified for BP6's own config file - already fully generic, parameterized by config_path, already reused unmodified by BP2/BP3/BP4."], "live_checks": {"cfpb_columns": ["Company", "Company public response", "Company response to consumer", "Complaint ID", "Date received", "Date sent to company", "Issue", "Product", "State", "Sub-issue", "Sub-product", "Submitted via", "Tags", "Timely response?", "ZIP code"], "cfpb_narrative_text_columns": [], "shared_columns_cfpb_banking77": [], "banking77_train_rows": 10003, "banking77_test_rows": 3080, "banking77_train_test_exact_text_overlap_rows": 0, "banking77_class_balance": {"n_classes": 77, "n_classes_in_train": 77, "min_class_count": 35, "max_class_count": 187}, "genai_sdk_modules_loaded_this_run": []}, "generated_at_utc": "2026-09-24T15:44:03.886329+00:00"}, "gate6_detail": {"bp_id": "bp6", "gate": 6, "pytest_summary_line": "\u001b[33m================ \u001b[32m363 passed\u001b[0m, \u001b[33m\u001b[1m6 skipped\u001b[0m, \u001b[33m\u001b[1m182 warnings\u001b[0m\u001b[33m in 21.06s\u001b[0m\u001b[33m ================\u001b[0m", "pytest_n_passed": 363, "pytest_n_failed": 0, "pytest_all_passed": true, "notebook_syntax_audit_returncode": 0, "notebook_syntax_all_passed": true, "fastapi_self_test_identical": true, "gate4_gate3_champion_retrieval_strategy_agree": true, "open_items": {"low_citation_reuse_ratio_detected": true, "citation_reuse_ratio": 0.1429, "short_generated_recommendation_text_detected": false, "generated_recommendation_text_length_chars": 492, "gemini_model_env_override_at_gate6_runtime": "gemini-3.6-flash", "model_drift_vs_gate5_saved_artifact": true}, "model_card_path": "reports\\bp6_genai_resolution_assistant\\MODEL_CARD.md", "changelog_path": "reports\\bp6_genai_resolution_assistant\\CHANGELOG.md", "generated_at_utc": "2026-09-24T16:45:52.155603+00:00", "fastapi_health_check_status": "ok", "fastapi_self_test_real_gemini_call_made": true, "fastapi_self_test_note": "This self-test artifact is a Gate 6 governance/testing record, NOT a customer -facing recommendation - it is separate from, and never overwrites, Gate 5's own gate5_recommendation_pending_human_review.json.", "fastapi_self_test_generated_at_utc": "2026-09-24T16:45:52.154991+00:00", "model_card_exists_on_this_machine": true, "changelog_exists_on_this_machine": true}, "suggestions": [{"title": "Expand taxonomy-bucket coverage beyond the 3 real cross-corpus hits", "specific": "Only 3 of 9 real taxonomy buckets have a real cross-corpus hit on both BANKING77 and CFPB (champion strategy 'taxonomy_bucket_match', real coverage 0.3333); 6 buckets are BANKING77-only today, with zero real CFPB-side evidence to retrieve against.", "measurable": "Real coverage of 0.3333 (95% bootstrap CI [0.0000, 0.6667]) \u2014 target: raise both_sides_n above 3/9 on a future real re-run of Gate 3's crosswalk.", "timebound": "Before the next scheduled Gate 3 crosswalk re-run.", "owner_placeholder": "BP6 retrieval-strategy owner (name TBD by the user's team)"}, {"title": "Review the low real citation-reuse ratio as a governance signal", "specific": "Gate 5's real recommendation cited 4 of 28 real evidence items available (reuse ratio 0.1429) \u2014 live-flagged by Gate 6 as a real, disclosed open item, not an error.", "measurable": "low_citation_reuse_ratio_detected=True at threshold 0.25, as live-computed by Gate 6.", "timebound": "Reviewed at every future real Gate 5/Gate 6 re-run.", "owner_placeholder": "BP6 governance reviewer (name TBD by the user's team)"}, {"title": "Monitor the real Gemini model-drift disclosure between Gate 5 and Gate 6", "specific": "Gate 5's saved recommendation used model 'gemini-3.5-flash'; Gate 6's own real runtime environment override recorded 'gemini-3.6-flash' (model_drift_vs_gate5_saved_artifact=True) \u2014 an informational disclosure only, since Gate 6's self-test still reported identical=True on its own real call.", "measurable": "0 further undisclosed model substitutions on the next real re-run.", "timebound": "Every time Gate 5 or Gate 6 is re-run.", "owner_placeholder": "BP6 MLOps owner (name TBD by the user's team)"}, {"title": "Maintain the mechanical UDAAP + citation-grounding review cadence", "specific": "Gate 5's own real UDAAP check scanned 3 narrative sentences and found 0 failing on this real run; the citation check confirmed 4 real, non-phantom evidence IDs referenced.", "measurable": "0 of 0 sentences failing, maintained on every future real re-run.", "timebound": "Every time Gate 5 or Gate 7 is re-run.", "owner_placeholder": "BP6 compliance reviewer (name TBD by the user's team)"}, {"title": "Keep the human-in-the-loop approval gate mandatory as BP6 scales", "specific": "Every real recommendation remains approval_status='PENDING_HUMAN_REVIEW' with auto_applied=False - a governance feature, not a current limitation, per Master Plan Section 5.1's own human-in-the-loop requirement.", "measurable": "auto_applied=False on 100% of real recommendations, every real run.", "timebound": "Standing requirement \u2014 no fixed deadline, re-verified at every Gate 6 run.", "owner_placeholder": "BP6 governance owner (name TBD by the user's team)"}]}</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('rollup-data').textContent);
+  const PALETTE = DATA.palette;
+  const CAT_SEQ = DATA.categorical_sequence;
+  const CHART_FONT = {family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", color: PALETTE.ink};
+  const CHART_HOVERLABEL = {bgcolor: PALETTE.primary_navy, bordercolor: PALETTE.primary_navy, font: {color: '#ffffff', size: 12, family: CHART_FONT.family}};
+
+  // ---------- resilient chart loading ----------
+  function markChartUnavailable(boxId) {
+    const box = document.getElementById(boxId);
+    if (box && !box.dataset.filled) {
+      box.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:300px;padding:20px;text-align:center;font-size:13px;color:var(--ink-muted);">Chart library (Plotly) could not be reached at cdn.plot.ly. The real underlying numbers for this chart are still available in the tables and checklist on this page.</div>';
+    }
+  }
+  function safePlot(boxId, drawFn) {
+    const run = () => {
+      try { drawFn(); const box = document.getElementById(boxId); if (box) box.dataset.filled = '1'; }
+      catch (e) { markChartUnavailable(boxId); }
+    };
+    if (window.Plotly) { run(); return; }
+    const cdnScript = document.getElementById('plotly-cdn');
+    if (!cdnScript) { markChartUnavailable(boxId); return; }
+    cdnScript.addEventListener('load', run, {once: false});
+    cdnScript.addEventListener('error', () => markChartUnavailable(boxId), {once: true});
+  }
+  setTimeout(() => {
+    if (!window.Plotly) {
+      document.querySelectorAll('.chart-box').forEach(box => markChartUnavailable(box.id));
+    }
+  }, 15000);
+
+  // ---------- animated count-up ----------
+  function groupThousands(numStr) {
+    const parts = numStr.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+  function animateValue(el, endText, duration) {
+    const numMatch = endText.match(/-?[\d.]+/);
+    if (!numMatch) { el.textContent = endText; return; }
+    const end = parseFloat(numMatch[0]);
+    const prefix = endText.slice(0, numMatch.index);
+    const suffix = endText.slice(numMatch.index + numMatch[0].length);
+    const decimals = (numMatch[0].split('.')[1] || '').length;
+    const start = 0;
+    const startTime = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = start + (end - start) * eased;
+      el.textContent = prefix + groupThousands(val.toFixed(decimals)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- Recommendation banner ----------
+  const prod = DATA.kpis.production_recommendation;
+  const banner = document.getElementById('prod-banner');
+  banner.className = 'prod-banner tier-' + prod.tier_code;
+  banner.innerHTML = '<span class="tier-label">' + prod.tier + '</span><span>' + prod.reason + '</span>' +
+    '<span class="tier-2-note">Note: Tier 2 (CONDITIONAL - GOVERNANCE REVIEW REQUIRED) is structurally unreachable for BP6 — Gate 4\'s real ecoa_reg_b_status is NOT_APPLICABLE, so no disparate-impact check exists that could ever trigger it, exactly like BP4.</span>';
+
+  // ---------- governance badges ----------
+  const badgeRow = document.getElementById('governance-badges');
+  const gov = DATA.kpis;
+  const badges = [
+    {label: 'pytest: ' + gov.gate6_pytest_n_passed + ' passed / ' + gov.gate6_pytest_n_failed + ' failed', ok: gov.gate6_pytest_n_failed === 0},
+    {label: 'Notebook syntax audit: ' + (gov.gate6_notebook_syntax_all_passed ? 'all passed' : 'issues found'), ok: gov.gate6_notebook_syntax_all_passed},
+    {label: 'FastAPI self-test identical: ' + gov.gate6_fastapi_self_test_identical, ok: gov.gate6_fastapi_self_test_identical},
+    {label: 'PII rows flagged: ' + gov.n_rows_flagged + ' of ' + gov.n_rows_screened.toLocaleString(), ok: gov.n_rows_flagged === 0},
+    {label: 'Open item: low citation-reuse ratio detected', ok: !gov.low_citation_reuse_ratio_detected},
+    {label: 'Open item: Gate 5/6 model drift disclosed', ok: !gov.model_drift_vs_gate5_saved_artifact},
+    {label: 'ECOA/Reg B disparate-impact: ' + gov.ecoa_reg_b_disparate_impact_applicability, ok: true},
+  ];
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'badge' + (b.ok ? '' : ' warn');
+    el.innerHTML = '<span class="dot"></span>' + b.label;
+    badgeRow.appendChild(el);
+  });
+
+  // ---------- KPI cards ----------
+  const kpiGrid = document.getElementById('kpi-grid');
+  const kpiDefs = [
+    {label: 'Champion Retrieval Strategy', value: gov.champion_strategy, sub: 'coverage=' + gov.champion_coverage.toFixed(4)},
+    {label: 'Bootstrap 95% CI (Champion Coverage)', value: '[' + gov.bootstrap_ci_low.toFixed(4) + ', ' + gov.bootstrap_ci_high.toFixed(4) + ']', sub: 'n=' + gov.bootstrap_n.toLocaleString() + ' bootstrap draws'},
+    {label: 'PII Rows Screened', value: gov.n_rows_screened.toLocaleString(), sub: gov.n_rows_flagged + ' flagged'},
+    {label: 'Gemini Model (Gate 5)', value: gov.model_used, sub: 'finish_reason=' + gov.finish_reason},
+    {label: 'Citations Used / Available', value: gov.n_citations_used + ' / ' + gov.n_evidence_citations_available, sub: 'reuse ratio=' + gov.citation_reuse_ratio.toFixed(4)},
+    {label: 'NIST AI RMF Risk Category', value: gov.nist_ai_rmf_risk_category, sub: 'never LOW, by design'},
+    {label: 'Approval Status', value: gov.approval_status, sub: 'auto_applied=' + gov.auto_applied},
+    {label: 'Upstream Evidence Files Registered', value: String(gov.n_total_upstream_artifact_files_registered), sub: gov.n_upstream_bps_with_live_artifacts + ' upstream BPs (BP1–BP5)'},
+  ];
+  kpiDefs.forEach((k, i) => {
+    const card = document.createElement('div');
+    const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+    card.className = 'kpi-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.style.setProperty('--accent-color', accentColor);
+    const isLongText = typeof k.value === 'string' && /[a-zA-Z]{4,}/.test(k.value) && k.value.replace(/[^a-zA-Z]/g, '').length > 8;
+    const valueClass = 'kpi-value' + (isLongText ? ' kpi-value--text' : '');
+    card.innerHTML =
+      '<div class="kpi-top"><span class="kpi-dot"></span><span class="kpi-label">' + k.label + '</span></div>' +
+      '<div class="' + valueClass + '" data-final="' + k.value + '"></div>' +
+      '<div class="kpi-sub">' + k.sub + '</div>';
+    kpiGrid.appendChild(card);
+  });
+  document.querySelectorAll('.kpi-value').forEach(el => {
+    if (/^-?[\d.,]+$/.test(el.dataset.final)) { animateValue(el, el.dataset.final, 900); }
+    else { el.textContent = el.dataset.final; }
+  });
+
+  // ---------- Gate 3 — retrieval coverage bar ----------
+  safePlot('chart-retrieval-coverage', () => Plotly.newPlot('chart-retrieval-coverage', [{
+    type: 'bar',
+    x: [gov.champion_strategy, gov.runner_up_strategy],
+    y: [gov.champion_coverage, gov.runner_up_coverage],
+    marker: {color: [PALETTE.success_green, PALETTE.neutral_gray]},
+    text: [gov.champion_coverage.toFixed(4), gov.runner_up_coverage.toFixed(4)], textposition: 'outside',
+    hovertemplate: '%{x}<br>Real coverage: %{y:.4f}<extra></extra>',
+  }], {
+    title: {text: 'Champion vs. Runner-Up (real coverage)', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+    margin: {t: 45, b: 45, l: 55, r: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+    yaxis: {title: 'Real coverage', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+  }, {responsive: true, displaylogo: false}));
+
+  // ---------- Gate 4 — bucket crosstab ----------
+  safePlot('chart-bucket-crosstab', () => Plotly.newPlot('chart-bucket-crosstab', [{
+    type: 'bar',
+    x: ['Both sides (real hit)', 'BANKING77-only', 'CFPB-only'],
+    y: [gov.crosstab_both_sides_n, gov.crosstab_banking77_only_n, gov.crosstab_cfpb_only_n],
+    marker: {color: [PALETTE.success_green, PALETTE.warning_amber, PALETTE.danger_red]},
+    text: [gov.crosstab_both_sides_n, gov.crosstab_banking77_only_n, gov.crosstab_cfpb_only_n], textposition: 'outside',
+    hovertemplate: '%{x}<br>Real bucket count: %{y}<extra></extra>',
+  }], {
+    title: {text: 'Bucket-Availability Crosstab (real, live-computed)', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+    margin: {t: 45, b: 45, l: 45, r: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+    yaxis: {title: 'Real taxonomy buckets', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+  }, {responsive: true, displaylogo: false}));
+
+  // ---------- Gate 4 — bootstrap CI ----------
+  safePlot('chart-bootstrap-ci', () => Plotly.newPlot('chart-bootstrap-ci', [{
+    type: 'bar', x: [gov.bootstrap_ci_point_estimate], y: ['Champion coverage'], orientation: 'h',
+    marker: {color: PALETTE.accent_blue},
+    error_x: {type: 'data', symmetric: false, array: [gov.bootstrap_ci_high - gov.bootstrap_ci_point_estimate], arrayminus: [gov.bootstrap_ci_point_estimate - gov.bootstrap_ci_low], color: PALETTE.primary_navy, thickness: 2.5, width: 8},
+    text: [gov.bootstrap_ci_point_estimate.toFixed(4)], textposition: 'outside',
+    hovertemplate: 'Point estimate: %{x:.4f}<br>95% CI: [' + gov.bootstrap_ci_low.toFixed(4) + ', ' + gov.bootstrap_ci_high.toFixed(4) + ']<extra></extra>',
+  }], {
+    title: {text: 'Bootstrap 95% CI (n=' + gov.bootstrap_n.toLocaleString() + ')', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+    margin: {l: 20, t: 45, r: 40, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, showlegend: false,
+    xaxis: {title: 'Real point estimate + 95% bootstrap CI', gridcolor: '#9FADDB'}, yaxis: {showticklabels: false},
+    plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+  }, {responsive: true, displaylogo: false}));
+
+  // ---------- Gate 5 — citation reuse donut ----------
+  safePlot('chart-citation-donut', () => Plotly.newPlot('chart-citation-donut', [{
+    type: 'pie', hole: 0.55,
+    labels: ['Cited in this recommendation', 'Available, not cited'],
+    values: [gov.n_citations_used, gov.n_evidence_citations_available - gov.n_citations_used],
+    marker: {colors: [PALETTE.accent_blue, PALETTE.ice_blue]},
+    textinfo: 'label+percent', hovertemplate: '%{label}<br>%{value} real evidence item(s)<extra></extra>',
+  }], {
+    title: {text: 'Real Citation Reuse (' + gov.n_citations_used + ' of ' + gov.n_evidence_citations_available + ')', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+    margin: {t: 45, b: 20, l: 20, r: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, showlegend: false,
+    plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+  }, {responsive: true, displaylogo: false}));
+
+  // ---------- Gate 5/6 — governance checklist bar ----------
+  function renderGovernanceChecklistChart() {
+    const rows = DATA.governance_checklist.slice().reverse();
+    safePlot('chart-governance-checklist', () => Plotly.newPlot('chart-governance-checklist', [{
+      type: 'bar', orientation: 'h',
+      y: rows.map(r => r.label), x: rows.map(() => 1),
+      marker: {color: rows.map(r => r.passed ? PALETTE.success_green : PALETTE.danger_red)},
+      text: rows.map(r => r.passed ? 'PASS' : 'FAIL'), textposition: 'outside',
+      hovertemplate: '%{y}<extra></extra>',
+    }], {
+      title: {text: 'Real Governance Checklist', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 260, t: 45, r: 60, b: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {visible: false, range: [0, 1.3]}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+  renderGovernanceChecklistChart();
+
+  // ---------- governance checklist rows (HTML) ----------
+  function renderChecklistGrid() {
+    const grid = document.getElementById('checklist-grid');
+    DATA.governance_checklist.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'checklist-row ' + (c.passed ? 'pass' : 'fail');
+      row.innerHTML =
+        '<span class="check-icon">' + (c.passed ? '✓' : '✗') + '</span>' +
+        '<span class="check-text"><span class="check-label">' + c.label + '</span>' +
+        '<span class="check-detail">' + c.detail + '</span></span>';
+      grid.appendChild(row);
+    });
+  }
+  renderChecklistGrid();
+
+  // ---------- recommendation text ----------
+  document.getElementById('recommendation-text').textContent = '“' + DATA.kpis.generated_recommendation_text + '”';
+
+  // ---------- bucket crosswalk table ----------
+  function renderCrosswalkTable() {
+    const tbody = document.querySelector('#crosswalk-table tbody');
+    DATA.bucket_crosswalk.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r.bucket + '</td>' +
+        '<td>' + r.crosswalk_confidence + '</td>' +
+        '<td>' + r.n_real_banking77_categories_mapped_here + '</td>' +
+        '<td>' + r.real_cfpb_product_candidates + '</td>' +
+        '<td style="max-width:420px;">' + r.crosswalk_rationale + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  renderCrosswalkTable();
+
+  // ---------- citation table ----------
+  const citationState = {used: 'ALL', search: ''};
+  function applyCitationFilters() {
+    let rows = DATA.citation_table;
+    if (citationState.used === 'YES') { rows = rows.filter(r => r.used_in_recommendation); }
+    if (citationState.used === 'NO') { rows = rows.filter(r => !r.used_in_recommendation); }
+    if (citationState.search) {
+      const q = citationState.search.toLowerCase();
+      rows = rows.filter(r =>
+        String(r.evidence_id).toLowerCase().includes(q) ||
+        String(r.source_bp).toLowerCase().includes(q) ||
+        String(r.source_field_or_metric).toLowerCase().includes(q)
+      );
+    }
+    return rows;
+  }
+  function renderCitationRows(rows) {
+    const tbody = document.querySelector('#citation-table tbody');
+    tbody.innerHTML = '';
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r.evidence_id + '</td>' +
+        '<td><span class="pill used-' + (r.used_in_recommendation ? 'yes">Used' : 'no">Not cited') + '</span></td>' +
+        '<td>' + r.source_bp + '</td>' +
+        '<td>' + r.source_gate + '</td>' +
+        '<td>' + r.source_field_or_metric + '</td>' +
+        '<td>' + String(r.extracted_value) + '</td>';
+      tbody.appendChild(tr);
+    });
+    document.getElementById('citation-count-label').textContent =
+      rows.length.toLocaleString() + ' real evidence item(s) match this filter (of ' + DATA.citation_table.length.toLocaleString() + ' total)';
+  }
+  function renderCitationTable() { renderCitationRows(applyCitationFilters()); }
+  document.querySelectorAll('.used-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.used-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      citationState.used = pill.dataset.used;
+      renderCitationTable();
+    });
+  });
+  document.getElementById('citation-search').addEventListener('input', (e) => {
+    citationState.search = e.target.value.trim();
+    renderCitationTable();
+  });
+  document.querySelectorAll('#citation-table th[data-key]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      const rows = applyCitationFilters().slice().sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0));
+      renderCitationRows(rows);
+    });
+  });
+
+  // ---------- Gate 1 detail (real, from policy.json) ----------
+  function renderGate1() {
+    const g1 = DATA.gate1;
+    const el = document.getElementById('gate1-detail');
+    let html = '<div class="assumption-row"><span class="a-label">' + (g1.scope_definition && g1.scope_definition.purpose ? g1.scope_definition.purpose : '') + '</span></div>';
+    html += '<div class="detail-heading">Compliance touchpoints (real)</div><div class="detail-grid">';
+    html += '<div class="assumption-row"><span class="a-label">UDAAP</span><span class="a-value">required=' + (g1.genai_usage_policy && g1.genai_usage_policy.udaap_language_review ? g1.genai_usage_policy.udaap_language_review.required : '') + '</span></div>';
+    html += '<div class="assumption-row"><span class="a-label">NIST AI RMF</span><span class="a-value">risk field required=' + (g1.genai_usage_policy && g1.genai_usage_policy.nist_ai_rmf ? g1.genai_usage_policy.nist_ai_rmf.risk_category_field_required : '') + '</span></div>';
+    html += '<div class="assumption-row"><span class="a-label">GLBA PII masking</span><span class="a-value">required=' + (g1.genai_usage_policy && g1.genai_usage_policy.glba_pii_masking ? g1.genai_usage_policy.glba_pii_masking.required : '') + '</span></div>';
+    html += '<div class="assumption-row"><span class="a-label">Human-in-the-loop</span><span class="a-value">required=' + (g1.genai_usage_policy && g1.genai_usage_policy.human_in_the_loop ? g1.genai_usage_policy.human_in_the_loop.required : '') + ', auto_apply_allowed=' + (g1.genai_usage_policy && g1.genai_usage_policy.human_in_the_loop ? g1.genai_usage_policy.human_in_the_loop.auto_apply_allowed : '') + '</span></div>';
+    html += '</div>';
+    html += '<div class="detail-heading">Grounding integrity rules (real, ' + (g1.grounding_integrity_rules ? g1.grounding_integrity_rules.length : 0) + ')</div><div class="detail-grid">';
+    (g1.grounding_integrity_rules || []).forEach(r => { html += '<div class="assumption-row"><span class="a-label">' + r + '</span></div>'; });
+    html += '</div>';
+    html += '<div class="detail-heading">Assumptions documented at Gate 1 (real)</div><div class="detail-grid">';
+    (g1.assumptions || []).forEach(a => { html += '<div class="assumption-row"><span class="a-label">' + a + '</span></div>'; });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- Gate 6 detail (real governance status) ----------
+  function renderGate6() {
+    const g6 = DATA.gate6_detail;
+    const el = document.getElementById('gate6-detail');
+    const rows = [
+      ['pytest suite', g6.pytest_summary_line],
+      ['Notebook syntax audit returncode', String(g6.notebook_syntax_audit_returncode)],
+      ['FastAPI health check', g6.fastapi_health_check_status],
+      ['FastAPI self-test identical', String(g6.fastapi_self_test_identical)],
+      ['FastAPI self-test made a real Gemini call', String(g6.fastapi_self_test_real_gemini_call_made)],
+      ['Gate 3/4 champion retrieval strategy agree', String(g6.gate4_gate3_champion_retrieval_strategy_agree)],
+      ['Open item — low citation-reuse ratio detected', String(g6.open_items ? g6.open_items.low_citation_reuse_ratio_detected : '') + ' (ratio=' + (g6.open_items ? g6.open_items.citation_reuse_ratio : '') + ')'],
+      ['Open item — short generated text detected', String(g6.open_items ? g6.open_items.short_generated_recommendation_text_detected : '') + ' (' + (g6.open_items ? g6.open_items.generated_recommendation_text_length_chars : '') + ' chars)'],
+      ['Open item — Gemini model env override at Gate 6 runtime', String(g6.open_items ? g6.open_items.gemini_model_env_override_at_gate6_runtime : '')],
+      ['Open item — model drift vs. Gate 5 saved artifact', String(g6.open_items ? g6.open_items.model_drift_vs_gate5_saved_artifact : '')],
+      ['Model card', g6.model_card_path],
+      ['Changelog', g6.changelog_path],
+    ];
+    let html = '<div class="detail-grid">';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + label + '</span><span class="a-value">' + val + '</span></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- SMART suggestions ----------
+  function renderSuggestions() {
+    const grid = document.getElementById('suggestion-grid');
+    DATA.suggestions.forEach((s, i) => {
+      const card = document.createElement('div');
+      const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+      card.className = 'suggestion-card';
+      card.style.setProperty('--accent-color', accentColor);
+      card.innerHTML =
+        '<h3><span class="panel-dot" style="background:' + accentColor + '"></span>' + s.title + '</h3>' +
+        '<div class="smart-row"><span class="smart-tag">Specific:</span>' + s.specific + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Measurable:</span>' + s.measurable + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Time-bound:</span>' + s.timebound + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Owner:</span>' + s.owner_placeholder + '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- section panel accent dots ----------
+  function applyPanelDots() {
+    document.querySelectorAll('section.panel h2').forEach((h2, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'panel-dot';
+      dot.style.background = CAT_SEQ[i % CAT_SEQ.length];
+      h2.prepend(dot);
+    });
+  }
+
+  // ---------- initial render ----------
+  applyPanelDots();
+  renderCitationTable();
+  renderGate1();
+  renderGate6();
+  renderSuggestions();
+
+  // fade-in panels on scroll
+  const panels = document.querySelectorAll('section.panel');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = (idx * 0.05) + 's';
+        entry.target.style.opacity = 1;
+        io.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.08});
+  panels.forEach(p => io.observe(p));
+})();
+</script>
+</body>
+</html>

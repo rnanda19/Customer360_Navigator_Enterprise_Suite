@@ -1,0 +1,21 @@
+feature,mean_abs_shap
+Company_freq_zscored,2.0925633907318115
+"Product_Credit reporting, credit repair services, or other personal consumer reports",0.3488057851791382
+Issue_Incorrect information on your report,0.26181790232658386
+Product_Credit reporting or other personal consumer reports,0.12135730683803558
+Product_Credit card or prepaid card,0.10970915108919144
+Issue_Problem with a credit reporting company's investigation into an existing problem,0.10653229802846909
+Sub-issue_Information belongs to someone else,0.09431851655244827
+Sub-issue_Personal information incorrect,0.07073564827442169
+Product_Checking or savings account,0.06635487079620361
+Issue_Problem with a purchase shown on your statement,0.06423685699701309
+Sub-product_Credit reporting,0.0640009269118309
+Sub-issue_Was not notified of investigation status or results,0.06020287051796913
+Sub-issue_Didn't receive advertised or promotional terms,0.051226381212472916
+Sub-issue_Credit card company isn't resolving a dispute about a purchase on your statement,0.04551738500595093
+Sub-issue_MISSING_SUB_ISSUE,0.039386119693517685
+Issue_Improper use of your report,0.03606383502483368
+Sub-issue_Reporting company used your report improperly,0.02967984601855278
+Sub-product_General-purpose credit card or charge card,0.02956552803516388
+Issue_Problem with a company's investigation into an existing problem,0.029219843447208405
+Submitted via_Web,0.029109150171279907

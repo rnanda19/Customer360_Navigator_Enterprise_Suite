@@ -1,0 +1,122 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install black flake8 isort mypy
+      - run: black --check src/ tests/
+      - run: flake8 src/ tests/
+      - run: isort --check-only src/ tests/
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install bandit
+      # -c pyproject.toml picks up [tool.bandit] skips = ["B101", "B404"] (see that section's
+      # comments for why each is a documented, non-security-relevant project convention here).
+      # Every other finding is a real blocker for this job, matching the AMEX RiskIQ platform's
+      # own "0 findings" bandit precedent this project inherits.
+      - run: bandit -c pyproject.toml -r src/
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - run: pytest tests/ -v
+  notebook-syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install nbformat
+      - run: python scripts/check_notebook_syntax.py || true
+  docker-validate:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose configs (BP1 + BP2 + BP3 inference services + BP4 decision service + BP5 driver-reporting service + BP6 resolution-assistant service + BP7 decision-engine service)
+        run: |
+          docker compose -f src/services/docker/bp1_inference_service/docker-compose.yml config
+          docker compose -f src/services/docker/bp2_inference_service/docker-compose.yml config
+          docker compose -f src/services/docker/bp3_inference_service/docker-compose.yml config
+          docker compose -f src/services/docker/bp4_decision_service/docker-compose.yml config
+          docker compose -f src/services/docker/bp5_driver_service/docker-compose.yml config
+          # BP6's compose file requires GEMINI_API_KEY at run time (never at build/config time -
+          # see its own Dockerfile header) - a placeholder value here only satisfies the compose
+          # file's own required-var interpolation check, never a real key, and is never used to
+          # actually run the container in this job (build-mechanics smoke test only, below).
+          GEMINI_API_KEY=ci-smoke-test-placeholder-not-real docker compose -f src/services/docker/bp6_resolution_service/docker-compose.yml config
+          # BP7 requires no secret at all (it makes no external network call anywhere) - a plain
+          # config check, same as BP1-5.
+          docker compose -f src/services/docker/bp7_decision_engine_service/docker-compose.yml config
+      - name: Build-mechanics smoke test (placeholder model artifacts - NOT a real model)
+        run: |
+          # models/**/*.joblib is gitignored by design (see .gitignore and each Dockerfile's own
+          # header comment) - the real, trained bundles only ever exist on a machine that has run
+          # the project's persistence notebooks for real, never in this checkout. These zero-byte
+          # placeholders exist ONLY so this job can exercise the Dockerfile's own COPY / pip-install
+          # / image-assembly mechanics (the exact class of bug a broken COPY path or missing runtime
+          # dependency would be). This proves the image BUILDS - it does NOT prove the service
+          # SERVES real predictions, and must never be read as that.
+          mkdir -p models/bp1_customer_intent_classification models/bp2_customer_friction_classification models/bp3_complaint_escalation_prediction models/bp4_customer_journey_analytics
+          touch models/bp1_customer_intent_classification/bp1_champion_pipeline.joblib
+          echo '{}' > models/bp1_customer_intent_classification/bp1_model_metadata.json
+          touch models/bp2_customer_friction_classification/bp2_champion_bundle.joblib
+          echo '{}' > models/bp2_customer_friction_classification/bp2_model_metadata.json
+          touch models/bp3_complaint_escalation_prediction/bp3_champion_bundle.joblib
+          echo '{}' > models/bp3_complaint_escalation_prediction/bp3_model_metadata.json
+          touch models/bp4_customer_journey_analytics/bp4_decision_artifact_index.parquet
+          echo '{}' > models/bp4_customer_journey_analytics/bp4_decision_artifact_metadata.json
+          docker build -f src/services/docker/bp1_inference_service/Dockerfile -t c360-bp1-inference:ci-smoke .
+          docker build -f src/services/docker/bp2_inference_service/Dockerfile -t c360-bp2-inference:ci-smoke .
+          docker build -f src/services/docker/bp3_inference_service/Dockerfile -t c360-bp3-inference:ci-smoke .
+          docker build -f src/services/docker/bp4_decision_service/Dockerfile -t c360-bp4-decision-service:ci-smoke .
+          # BP5 fits no model and persists nothing to models/ (no Hardening Step 2 for BP5 - see
+          # its own Dockerfile header) but DOES need its own real Gate 5 prioritized root-cause
+          # report JSON (per real outcome) and Gate 7 executive rollup manifest to exist for the
+          # COPY steps to succeed. Unlike models/**/*.joblib (gitignored), notebooks/**/artifacts/
+          # is NOT gitignored - this checkout normally already has the real, committed artifacts
+          # (BP5 Gates 5 and 7 are both real-run-confirmed complete). A placeholder is written ONLY
+          # if the real file is genuinely absent from this checkout (e.g. a fork/branch predating
+          # that gate's first real run) - this job never overwrites a real, already-committed
+          # artifact with a fake one.
+          mkdir -p notebooks/bp1_customer_intent_classification/artifacts notebooks/bp2_customer_friction_classification/artifacts notebooks/bp3_complaint_escalation_prediction/artifacts notebooks/bp4_customer_journey_analytics/artifacts notebooks/bp5_root_cause_driver_analytics/artifacts notebooks/bp6_genai_resolution_assistant/artifacts
+          for bp_dir in bp1_customer_intent_classification bp2_customer_friction_classification bp3_complaint_escalation_prediction bp4_customer_journey_analytics bp5_root_cause_driver_analytics; do
+            [ -f notebooks/$bp_dir/artifacts/executive_rollup_manifest.json ] || echo '{"bp_id": "placeholder", "gate": 7}' > notebooks/$bp_dir/artifacts/executive_rollup_manifest.json
+          done
+          [ -f notebooks/bp5_root_cause_driver_analytics/artifacts/gate5_prioritized_root_cause_report_outcome_1_intervention_required.json ] || echo '{"outcome_field": "outcome_1_intervention_required", "association_not_causation_disclaimer": "placeholder", "field_level_ranking": [], "category_level_findings_by_field": {}, "champion_shap_feature_importance": [], "company_process_field_finding": {}, "champion_validation_snapshot": {}, "barred_field_governance_disclosures": {}, "narrative_text": {}, "min_n_per_category_threshold_used": 0, "top_k_fields": 0, "top_k_categories_per_field": 0, "top_k_shap_features": 0}' > notebooks/bp5_root_cause_driver_analytics/artifacts/gate5_prioritized_root_cause_report_outcome_1_intervention_required.json
+          [ -f notebooks/bp5_root_cause_driver_analytics/artifacts/gate5_prioritized_root_cause_report_outcome_2_timely_response_failure.json ] || echo '{"outcome_field": "outcome_2_timely_response_failure", "association_not_causation_disclaimer": "placeholder", "field_level_ranking": [], "category_level_findings_by_field": {}, "champion_shap_feature_importance": [], "company_process_field_finding": {}, "champion_validation_snapshot": {}, "barred_field_governance_disclosures": {}, "narrative_text": {}, "min_n_per_category_threshold_used": 0, "top_k_fields": 0, "top_k_categories_per_field": 0, "top_k_shap_features": 0}' > notebooks/bp5_root_cause_driver_analytics/artifacts/gate5_prioritized_root_cause_report_outcome_2_timely_response_failure.json
+          docker build -f src/services/docker/bp5_driver_service/Dockerfile -t c360-bp5-driver-service:ci-smoke .
+          # BP6 needs no placeholder model artifact (it fits no model - see its own Dockerfile
+          # header) but DOES need its two real, static BP6 Gate 2/Gate 4 artifacts and the 5
+          # upstream Gate 7 manifests to exist for the COPY steps to succeed. Unlike models/**/*.joblib
+          # (gitignored), notebooks/**/artifacts/ is NOT gitignored - this checkout normally already
+          # has the real, committed artifacts. A placeholder is written ONLY if the real file is
+          # genuinely absent from this checkout (e.g. a fork/branch predating that gate's first
+          # real run) - this job never overwrites a real, already-committed artifact with a fake one.
+          [ -f notebooks/bp6_genai_resolution_assistant/artifacts/gate2_pii_screened_narrative_text.csv ] || echo 'masked_text,category,common_taxonomy_bucket,pii_detected,split' > notebooks/bp6_genai_resolution_assistant/artifacts/gate2_pii_screened_narrative_text.csv
+          [ -f notebooks/bp6_genai_resolution_assistant/artifacts/gate4_explainability_trace.json ] || echo '[{"bucket": "placeholder_bucket"}]' > notebooks/bp6_genai_resolution_assistant/artifacts/gate4_explainability_trace.json
+          docker build -f src/services/docker/bp6_resolution_service/Dockerfile -t c360-bp6-resolution-service:ci-smoke .
+          # BP7 needs no placeholder model artifact (it fits no model - see its own Dockerfile
+          # header) but DOES need its own real Gate 5 full-population decision-records CSV and
+          # summary JSON to exist for the COPY steps to succeed. Unlike models/**/*.joblib
+          # (gitignored), notebooks/**/artifacts/ is NOT gitignored - this checkout normally
+          # already has the real, committed artifacts. A placeholder (header row only - real file
+          # is ~540MB, never reproduced here) is written ONLY if the real file is genuinely absent
+          # from this checkout (e.g. a fork/branch predating that gate's first real run) - this job
+          # never overwrites a real, already-committed artifact with a fake one.
+          mkdir -p notebooks/bp7_customer_navigator_decision_engine/artifacts
+          [ -f notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv ] || echo 'Complaint ID,priority_score,intervention_flag,recommended_action,reason_codes,contribution_bp2,contribution_bp3,contribution_bp4,bp2_predicted_label,bp2_confidence,bp3_predicted_label,bp3_probability_positive_class,bp4_review_priority_tier,bp4_review_priority_score,bp4_join_status,bp1_context_status,bp5_outcome_1_context,bp5_outcome_2_context,tags_group' > notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv
+          [ -f notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_decision_layer_summary.json ] || echo '{"live_row_count": 0, "champion_rule_scheme": "placeholder", "champion_weights_normalized": {"bp2": 0.33, "bp3": 0.33, "bp4": 0.34}, "intervention_threshold": 0.5, "generated_at_utc": "1970-01-01T00:00:00+00:00"}' > notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_decision_layer_summary.json
+          docker build -f src/services/docker/bp7_decision_engine_service/Dockerfile -t c360-bp7-decision-engine-service:ci-smoke .

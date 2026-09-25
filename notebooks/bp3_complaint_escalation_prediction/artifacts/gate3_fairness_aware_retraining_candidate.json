@@ -1,0 +1,104 @@
+{
+  "bp_id": "bp3",
+  "investigation": "fairness_aware_retraining_candidate",
+  "original_champion_model": "xgboost",
+  "candidate_model": "xgboost_fpr_targeted_reweighted",
+  "reference_group": "NO_TAG",
+  "real_group_fpr_used_for_weighting": {
+    "NO_TAG": 0.058969842118111224,
+    "Servicemember": 0.14303122619954303,
+    "Older American": 0.441002277904328,
+    "Older American, Servicemember": 0.44545454545454544
+  },
+  "sample_weight_summary": {
+    "min": 1.0,
+    "max": 76.579,
+    "mean": 2.1469
+  },
+  "original_metrics": {
+    "held_out_test_pr_auc": 0.3496,
+    "held_out_test_roc_auc": 0.9762,
+    "held_out_test_recall": 0.9424,
+    "held_out_test_precision": 0.151,
+    "held_out_test_f1": 0.2603
+  },
+  "candidate_metrics": {
+    "held_out_test_pr_auc": 0.3432,
+    "held_out_test_roc_auc": 0.9759,
+    "held_out_test_recall": 0.9191,
+    "held_out_test_precision": 0.1605,
+    "held_out_test_f1": 0.2732
+  },
+  "real_pr_auc_cost_vs_original": 0.0064,
+  "group_confusion_detail_candidate": [
+    {
+      "tags_group": "NO_TAG",
+      "n_rows_in_test": 153194,
+      "n_real_positive_in_group": 1625,
+      "n_real_negative_in_group": 151569,
+      "n_selected": 9711,
+      "n_true_positive": 1509,
+      "n_false_positive": 8202,
+      "n_true_negative": 143367,
+      "n_false_negative": 116,
+      "selection_rate": 0.0634,
+      "recall": 0.9286,
+      "false_positive_rate": 0.054114,
+      "precision": 0.1554
+    },
+    {
+      "tags_group": "Older American",
+      "n_rows_in_test": 2447,
+      "n_real_positive_in_group": 252,
+      "n_real_negative_in_group": 2195,
+      "n_selected": 1082,
+      "n_true_positive": 228,
+      "n_false_positive": 854,
+      "n_true_negative": 1341,
+      "n_false_negative": 24,
+      "selection_rate": 0.4422,
+      "recall": 0.9048,
+      "false_positive_rate": 0.389066,
+      "precision": 0.2107
+    },
+    {
+      "tags_group": "Older American, Servicemember",
+      "n_rows_in_test": 724,
+      "n_real_positive_in_group": 64,
+      "n_real_negative_in_group": 660,
+      "n_selected": 305,
+      "n_true_positive": 55,
+      "n_false_positive": 250,
+      "n_true_negative": 410,
+      "n_false_negative": 9,
+      "selection_rate": 0.4213,
+      "recall": 0.8594,
+      "false_positive_rate": 0.378788,
+      "precision": 0.1803
+    },
+    {
+      "tags_group": "Servicemember",
+      "n_rows_in_test": 6726,
+      "n_real_positive_in_group": 161,
+      "n_real_negative_in_group": 6565,
+      "n_selected": 942,
+      "n_true_positive": 140,
+      "n_false_positive": 802,
+      "n_true_negative": 5763,
+      "n_false_negative": 21,
+      "selection_rate": 0.1401,
+      "recall": 0.8696,
+      "false_positive_rate": 0.122163,
+      "precision": 0.1486
+    }
+  ],
+  "original_adverse_impact_ratio_tags": 0.139,
+  "candidate_adverse_impact_ratio_tags": 0.1434,
+  "original_false_positive_rate_ratio_min_over_max": 0.132381,
+  "candidate_false_positive_rate_ratio_min_over_max": 0.139087,
+  "original_recall_ratio_min_over_max": 0.95621,
+  "candidate_recall_ratio_min_over_max": 0.925479,
+  "fairness_aware_retraining_disclosure": "This candidate model is produced by FPR-targeted group-conditional sample reweighting during training (compute_fpr_targeted_sample_weights()) - a heuristic informed by Tier C's real finding that no single real candidate feature explains the false-positive-rate disparity, so the fix targets the training objective directly rather than the feature list. It is NOT a formal equalized-odds-constrained optimization (that would be a further real option, not built here) and does NOT guarantee the real per-group false-positive-rate ratio clears the 0.8 four-fifths-style bar - the real result must be read from this notebook's own real held-out test set evaluation, Section 8, not assumed from the design. This candidate is never auto-promoted to BP3's champion and does NOT alter Gate 3-7's existing real-run-confirmed artifacts or config blocks - adopting it (or not) is the user's real governance decision, to be made only after comparing its real PR-AUC/ROC-AUC/recall/precision/F1 against the real, already-confirmed original champion's numbers (a materially worse real PR-AUC is a real cost of this fix that must be weighed, not hidden) alongside its real fairness-metric improvement.",
+  "adopted_as_champion": false,
+  "generated_at_utc": "2026-09-23T23:09:04.271053+00:00"
+}

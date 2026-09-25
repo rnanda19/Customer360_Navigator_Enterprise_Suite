@@ -1,0 +1,81 @@
+{
+  "bp_id": "bp3",
+  "gate": 3,
+  "compliance_touchpoint": "Model inventory entry opened (SR 11-7 first-line record)",
+  "model_name": "xgboost",
+  "model_family": "one-hot/frequency-encoded structured features + xgboost",
+  "target_variable": "intervention_required",
+  "feature_columns": [
+    "Product",
+    "Sub-product",
+    "Issue",
+    "Sub-issue",
+    "State",
+    "Submitted via",
+    "Company"
+  ],
+  "barred_columns": [
+    "Company response to consumer",
+    "Timely response?",
+    "Date received",
+    "Date sent to company",
+    "Tags",
+    "Complaint ID",
+    "ZIP code"
+  ],
+  "training_data": "Real CFPB extract, fresh stratified 80/20 split (CFPB provides no split of its own), random_state=42",
+  "n_train_rows": 652362,
+  "n_test_rows": 163091,
+  "positive_class_ratio_of_trainable": 0.0129,
+  "cv_folds": 5,
+  "cv_mean_average_precision": 0.3467,
+  "cv_mean_roc_auc": 0.9774,
+  "held_out_test_pr_auc": 0.34956931112348094,
+  "held_out_test_roc_auc": 0.9762212790197254,
+  "held_out_test_recall": 0.9424357754519506,
+  "held_out_test_precision": 0.15097934608642635,
+  "held_out_test_f1": 0.26026407409840374,
+  "candidates_evaluated": [
+    "logistic_regression",
+    "random_forest",
+    "hist_gradient_boosting",
+    "xgboost",
+    "lightgbm"
+  ],
+  "candidates_failed": [],
+  "generated_at_utc": "2026-09-23T07:43:50.243503+00:00",
+  "status": "Model persistence (Hardening Step 2) complete",
+  "gate4_paired_ttest_pvalue_vs_runner_up": 0.6995,
+  "gate4_held_out_test_pr_auc_bootstrap_ci_95": [
+    0.3299,
+    0.3709
+  ],
+  "gate4_held_out_test_roc_auc_bootstrap_ci_95": [
+    0.974,
+    0.978
+  ],
+  "gate4_brier_score": 0.0533,
+  "gate4_adverse_impact_ratio_tags": 0.139,
+  "gate4_generated_at_utc": "2026-09-23T08:44:28.383607+00:00",
+  "gate5_n_decision_records": 163091,
+  "gate5_held_out_test_pr_auc_recomputed": 0.349569,
+  "gate5_adverse_impact_ratio_recomputed": 0.139,
+  "gate5_genai_api_used": false,
+  "gate5_generated_at_utc": "2026-09-23T09:13:17.680057+00:00",
+  "gate6_pytest_all_passed": true,
+  "gate6_pytest_counts": {
+    "passed": 189,
+    "failed": 0,
+    "skipped": 4,
+    "errors": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "gate6_notebook_syntax_all_passed": true,
+  "gate6_model_card_path": "reports\\bp3_complaint_escalation_prediction\\MODEL_CARD.md",
+  "gate6_generated_at_utc": "2026-09-23T10:52:03.150028+00:00",
+  "model_persistence_joblib_path": "models\\bp3_complaint_escalation_prediction\\bp3_champion_bundle.joblib",
+  "model_persistence_sha256": "5b6ab2437a0fe0d2cf816de0fc149735eb7ee6d4f074c9bd99c6d9e368f4e6bd",
+  "model_persistence_reload_verified": true,
+  "model_persistence_generated_at_utc": "2026-09-24T04:36:04.840783+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "n_rows_screened": 13083,
+  "n_rows_flagged": 0,
+  "pct_rows_flagged": 0.0,
+  "category_counts": {
+    "email": 0,
+    "phone": 0,
+    "ssn_like": 0,
+    "card_like": 0
+  },
+  "pii_categories_checked": [
+    "email",
+    "phone",
+    "ssn_like",
+    "card_like"
+  ]
+}

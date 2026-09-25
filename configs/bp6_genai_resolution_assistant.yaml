@@ -1,0 +1,129 @@
+# Per-BP config - filled in at Gate 1 (Business Understanding & Policy)
+# Gate 1 owns bp_id through random_state below via write_front_matter() (src/utils/bp1_config_sync.py,
+# reused as-is from BP1/BP2/BP3/BP4 - fully generic, parameterized by config_path); Gates 2-6 each own
+# exactly one marker-delimited block appended after it via write_gate_block() - do not hand-edit either
+# section, re-run the owning notebook instead.
+# BP6 deliberately does NOT reuse BP1-4's target_definition/leakage_rules schema (see this gate's own
+# notebook markdown cell): BP6 has no supervised target and no training split at any gate - it is a
+# retrieval-and-grounded-generation governance layer. genai_governance_policy and
+# upstream_dependency_status replace those two keys.
+bp_id: "bp6"
+bp_name: "bp6_genai_resolution_assistant"
+status: "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed"   # not_started|gate1|gate2|gate3|gate4|gate5|gate6_complete
+target_definition: null   # BP6 has no supervised target at any gate - see genai_governance_policy below
+genai_governance_policy:
+  genai_call_occurs_at_gate: 5
+  human_in_the_loop_required: true
+  human_in_the_loop_auto_apply_allowed: false
+  udaap_language_review_required: true
+  nist_ai_rmf_risk_category_field_required: true
+  nist_ai_rmf_risk_category_value: "TBD_PENDING_FIRST_REAL_GATE5_GENAI_OUTPUT"
+  glba_pii_masking_required_before_genai_call: true
+  citation_evidence_schema_fields:
+    - evidence_id
+    - source_bp
+    - source_gate
+    - source_artifact_relative_path
+    - source_field_or_metric
+    - extracted_value
+    - retrieval_timestamp_utc
+    - verification_method
+upstream_dependency_status:
+  bp1_customer_intent_classification: "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed"
+  bp2_customer_friction_classification: "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed"
+  bp3_complaint_escalation_prediction: "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed"
+  bp4_customer_journey_analytics: "gate6_complete"
+  bp5_root_cause_driver_analytics: "gate1_confirmed"
+assumptions:
+  - "BP6 retrieves evidence from BP1-BP5's real outputs (Master Plan Section 5.1); this notebook
+     records, live, which of the five already have a real Gate 1 policy.json today rather than
+     requiring all five to exist before BP6's own scope can be defined."
+  - "The real CFPB extract carries no narrative-text column (RAW_DATA_MANIFEST.md Finding 2,
+     re-verified live) - BANKING77's real 'text' field, surfaced only via BP1's own evidence, is
+     the sole real narrative-text source the GLBA PII-masking policy needs to cover."
+  - "BP6's citation/evidence schema is generic (source_bp/source_gate/source_artifact_relative_path/
+     source_field_or_metric), never hardcoded to any upstream BP's internal field names, so it stays
+     valid as BP2/BP5's own schemas continue to evolve before BP6's own Gate 5 first retrieves from
+     them."
+  - "The NIST AI RMF risk-category value cannot be populated with a real category until a real
+     Gate 5 GenAI output exists to categorize - recorded as a required field with an explicit TBD
+     value, never a guessed category."
+random_state: 42
+
+# --- Gate 2 (Data Verification & Feature/Taxonomy Engineering) results (appended, idempotent overwrite) ---
+pii_screen_narrative_text_source: "data/processed/banking77_common_taxonomy_gold.parquet"
+pii_screen_rows_scanned: 13083
+pii_screen_rows_flagged: 0
+pii_screen_categories_checked: ['email', 'phone', 'ssn_like', 'card_like']
+pii_screening_report_path: "notebooks/bp6_genai_resolution_assistant/artifacts/gate2_pii_screening_report.json"
+pii_screened_rows_audit_trail_path: "notebooks/bp6_genai_resolution_assistant/artifacts/gate2_pii_screened_narrative_text.csv"
+row_count_matches_gate1_live_check: True
+zero_nulls_silently_dropped: True
+original_gold_file_untouched: True
+evidence_source_registry_path: "notebooks/bp6_genai_resolution_assistant/artifacts/gate2_evidence_source_registry.json"
+n_upstream_bps_with_live_artifacts: 5
+n_total_upstream_artifact_files_registered: 79
+genai_sdk_modules_loaded_this_run: []
+generated_at_utc: "2026-09-24T15:44:04.796993+00:00"
+
+# --- Gate 3 (Retrieval Strategy Benchmark & Champion Selection) results (appended, idempotent overwrite) ---
+gate3_retrieval_benchmark:
+  champion_strategy: "taxonomy_bucket_match"
+  champion_coverage: 0.333333
+  runner_up_strategy: "raw_string_match"
+  runner_up_coverage: 0.0
+  candidates_evaluated: ['taxonomy_bucket_match', 'raw_string_match']
+  retrieval_strategy_inventory_entry_path: "notebooks/bp6_genai_resolution_assistant/artifacts/gate3_retrieval_strategy_inventory_entry.json"
+  genai_sdk_modules_loaded_this_run: []
+  generated_at_utc: "2026-09-24T15:44:05.107516+00:00"
+
+# --- Gate 4 (Statistical Validation & Explainability) results (appended, idempotent overwrite) ---
+gate4_statistical_validation:
+  champion_strategy_under_validation: "taxonomy_bucket_match"
+  gate3_recorded_coverage: 0.333333
+  gate4_independently_reproduced_coverage: 0.333333
+  coverage_reproduces_exactly: True
+  bootstrap_ci_lower_2p5: 0.0
+  bootstrap_ci_upper_97p5: 0.666667
+  bootstrap_n: 1000
+  crosstab_both_sides_n: 3
+  crosstab_banking77_only_n: 6
+  crosstab_cfpb_only_n: 0
+  explainability_trace_path: "notebooks/bp6_genai_resolution_assistant/artifacts/gate4_explainability_trace.json"
+  leakage_reconfirmed: True
+  ecoa_reg_b_status: "NOT_APPLICABLE"
+  independent_validation_record_path: "notebooks/bp6_genai_resolution_assistant/artifacts/gate4_independent_validation_record.json"
+  genai_sdk_modules_loaded_this_run: []
+  generated_at_utc: "2026-09-24T15:44:05.538510+00:00"
+
+# --- Gate 5 (Decision / GenAI Layer & Reporting) results (appended, idempotent overwrite) ---
+gate5_decision_genai_layer:
+  model_used: "gemini-3.5-flash"
+  input_tokens: 1032
+  output_tokens: 113
+  n_evidence_citations_available: 28
+  n_citations_used: 4
+  citation_check_passed: True
+  udaap_check_passed: True
+  nist_ai_rmf_risk_category: "MEDIUM"
+  approval_status: "PENDING_HUMAN_REVIEW"
+  auto_applied: False
+  recommendation_artifact_path: "notebooks/bp6_genai_resolution_assistant/artifacts/gate5_recommendation_pending_human_review.json"
+  genai_sdk_modules_loaded_this_run: ['google.genai']
+  generated_at_utc: "2026-09-24T15:44:11.451308+00:00"
+
+# --- Gate 6 (Productization, Monitoring & Governance) results (appended, idempotent overwrite) ---
+gate6_productization_monitoring_governance:
+  pytest_all_passed: True
+  pytest_n_passed: 363
+  pytest_n_failed: 0
+  notebook_syntax_audit_all_passed: True
+  fastapi_self_test_identical: True
+  fastapi_self_test_real_gemini_call_made: True
+  low_citation_reuse_ratio_detected: True
+  short_generated_recommendation_text_detected: False
+  model_card_path: "reports/bp6_genai_resolution_assistant/MODEL_CARD.md"
+  changelog_path: "reports/bp6_genai_resolution_assistant/CHANGELOG.md"
+  fastapi_service_path: "src/services/bp6_resolution_service.py"
+  fastapi_self_test_result_path: "notebooks/bp6_genai_resolution_assistant/artifacts/gate6_fastapi_self_test_result.json"
+  generated_at_utc: "2026-09-24T16:45:52.155603+00:00"

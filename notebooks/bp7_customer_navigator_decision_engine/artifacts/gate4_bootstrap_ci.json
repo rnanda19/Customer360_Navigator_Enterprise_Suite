@@ -1,0 +1,23 @@
+{
+  "bp_id": "bp7",
+  "gate": 4,
+  "champion_rule_scheme": "correlation_aware_plus_lr_diagnostic",
+  "intervention_flag_rate": {
+    "point_estimate": 0.768415,
+    "ci_lower_95": 0.767609,
+    "ci_upper_95": 0.769243,
+    "n_bootstrap": 1000,
+    "n_rows_resampled": 1048575,
+    "random_state": 42
+  },
+  "bp3_agreement_rate": {
+    "point_estimate": 0.285865,
+    "ci_lower_95": 0.284984,
+    "ci_upper_95": 0.286725,
+    "n_bootstrap": 1000,
+    "n_rows_resampled": 1048575,
+    "random_state": 42
+  },
+  "disclosure": "Real percentile bootstrap 95% CIs (resampling with replacement, at the real input array's own size, disclosed seed and resample count) - reported as a range, never a point estimate presented as exact. Maps onto the Master Plan's generic Gate 4 'Bootstrap CI' output slot.",
+  "generated_at_utc": "2026-09-25T06:13:17.651773+00:00"
+}

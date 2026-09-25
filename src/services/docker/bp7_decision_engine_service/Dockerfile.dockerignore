@@ -1,0 +1,89 @@
+# Customer360 Navigator - BP7 decision-engine service Dockerfile.dockerignore
+# Build context is the project ROOT (see this directory's Dockerfile header). Named
+# `Dockerfile.dockerignore` (not `.dockerignore`) so BuildKit applies it to THIS Dockerfile only -
+# same convention as bp1/bp2/bp3/bp4/bp6's own, since this project has multiple Dockerfiles
+# sharing one build context.
+#
+# Docker's own dockerignore negation rule: a `!pattern` cannot re-include a file whose PARENT
+# DIRECTORY was itself excluded by an earlier pattern - only a file-pattern exclusion (e.g.
+# `**/*.csv`, not a bare directory like `notebooks/`) can be safely negated back in afterward.
+# Every exclusion below that this file later negates is therefore a file-pattern, never a bare
+# directory path - matching bp6's own Dockerfile.dockerignore precedent exactly (see its own
+# comments for the same rule stated there).
+
+# Data - never belongs in a served image
+data/
+
+# BP7's own image serves ONLY its own two real Gate 5 artifacts (see Dockerfile's explicit COPY
+# list) - every other real CSV/parquet anywhere else in the tree is excluded.
+**/*.csv
+!notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv
+**/*.parquet
+
+# Notebooks themselves - not imported by the service at runtime
+**/*.ipynb
+**/*.ipynb_checkpoints/
+
+# Every other real BP7 artifact (Gates 2/3/4/5 produced several JSON files this service never
+# reads - only gate5_decision_layer_summary.json, carved back in below) - listed individually,
+# never via a directory-level exclusion, matching bp6's own precedent for the identical reason.
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate2_rescoring_summary.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_bp2_bp3_correlation_check.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_decision_rule_benchmark_summary.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_disparate_impact_carry_forward_check.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_lr_diagnostic.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_bootstrap_ci.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_bp3_agreement_crosstab.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_contribution_decomposition_summary.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_disparate_impact_audit.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_leakage_reconfirmation.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_reproduction_check.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate4_statistical_validation_explainability_summary.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate6_governance_summary.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/gate6_fastapi_self_test_result.json
+notebooks/bp7_customer_navigator_decision_engine/artifacts/policy.json
+notebooks/bp7_customer_navigator_decision_engine/README.md
+
+# Every other BP's own notebook tree - this image serves BP7 only
+notebooks/00_hardware_benchmark/
+notebooks/01_data_acquisition_profiling/
+notebooks/bp1_customer_intent_classification/
+notebooks/bp2_customer_friction_classification/
+notebooks/bp3_complaint_escalation_prediction/
+notebooks/bp4_customer_journey_analytics/
+notebooks/bp5_root_cause_driver_analytics/
+notebooks/bp6_genai_resolution_assistant/
+notebooks/bp8_executive_product_analytics/
+
+# Every BP's model artifacts - BP7 persists no model bundle of its own and needs none of anyone
+# else's (see the Dockerfile's own header).
+models/
+
+# Docs, reports, packaging staging, logs - not needed to serve
+docs/
+reports/
+github_repo/
+kaggle/
+linkedin/
+logs/
+powerbi/
+
+# Tests - the image serves the app, it does not run its own test suite
+tests/
+
+# VCS / editor / cache noise
+.git/
+.github/
+.vscode/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# This project's own doc/config files not needed at runtime
+*.docx
+README.md
+LICENSE
+LESSONS_LEARNED_APPLIED.md
+desktop.ini

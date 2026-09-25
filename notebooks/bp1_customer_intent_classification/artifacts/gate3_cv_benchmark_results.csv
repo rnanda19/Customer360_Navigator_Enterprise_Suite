@@ -1,0 +1,7 @@
+model,status,elapsed_seconds,mean_f1_macro,std_f1_macro,mean_f1_weighted,mean_accuracy
+logistic_regression,OK,5.36,0.804,0.0043,0.809,0.8095
+random_forest,OK,2.19,0.7084,0.0125,0.7147,0.7143
+hist_gradient_boosting,OK,1730.79,0.0137,0.0261,0.0145,0.0278
+xgboost,OK,103.78,0.7494,0.0064,0.756,0.7548
+lightgbm,OK,17.08,0.4403,0.3554,0.4443,0.4488
+catboost,OK,769.82,0.7034,0.0114,0.7087,0.7039

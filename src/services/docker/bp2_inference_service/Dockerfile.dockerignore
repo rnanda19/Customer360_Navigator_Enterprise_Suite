@@ -1,0 +1,54 @@
+# Customer360 Navigator - BP2 inference service Dockerfile.dockerignore
+# Build context is the project ROOT (see this directory's Dockerfile header). Named
+# `Dockerfile.dockerignore` (not `.dockerignore`) so BuildKit applies it to THIS Dockerfile only -
+# verified empirically against a local BuildKit build before delivery, since this project's own
+# structure has two Dockerfiles sharing one build context and a plain root `.dockerignore` would
+# apply to both indiscriminately.
+
+# Data - never belongs in a served image
+data/
+**/*.csv
+**/*.parquet
+
+# Notebooks and their outputs - not imported by the service at runtime
+notebooks/
+**/*.ipynb
+**/*.ipynb_checkpoints/
+
+# Every other BP's model artifacts - this image serves BP2 only
+models/bp1_customer_intent_classification/
+models/bp3_complaint_escalation_prediction/
+models/bp4_customer_journey_analytics/
+models/bp5_root_cause_driver_analytics/
+models/bp6_genai_resolution_assistant/
+models/bp7_customer_navigator_decision_engine/
+models/bp8_executive_product_analytics/
+
+# Docs, reports, packaging staging, logs - not needed to serve
+docs/
+reports/
+github_repo/
+kaggle/
+linkedin/
+logs/
+powerbi/
+
+# Tests - the image serves the app, it does not run its own test suite
+tests/
+
+# VCS / editor / cache noise
+.git/
+.github/
+.vscode/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# This project's own doc/config files not needed at runtime
+*.docx
+README.md
+LICENSE
+LESSONS_LEARNED_APPLIED.md
+desktop.ini

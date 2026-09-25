@@ -1,0 +1,5 @@
+tags_group,n_rows_in_test,n_real_positive_in_group,selection_rate_at_0.5_threshold,recall_at_0.5_threshold
+NO_TAG,153194,1625,0.0684,0.9477
+Servicemember,6726,161,0.1615,0.913
+Older American,2447,252,0.492,0.9365
+"Older American, Servicemember",724,64,0.4862,0.9062

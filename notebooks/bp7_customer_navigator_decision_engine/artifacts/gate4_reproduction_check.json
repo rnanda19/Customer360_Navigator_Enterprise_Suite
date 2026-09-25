@@ -1,0 +1,37 @@
+{
+  "bp_id": "bp7",
+  "gate": 4,
+  "reproduced_champion_rule_scheme": "correlation_aware_plus_lr_diagnostic",
+  "gate3_recorded_champion_rule_scheme": "correlation_aware_plus_lr_diagnostic",
+  "champion_name_matches": true,
+  "reproduced_champion_weights_normalized": {
+    "bp2": 0.2227139837335739,
+    "bp3": 0.17077431022015202,
+    "bp4": 0.606511706046274
+  },
+  "gate3_recorded_champion_weights_normalized": {
+    "bp2": 0.222714,
+    "bp3": 0.170774,
+    "bp4": 0.606512
+  },
+  "weights_match": true,
+  "reproduced_bp2_bp3_cramers_v": 0.21443806441558086,
+  "gate3_recorded_bp2_bp3_cramers_v": 0.21443806441558086,
+  "cramers_v_matches": true,
+  "reproduced_bp4_join_coverage": 0.975368,
+  "gate3_recorded_bp4_join_coverage": 0.975368,
+  "bp4_coverage_matches": true,
+  "reproduced_champion_coverage_pct": 100.0,
+  "gate3_recorded_champion_coverage_pct": 100.0,
+  "coverage_pct_matches": true,
+  "reproduced_champion_bp3_agreement_rate": 0.285865,
+  "gate3_recorded_champion_bp3_agreement_rate": 0.285865,
+  "bp3_agreement_matches": true,
+  "reproduced_champion_redundancy_double_counting_score": 0.08437880509075808,
+  "gate3_recorded_champion_redundancy_double_counting_score": 0.08437880509075808,
+  "redundancy_score_matches": true,
+  "reproduction_bit_exact_within_tolerance": true,
+  "tolerance": 1e-06,
+  "disclosure": "Independent reproduction of Gate 3's entire champion-selection pipeline, re-derived from scratch in this gate's own fresh run against the identical real Gold layer, reusing Gate 3's own functions unmodified - never read from Gate 3's own config-recorded numbers and relabeled. Maps onto the Master Plan's generic Gate 4 'calibration' output slot, adapted the same way BP6 Gate 4 adapted it into a fresh-kernel bit-exact reproduction.",
+  "generated_at_utc": "2026-09-25T06:12:47.119006+00:00"
+}

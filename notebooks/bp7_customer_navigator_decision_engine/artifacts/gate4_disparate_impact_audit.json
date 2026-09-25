@@ -1,0 +1,59 @@
+{
+  "n_total_rows": 1048575,
+  "n_matched_to_tags_group": 1048575,
+  "join_coverage_pct": 100.0,
+  "group_breakdown": [
+    {
+      "tags_group": "NO_TAG",
+      "n_rows": 995094,
+      "n_intervention_flagged": 767144,
+      "selection_rate": 0.770926
+    },
+    {
+      "tags_group": "Servicemember",
+      "n_rows": 36094,
+      "n_intervention_flagged": 25294,
+      "selection_rate": 0.700781
+    },
+    {
+      "tags_group": "Older American",
+      "n_rows": 13713,
+      "n_intervention_flagged": 10582,
+      "selection_rate": 0.771677
+    },
+    {
+      "tags_group": "Older American, Servicemember",
+      "n_rows": 3674,
+      "n_intervention_flagged": 2721,
+      "selection_rate": 0.74061
+    }
+  ],
+  "adverse_impact_ratio": 0.908127,
+  "flagged_four_fifths_rule": false,
+  "lowest_selection_rate_group": "Servicemember",
+  "highest_selection_rate_group": "Older American",
+  "methodology": "adverse_impact_ratio = min(group selection_rate) / max(group selection_rate); flagged if < 0.8 (EEOC four-fifths-rule convention) - the identical selection-rate-based convention BP3's own real, already-closed Gate 4 disparate-impact check used.",
+  "limitation": "Monitoring signal for a human reviewer, not a legal determination of ECOA/Reg B compliance - selection-rate parity alone does not establish or rule out disparate impact. customer360_priority_decision has no ground-truth column, so (unlike BP3's own check) this reports selection-rate parity only, never a recall/false-positive-rate breakdown that would require a real/predicted label pair BP7 does not have.",
+  "data_source": "BP3's own real, already-governance-reviewed Gold layer (data/processed/cfpb_intervention_escalation_gold.parquet), Complaint-ID-keyed Tags passthrough column, read-only, never a BP7 scoring input - joined onto BP7's own already-scored population strictly after priority_score/intervention_flag/recommended_action were computed.",
+  "tags_group_distribution_source": [
+    {
+      "tags_group": "NO_TAG",
+      "count": 995094
+    },
+    {
+      "tags_group": "Older American",
+      "count": 13713
+    },
+    {
+      "tags_group": "Older American, Servicemember",
+      "count": 3674
+    },
+    {
+      "tags_group": "Servicemember",
+      "count": 36094
+    }
+  ],
+  "bp3_own_gate4_adverse_impact_ratio_tags_for_comparison": 0.139,
+  "gate1_policy_commits_to_this_check": true,
+  "resolution_of_gate3_deferral": "Gate 3 honestly deferred this check because BP7's own Gate 2 Gold layer does not preserve tags_group and reconstructing it from the raw, barred 'Tags' column would have been a Gate 3 SCORING input, which Gate 1's leakage_rules bars. This gate resolves that deferral by reading tags_group from BP3's OWN separate, already-governance-approved Gold layer (never the raw CFPB extract directly, never any BP1-6 file modified) and joining it strictly AFTER scoring, for audit-grouping only - the same input-vs-audit-only distinction BP3's own Gate 4 and BP7 Gate 1's own policy.json text both already drew."
+}

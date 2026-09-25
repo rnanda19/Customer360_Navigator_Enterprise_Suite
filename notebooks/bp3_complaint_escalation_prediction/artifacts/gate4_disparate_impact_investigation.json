@@ -1,0 +1,445 @@
+{
+  "bp_id": "bp3",
+  "investigation": "disparate_impact_mitigation_investigation",
+  "requested_by_user_action": "Investigate bias mitigation now (AskUserQuestion selection)",
+  "source_adverse_impact_ratio_tags": 0.139,
+  "source_flagged": true,
+  "champion_model": "xgboost",
+  "n_decision_records": 163091,
+  "investigation_summary": {
+    "bp_id": "bp3",
+    "investigation": "disparate_impact_mitigation_investigation",
+    "source_adverse_impact_ratio_tags": 0.139,
+    "source_flagged": true,
+    "group_confusion_detail": [
+      {
+        "tags_group": "NO_TAG",
+        "n_rows_in_test": 153194,
+        "n_real_positive_in_group": 1625,
+        "n_real_negative_in_group": 151569,
+        "prevalence": 0.010607465044322884,
+        "n_selected": 10478,
+        "n_true_positive": 1540,
+        "n_false_positive": 8938,
+        "n_true_negative": 142631,
+        "n_false_negative": 85,
+        "selection_rate": 0.0684,
+        "recall": 0.9477,
+        "false_positive_rate": 0.058969842118111224,
+        "precision": 0.14697461347585417
+      },
+      {
+        "tags_group": "Servicemember",
+        "n_rows_in_test": 6726,
+        "n_real_positive_in_group": 161,
+        "n_real_negative_in_group": 6565,
+        "prevalence": 0.023936961046684507,
+        "n_selected": 1086,
+        "n_true_positive": 147,
+        "n_false_positive": 939,
+        "n_true_negative": 5626,
+        "n_false_negative": 14,
+        "selection_rate": 0.1615,
+        "recall": 0.913,
+        "false_positive_rate": 0.14303122619954303,
+        "precision": 0.13535911602209943
+      },
+      {
+        "tags_group": "Older American",
+        "n_rows_in_test": 2447,
+        "n_real_positive_in_group": 252,
+        "n_real_negative_in_group": 2195,
+        "prevalence": 0.10298324478953821,
+        "n_selected": 1204,
+        "n_true_positive": 236,
+        "n_false_positive": 968,
+        "n_true_negative": 1227,
+        "n_false_negative": 16,
+        "selection_rate": 0.492,
+        "recall": 0.9365,
+        "false_positive_rate": 0.441002277904328,
+        "precision": 0.19601328903654486
+      },
+      {
+        "tags_group": "Older American, Servicemember",
+        "n_rows_in_test": 724,
+        "n_real_positive_in_group": 64,
+        "n_real_negative_in_group": 660,
+        "prevalence": 0.08839779005524862,
+        "n_selected": 352,
+        "n_true_positive": 58,
+        "n_false_positive": 294,
+        "n_true_negative": 366,
+        "n_false_negative": 6,
+        "selection_rate": 0.4862,
+        "recall": 0.9062,
+        "false_positive_rate": 0.44545454545454544,
+        "precision": 0.16477272727272727
+      }
+    ],
+    "diagnosis": {
+      "recall_ratio_min_over_max": 0.9562097710245858,
+      "false_positive_rate_ratio_min_over_max": 0.13238127822433132,
+      "selection_rate_ratio_min_over_max": 0.13902439024390245,
+      "recall_balanced_four_fifths_style": true,
+      "false_positive_rate_balanced_four_fifths_style": false,
+      "lowest_false_positive_rate_group": "NO_TAG",
+      "highest_false_positive_rate_group": "Older American, Servicemember",
+      "verdict": "MODEL-DRIVEN: recall (equal opportunity) IS balanced across groups, but the real false-positive rate is NOT - Older American, Servicemember has a real false-positive rate 0.1324x lower than NO_TAG's (fpr_ratio=0.1324, below the 0.8 four-fifths-style bar). The model catches roughly the same real fraction of true positives in every group, but flags a substantially higher real fraction of true negatives in some groups than others - this is a real signal of differential model error behavior by group, not explained by prevalence alone, and is the more actionable real finding for a governance reviewer."
+    },
+    "within_group_calibration": {
+      "NO_TAG": {
+        "n_rows": 153194,
+        "brier_score": 0.04566353769540582,
+        "calibration_curve": [
+          {
+            "mean_predicted_probability": 7.986688851913478e-05,
+            "fraction_of_positives": 7.450269451411827e-05,
+            "n_rows": 40267
+          },
+          {
+            "mean_predicted_probability": 0.0002,
+            "fraction_of_positives": 0.0,
+            "n_rows": 41692
+          },
+          {
+            "mean_predicted_probability": 0.0003,
+            "fraction_of_positives": 0.0,
+            "n_rows": 13000
+          },
+          {
+            "mean_predicted_probability": 0.0005076380979498861,
+            "fraction_of_positives": 0.00014236902050113895,
+            "n_rows": 14048
+          },
+          {
+            "mean_predicted_probability": 0.0009006846793786351,
+            "fraction_of_positives": 0.0,
+            "n_rows": 13583
+          },
+          {
+            "mean_predicted_probability": 0.06350426534083475,
+            "fraction_of_positives": 0.001635483448907497,
+            "n_rows": 15286
+          },
+          {
+            "mean_predicted_probability": 0.6779509465987726,
+            "fraction_of_positives": 0.10412586499543021,
+            "n_rows": 15318
+          }
+        ]
+      },
+      "Older American": {
+        "n_rows": 2447,
+        "brier_score": 0.31276294527993465,
+        "calibration_curve": [
+          {
+            "mean_predicted_probability": 0.00015407407407407408,
+            "fraction_of_positives": 0.003703703703703704,
+            "n_rows": 270
+          },
+          {
+            "mean_predicted_probability": 0.0006231818181818182,
+            "fraction_of_positives": 0.0,
+            "n_rows": 220
+          },
+          {
+            "mean_predicted_probability": 0.02934016393442623,
+            "fraction_of_positives": 0.0,
+            "n_rows": 244
+          },
+          {
+            "mean_predicted_probability": 0.14298448979591835,
+            "fraction_of_positives": 0.02857142857142857,
+            "n_rows": 245
+          },
+          {
+            "mean_predicted_probability": 0.3445563265306122,
+            "fraction_of_positives": 0.0326530612244898,
+            "n_rows": 245
+          },
+          {
+            "mean_predicted_probability": 0.6179340163934427,
+            "fraction_of_positives": 0.045081967213114756,
+            "n_rows": 244
+          },
+          {
+            "mean_predicted_probability": 0.8322628,
+            "fraction_of_positives": 0.08,
+            "n_rows": 250
+          },
+          {
+            "mean_predicted_probability": 0.9214686192468619,
+            "fraction_of_positives": 0.19665271966527198,
+            "n_rows": 239
+          },
+          {
+            "mean_predicted_probability": 0.9517182926829268,
+            "fraction_of_positives": 0.23983739837398374,
+            "n_rows": 246
+          },
+          {
+            "mean_predicted_probability": 0.9759209016393442,
+            "fraction_of_positives": 0.4057377049180328,
+            "n_rows": 244
+          }
+        ]
+      },
+      "Older American, Servicemember": {
+        "n_rows": 724,
+        "brier_score": 0.3155742711878453,
+        "calibration_curve": [
+          {
+            "mean_predicted_probability": 0.0002,
+            "fraction_of_positives": 0.0,
+            "n_rows": 82
+          },
+          {
+            "mean_predicted_probability": 0.0010380952380952381,
+            "fraction_of_positives": 0.015873015873015872,
+            "n_rows": 63
+          },
+          {
+            "mean_predicted_probability": 0.033327777777777776,
+            "fraction_of_positives": 0.013888888888888888,
+            "n_rows": 72
+          },
+          {
+            "mean_predicted_probability": 0.1497,
+            "fraction_of_positives": 0.013513513513513514,
+            "n_rows": 74
+          },
+          {
+            "mean_predicted_probability": 0.31815352112676054,
+            "fraction_of_positives": 0.028169014084507043,
+            "n_rows": 71
+          },
+          {
+            "mean_predicted_probability": 0.5958416666666667,
+            "fraction_of_positives": 0.08333333333333333,
+            "n_rows": 72
+          },
+          {
+            "mean_predicted_probability": 0.8010657534246576,
+            "fraction_of_positives": 0.0410958904109589,
+            "n_rows": 73
+          },
+          {
+            "mean_predicted_probability": 0.9055202702702703,
+            "fraction_of_positives": 0.16216216216216217,
+            "n_rows": 74
+          },
+          {
+            "mean_predicted_probability": 0.9412200000000001,
+            "fraction_of_positives": 0.15714285714285714,
+            "n_rows": 70
+          },
+          {
+            "mean_predicted_probability": 0.9701479452054795,
+            "fraction_of_positives": 0.3698630136986301,
+            "n_rows": 73
+          }
+        ]
+      },
+      "Servicemember": {
+        "n_rows": 6726,
+        "brier_score": 0.10379852065417781,
+        "calibration_curve": [
+          {
+            "mean_predicted_probability": 8.526946107784431e-05,
+            "fraction_of_positives": 0.0,
+            "n_rows": 835
+          },
+          {
+            "mean_predicted_probability": 0.0002,
+            "fraction_of_positives": 0.0,
+            "n_rows": 1295
+          },
+          {
+            "mean_predicted_probability": 0.00032768532526475033,
+            "fraction_of_positives": 0.0,
+            "n_rows": 661
+          },
+          {
+            "mean_predicted_probability": 0.0006852173913043479,
+            "fraction_of_positives": 0.0017391304347826088,
+            "n_rows": 575
+          },
+          {
+            "mean_predicted_probability": 0.006891492537313433,
+            "fraction_of_positives": 0.0014925373134328358,
+            "n_rows": 670
+          },
+          {
+            "mean_predicted_probability": 0.05785535714285714,
+            "fraction_of_positives": 0.001488095238095238,
+            "n_rows": 672
+          },
+          {
+            "mean_predicted_probability": 0.19814629080118695,
+            "fraction_of_positives": 0.008902077151335312,
+            "n_rows": 674
+          },
+          {
+            "mean_predicted_probability": 0.5527427083333334,
+            "fraction_of_positives": 0.022321428571428572,
+            "n_rows": 672
+          },
+          {
+            "mean_predicted_probability": 0.9166247023809524,
+            "fraction_of_positives": 0.20386904761904762,
+            "n_rows": 672
+          }
+        ]
+      }
+    },
+    "equalized_fpr_threshold_simulation": {
+      "reference_group": "NO_TAG",
+      "reference_group_false_positive_rate": 0.058969842118111224,
+      "per_group_simulation": {
+        "Servicemember": {
+          "original_threshold": 0.5,
+          "original_recall": 0.913,
+          "original_false_positive_rate": 0.14303122619954303,
+          "original_selection_rate": 0.1615,
+          "adjusted_threshold_reaching_reference_fpr": 0.885,
+          "adjusted_false_positive_rate": 0.05894897182025895,
+          "adjusted_recall": 0.782608695652174,
+          "adjusted_precision": 0.24561403508771928,
+          "adjusted_selection_rate": 0.07627118644067797,
+          "recall_cost": 0.1303913043478261
+        },
+        "Older American": {
+          "original_threshold": 0.5,
+          "original_recall": 0.9365,
+          "original_false_positive_rate": 0.441002277904328,
+          "original_selection_rate": 0.492,
+          "adjusted_threshold_reaching_reference_fpr": 0.9639,
+          "adjusted_false_positive_rate": 0.05876993166287016,
+          "adjusted_recall": 0.373015873015873,
+          "adjusted_precision": 0.42152466367713004,
+          "adjusted_selection_rate": 0.09113199836534532,
+          "recall_cost": 0.563484126984127
+        },
+        "Older American, Servicemember": {
+          "original_threshold": 0.5,
+          "original_recall": 0.9062,
+          "original_false_positive_rate": 0.44545454545454544,
+          "original_selection_rate": 0.4862,
+          "adjusted_threshold_reaching_reference_fpr": 0.959,
+          "adjusted_false_positive_rate": 0.05757575757575758,
+          "adjusted_recall": 0.390625,
+          "adjusted_precision": 0.3968253968253968,
+          "adjusted_selection_rate": 0.08701657458563536,
+          "recall_cost": 0.515575
+        }
+      }
+    },
+    "disparate_treatment_disclosure": "This simulation is a what-if analysis for a human governance decision, not a recommendation to adopt group-conditioned thresholds. Setting a different real decision threshold per tags_group value uses a protected-adjacent attribute to apply differential treatment by group - a materially different, and separately consequential, real compliance question from the disparate-impact (selection-rate) finding this simulation responds to. Any decision to adopt per-group thresholds in production requires real legal/compliance review beyond this project's own scope; this module computes the real numbers such a review would need, and does not apply or recommend adopting them on its own.",
+    "recommendation": "See diagnosis.verdict for the real driver finding. This investigation does not change BP3's champion model, its Gate 3-5 real-run-confirmed outputs, or its default 0.5 decision threshold - it is additive information for the governance review Gate 4/5's own flag already calls for, per this project's standing 'monitoring signal for a human reviewer, not a legal determination' framing."
+  },
+  "independent_direct_cross_check": {
+    "NO_TAG": {
+      "n_rows": 153194,
+      "direct_recount": {
+        "n_true_positive": 1540,
+        "n_false_positive": 8939,
+        "n_true_negative": 142630,
+        "n_false_negative": 85
+      },
+      "back_computed_from_gate5_rates": {
+        "n_true_positive": 1540,
+        "n_false_positive": 8938,
+        "n_true_negative": 142631,
+        "n_false_negative": 85
+      },
+      "abs_diffs": {
+        "tp": 0,
+        "fp": 1,
+        "tn": 1,
+        "fn": 0
+      },
+      "tolerance": 17,
+      "within_tolerance": true,
+      "direct_false_positive_rate": 0.058976439773304565,
+      "direct_recall": 0.9476923076923077
+    },
+    "Older American": {
+      "n_rows": 2447,
+      "direct_recount": {
+        "n_true_positive": 236,
+        "n_false_positive": 968,
+        "n_true_negative": 1227,
+        "n_false_negative": 16
+      },
+      "back_computed_from_gate5_rates": {
+        "n_true_positive": 236,
+        "n_false_positive": 968,
+        "n_true_negative": 1227,
+        "n_false_negative": 16
+      },
+      "abs_diffs": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 0
+      },
+      "tolerance": 2,
+      "within_tolerance": true,
+      "direct_false_positive_rate": 0.441002277904328,
+      "direct_recall": 0.9365079365079365
+    },
+    "Older American, Servicemember": {
+      "n_rows": 724,
+      "direct_recount": {
+        "n_true_positive": 58,
+        "n_false_positive": 294,
+        "n_true_negative": 366,
+        "n_false_negative": 6
+      },
+      "back_computed_from_gate5_rates": {
+        "n_true_positive": 58,
+        "n_false_positive": 294,
+        "n_true_negative": 366,
+        "n_false_negative": 6
+      },
+      "abs_diffs": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 0
+      },
+      "tolerance": 2,
+      "within_tolerance": true,
+      "direct_false_positive_rate": 0.44545454545454544,
+      "direct_recall": 0.90625
+    },
+    "Servicemember": {
+      "n_rows": 6726,
+      "direct_recount": {
+        "n_true_positive": 147,
+        "n_false_positive": 939,
+        "n_true_negative": 5626,
+        "n_false_negative": 14
+      },
+      "back_computed_from_gate5_rates": {
+        "n_true_positive": 147,
+        "n_false_positive": 939,
+        "n_true_negative": 5626,
+        "n_false_negative": 14
+      },
+      "abs_diffs": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 0
+      },
+      "tolerance": 2,
+      "within_tolerance": true,
+      "direct_false_positive_rate": 0.14303122619954303,
+      "direct_recall": 0.9130434782608695
+    }
+  },
+  "independent_direct_cross_check_all_within_tolerance": true,
+  "generated_at_utc": "2026-09-23T18:07:20.916881+00:00"
+}

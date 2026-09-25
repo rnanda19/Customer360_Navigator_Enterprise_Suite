@@ -1,0 +1,86 @@
+[
+  {
+    "bucket": "ATM_CASH_WITHDRAWAL",
+    "real_cfpb_product_candidates": [
+      "Checking or savings account",
+      "Credit card or prepaid card"
+    ],
+    "real_cfpb_subproduct_candidates": [
+      "Checking account",
+      "Savings account"
+    ],
+    "crosswalk_confidence": "LOW",
+    "crosswalk_rationale": "CFPB does not have a dedicated ATM/cash-withdrawal product; ATM disputes are typically filed under the deposit-account product. This is an inference, not a confirmed CFPB coding rule \u2014 flagged LOW until cross-checked against real Issue values.",
+    "real_banking77_categories_mapped_here": [
+      "atm_support",
+      "cash_withdrawal_charge",
+      "cash_withdrawal_not_recognised",
+      "declined_cash_withdrawal",
+      "pending_cash_withdrawal",
+      "wrong_amount_of_cash_received",
+      "wrong_exchange_rate_for_cash_withdrawal"
+    ],
+    "n_real_banking77_categories_mapped_here": 7
+  },
+  {
+    "bucket": "CARD_ISSUANCE_AND_LIFECYCLE",
+    "real_cfpb_product_candidates": [
+      "Credit card or prepaid card",
+      "Credit card",
+      "Prepaid card"
+    ],
+    "real_cfpb_subproduct_candidates": [
+      "General-purpose credit card or charge card",
+      "General-purpose prepaid card",
+      "Store credit card",
+      "Government benefit card"
+    ],
+    "crosswalk_confidence": "MEDIUM",
+    "crosswalk_rationale": "BANKING77 categories about receiving/activating/losing/replacing a physical or virtual card map to CFPB's card-product family. CFPB does not separately code 'card lifecycle' as an Issue, so this is a product-level match only, not issue-level.",
+    "real_banking77_categories_mapped_here": [
+      "activate_my_card",
+      "card_about_to_expire",
+      "card_arrival",
+      "card_delivery_estimate",
+      "card_linking",
+      "card_swallowed",
+      "disposable_card_limits",
+      "get_disposable_virtual_card",
+      "get_physical_card",
+      "getting_spare_card",
+      "getting_virtual_card",
+      "lost_or_stolen_card",
+      "order_physical_card",
+      "supported_cards_and_currencies",
+      "visa_or_mastercard"
+    ],
+    "n_real_banking77_categories_mapped_here": 15
+  },
+  {
+    "bucket": "TRANSFERS",
+    "real_cfpb_product_candidates": [
+      "Money transfer, virtual currency, or money service",
+      "Checking or savings account"
+    ],
+    "real_cfpb_subproduct_candidates": [
+      "Domestic (US) money transfer",
+      "International money transfer"
+    ],
+    "crosswalk_confidence": "HIGH",
+    "crosswalk_rationale": "CFPB's 'Money transfer, virtual currency, or money service' product is a direct, named match for BANKING77's transfer-related categories (sent/received/cancelled/declined/failed transfers, beneficiary and timing issues).",
+    "real_banking77_categories_mapped_here": [
+      "beneficiary_not_allowed",
+      "cancel_transfer",
+      "declined_transfer",
+      "direct_debit_payment_not_recognised",
+      "failed_transfer",
+      "pending_transfer",
+      "receiving_money",
+      "transfer_fee_charged",
+      "transfer_into_account",
+      "transfer_not_received_by_recipient",
+      "transfer_timing"
+    ],
+    "n_real_banking77_categories_mapped_here": 11
+  }
+]

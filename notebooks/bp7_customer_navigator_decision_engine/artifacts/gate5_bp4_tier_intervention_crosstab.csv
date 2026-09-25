@@ -1,0 +1,9 @@
+bp4_review_priority_tier,intervention_flag,n_rows
+,false,9249
+,true,16580
+HIGH,true,82670
+LOW,false,22611
+LOW,true,2652
+MEDIUM,false,195896
+MEDIUM,true,703839
+NONE,false,15078

@@ -1,0 +1,53 @@
+{
+  "bp_id": "bp2",
+  "gate": 5,
+  "champion_model": "xgboost",
+  "n_decision_records": 163344,
+  "n_with_reason_codes": 150,
+  "shap_sample_size_bound": 150,
+  "n_reason_codes_per_record": 5,
+  "shap_error": null,
+  "overall_test_accuracy_recomputed": 0.755773,
+  "gate3_recorded_test_accuracy": 0.7558,
+  "accuracy_consistency_diff": 2.7e-05,
+  "mean_confidence_correct_predictions": 0.7753,
+  "mean_confidence_incorrect_predictions": 0.6845,
+  "gate5_aggregated_top_reason_code_terms": [
+    "Company_freq",
+    "ohe__Submitted via_Web",
+    "ohe__Product_Credit reporting, credit repair services, or other personal consumer reports",
+    "ohe__Issue_Incorrect information on your report",
+    "ohe__Sub-product_Credit reporting",
+    "ohe__Product_Credit reporting or other personal consumer reports",
+    "ohe__Issue_Problem with a credit reporting company's investigation into an existing problem",
+    "ohe__Sub-issue_Information belongs to someone else",
+    "ohe__common_taxonomy_bucket_OUT_OF_SCOPE_NO_BANKING77_OVERLAP",
+    "ohe__State_FL"
+  ],
+  "gate4_global_top10_terms": [
+    "Company_freq",
+    "ohe__Sub-product_Federal student loan servicing",
+    "ohe__Product_Credit reporting or other personal consumer reports",
+    "ohe__Sub-issue_Application denied",
+    "ohe__Sub-product_Title loan",
+    "ohe__State_CA",
+    "ohe__State_NV",
+    "ohe__State_RI",
+    "ohe__State_NJ",
+    "ohe__Sub-issue_Received bad information about your loan"
+  ],
+  "overlap_terms_with_gate4": [
+    "Company_freq",
+    "ohe__Product_Credit reporting or other personal consumer reports"
+  ],
+  "overlap_count_with_gate4": 2,
+  "reason_code_grounding_failures": 0,
+  "reason_code_grounding_method": "For the shared one-hot/frequency feature space, a reason code is only ever reported for a row if that feature's value is nonzero in that row - i.e. the category is literally present in that row by construction of the one-hot encoding, not asserted after the fact. For CatBoost's raw categorical path, every column always has a real value (MISSING is itself a valid category), so reason codes there are formatted as 'Column=Value' to stay equally self-descriptive.",
+  "compliance_touchpoint": {
+    "udaap_language_review": "Not Applicable to BP2 Gate 5 - this gate generates no GenAI or customer-facing text; reason codes and confidence scores are deterministic outputs of the champion classifier and real per-instance SHAP values. Real GenAI-drafted customer-facing text (subject to UDAAP review) is scoped to BP6 (GenAI Resolution Assistant) per the Master Execution Plan, same standing scope decision as BP1 Gate 5.",
+    "nist_ai_rmf_measure_manage": "Not Applicable to BP2 Gate 5 for the same reason - no GenAI output is produced here. Applies at BP6.",
+    "genai_api_used": false,
+    "scope_decision_confirmed_by_user_utc": "2026-09-22"
+  },
+  "generated_at_utc": "2026-09-22T15:38:17.744233+00:00"
+}

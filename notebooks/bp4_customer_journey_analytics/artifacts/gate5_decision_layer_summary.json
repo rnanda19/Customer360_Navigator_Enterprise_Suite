@@ -1,0 +1,45 @@
+{
+  "bp_id": "bp4",
+  "gate": 5,
+  "n_clusters": 37160,
+  "n_with_reason_codes": 19237,
+  "grounding_failures": 0,
+  "gate4_population_mean_lag_reference": 0.4652266170755549,
+  "live_p90_high_volume_threshold": 8.0,
+  "tier_rollup": [
+    {
+      "review_priority_tier": "HIGH",
+      "n_clusters": 2284,
+      "n_complaint_rows_covered": 94410,
+      "mean_banking77_coverage_fraction": 0.3279334500875657
+    },
+    {
+      "review_priority_tier": "LOW",
+      "n_clusters": 12033,
+      "n_complaint_rows_covered": 29630,
+      "mean_banking77_coverage_fraction": 0.23493725587966427
+    },
+    {
+      "review_priority_tier": "MEDIUM",
+      "n_clusters": 4920,
+      "n_complaint_rows_covered": 906612,
+      "mean_banking77_coverage_fraction": 0.2914634146341463
+    },
+    {
+      "review_priority_tier": "NONE",
+      "n_clusters": 17923,
+      "n_complaint_rows_covered": 17923,
+      "mean_banking77_coverage_fraction": 0.20660603693578083
+    }
+  ],
+  "total_rows_covered_check": 1048575,
+  "total_rows_covered_matches_gate1": true,
+  "compliance_touchpoint": {
+    "udaap_language_review": "Not Applicable to BP4 Gate 5 - this gate generates no GenAI or customer-facing text; review_priority_score/tier and reason_codes/reason_evidence are deterministic outputs of a transparent rule evaluated over real, already-confirmed BP4 statistics. Real GenAI-drafted customer-facing text (subject to UDAAP review) is scoped to BP6 per the Master Plan, the same standing scope decision confirmed for BP1/BP2/BP3 Gate 5.",
+    "nist_ai_rmf_measure_manage": "Not Applicable to BP4 Gate 5 for the same reason - no GenAI output is produced here. Applies at BP6.",
+    "bp7_decision_engine_boundary": "review_priority_score/tier is a BP4-local reporting flag built only from BP4's own real Gate 2/4 statistics. It is not the cross-BP priority + intervention-risk decision engine Master Plan Section 5.1/7 scopes to BP7 (which combines BP1-BP5 outputs with its own reason codes and thresholds) - this gate's output may become one real input BP7 later combines, but is never presented as BP7's own decision.",
+    "genai_api_used": false,
+    "scope_decision_confirmed_by_user_utc": "2026-09-22"
+  },
+  "generated_at_utc": "2026-09-23T15:00:20.192069+00:00"
+}

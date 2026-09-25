@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BP7 Customer Navigator Decision Engine — Executive Dashboard</title>
+<!-- defer: an unreachable/slow CDN must never block the page from painting at all (real failure
+     mode seen on a real machine: a plain, non-deferred <script src> in <head> blocks HTML parsing
+     - and therefore the whole page's first paint - until the network request resolves, which can
+     hang indefinitely on a restrictive network and make the page look completely blank). -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer id="plotly-cdn"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root {
+    --navy: #1E2761;
+    --navy-deep: #12173f;
+    --accent: #4C6EF5;
+    --ice: #CADCFC;
+    --success: #1B998B;
+    --warning: #E8A33D;
+    --danger: #C1292E;
+    --gray: #6B7280;
+    --surface: #AFBEE6;
+    --card: #D2DBF6;
+    --card-border: #9FADDB;
+    --ink: #101828;
+    --ink-muted: #40495F;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(16, 24, 40, 0.14);
+    --shadow-hover: 0 10px 32px rgba(16, 24, 40, 0.20);
+    --font-display: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); line-height: 1.5;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(76,110,245,0.24) 0%, rgba(76,110,245,0) 46%),
+      radial-gradient(circle at 100% 18%, rgba(27,153,139,0.18) 0%, rgba(27,153,139,0) 40%),
+      linear-gradient(180deg, #B4C2E8 0%, #A7B7E3 45%, #98AADC 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  header.hero {
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 55%, #2c3a8c 100%);
+    color: #fff; padding: 48px 32px 64px; position: relative; overflow: hidden;
+  }
+  header.hero::after {
+    content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(76,110,245,0.35) 0%, rgba(76,110,245,0) 70%);
+    animation: auroraPulse 6.5s ease-in-out infinite;
+  }
+  header.hero::before {
+    content: ""; position: absolute; left: -70px; bottom: -110px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(27,153,139,0.28) 0%, rgba(27,153,139,0) 70%);
+    animation: auroraPulse 7.5s ease-in-out infinite reverse;
+  }
+  @keyframes auroraPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.65; transform: scale(1.1); } }
+  .hero-inner { max-width: 1320px; margin: 0 auto; position: relative; z-index: 1; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--ice); font-weight: 600; }
+  h1.title { font-size: clamp(24px, 3.4vw, 36px); margin: 10px 0 8px; font-weight: 700; font-family: var(--font-display); }
+  .title-accent { color: var(--ice); }
+  .subtitle { color: rgba(255,255,255,0.82); font-size: 15px; max-width: 860px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22); padding: 7px 14px; border-radius: 999px; font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .badge.warn .dot { background: var(--warning); }
+  .badge.fail .dot { background: var(--danger); animation: pulseDot 1.8s ease-in-out infinite; }
+  @keyframes pulseDot { 0%, 100% { box-shadow: 0 0 0 0 rgba(193,41,46,0.45); } 50% { box-shadow: 0 0 0 5px rgba(193,41,46,0); } }
+
+  .prod-banner {
+    margin-top: 22px; padding: 16px 20px; border-radius: var(--radius); font-size: 14.5px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; backdrop-filter: blur(4px);
+  }
+  .prod-banner .tier-label { font-weight: 800; font-size: 17px; font-family: var(--font-display); }
+  .prod-banner.tier-1 { background: rgba(27,153,139,0.22); border: 1px solid rgba(27,153,139,0.55); }
+  .prod-banner.tier-2 { background: rgba(232,163,61,0.22); border: 1px solid rgba(232,163,61,0.6); }
+  .prod-banner.tier-3 { background: rgba(193,41,46,0.22); border: 1px solid rgba(193,41,46,0.6); }
+  .prod-banner .tier-2-note { font-size: 12px; opacity: 0.85; width: 100%; margin-top: 2px; }
+
+  main { max-width: 1320px; margin: -40px auto 0; padding: 0 24px 64px; position: relative; z-index: 2; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 20px 18px; box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; opacity: 0; transform: translateY(14px);
+    animation: rise 0.6s ease forwards; position: relative; overflow: hidden; border: 1px solid transparent;
+  }
+  .kpi-card::before {
+    content: ""; position: absolute; top: -34px; right: -34px; width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-color, var(--accent)) 0%, transparent 72%); opacity: 0.16; pointer-events: none;
+  }
+  .kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--accent-color, var(--accent)); }
+  .kpi-top { display: flex; align-items: center; gap: 8px; }
+  .kpi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-color, var(--accent)); flex: none; }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 600; }
+  .kpi-value {
+    font-size: 28px; font-weight: 800; color: var(--navy); margin-top: 6px; font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word; word-break: break-word; line-height: 1.18; font-family: var(--font-display);
+  }
+  .kpi-value--text { font-size: clamp(15px, 2.1vw, 20px); line-height: 1.3; }
+  .kpi-sub { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  section.panel {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 26px 22px;
+    margin-bottom: 24px; opacity: 0; animation: rise 0.6s ease forwards;
+  }
+  section.panel h2 { font-size: 18px; margin: 0 0 4px; color: var(--navy); display: flex; align-items: center; gap: 9px; font-family: var(--font-display); }
+  section.panel .panel-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+  .panel-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+  .chart-box { min-height: 340px; }
+  .chart-box.wide { min-height: 300px; }
+
+  .checklist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 10px; margin-top: 6px; }
+  .checklist-row {
+    display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 10px 14px; font-size: 13px;
+  }
+  .checklist-row .check-icon {
+    width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: #fff; flex: none;
+  }
+  .checklist-row.pass .check-icon { background: var(--success); }
+  .checklist-row.fail .check-icon { background: var(--danger); }
+  .checklist-row .check-text { display: flex; flex-direction: column; gap: 2px; }
+  .checklist-row .check-label { font-weight: 700; color: var(--navy); }
+  .checklist-row .check-detail { font-size: 11.5px; color: var(--ink-muted); }
+
+  .filters-bar { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 14px; }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+  .filter-group label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  select, input[type="search"] {
+    font-family: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--card-border);
+    background: #fff; color: var(--ink); min-width: 190px;
+  }
+  select:focus, input[type="search"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .used-pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .used-pill {
+    cursor: pointer; user-select: none; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    border: 1.5px solid var(--card-border); background: #fff; color: var(--ink-muted); transition: all 0.15s ease;
+  }
+  .used-pill.active { color: #fff; border-color: transparent; background: var(--navy); }
+  .used-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(16,24,40,0.14); }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data-table th {
+    text-align: left; padding: 10px 12px; background: var(--surface); color: var(--ink-muted);
+    text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; position: sticky; top: 0; cursor: pointer;
+    user-select: none; white-space: nowrap;
+  }
+  table.data-table th.sortable:hover { color: var(--navy); }
+  table.data-table th .sort-arrow { font-size: 10px; margin-left: 4px; opacity: 0.6; }
+  table.data-table td { padding: 9px 12px; border-top: 1px solid var(--card-border); }
+  table.data-table tr:hover td { background: #BECBF0; }
+  .table-scroll { max-height: 440px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 10px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .pill.used-yes { background: rgba(27,153,139,0.16); color: var(--success); }
+  .pill.used-no { background: rgba(107,114,128,0.14); color: var(--gray); }
+  .table-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .table-toolbar .count-label { font-size: 12.5px; color: var(--ink-muted); }
+
+  .assumption-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed var(--card-border); font-size: 13px; }
+  .assumption-row .a-label { color: var(--ink-muted); max-width: 70%; }
+  .assumption-row .a-value { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 28px; margin-bottom: 4px; }
+  .detail-heading { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 13px; }
+
+  .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .suggestion-card {
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 16px 18px; background: var(--card);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .suggestion-card:hover { box-shadow: var(--shadow); border-color: var(--accent-color, var(--accent)); transform: translateY(-2px); }
+  .suggestion-card h3 { font-size: 14.5px; margin: 0 0 8px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .suggestion-card .smart-row { font-size: 12.5px; margin-bottom: 5px; }
+  .smart-tag { font-weight: 700; color: var(--accent); margin-right: 4px; }
+
+  footer { max-width: 1320px; margin: 0 auto; padding: 8px 24px 40px; font-size: 12px; color: var(--ink-muted); text-align: center; }
+
+  @media (max-width: 640px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    header.hero { padding: 36px 18px 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Customer360 Navigator &middot; BP7 Executive Rollup</div>
+    <h1 class="title">Customer Navigator Decision Engine <span class="title-accent">— Executive Dashboard</span></h1>
+    <p class="subtitle">Real results from BP7 Gates 1&ndash;6, generated 2026-09-25T07:45:24.487907+00:00. BP7 fits no
+      trained model and makes no GenAI / external API call, ever — it is a transparent, auditable,
+      deterministic weighted decision-rule layer (Master Plan Section 5.1/7) that combines BP2's,
+      BP3's, and BP4's own already-computed real prediction fields into
+      <strong>priority_score</strong>, <strong>intervention_flag</strong>, and
+      <strong>recommended_action</strong> for every in-scope complaint. There is no SHAP, no
+      confusion matrix, and no calibration curve anywhere on this page — the exact contribution
+      decomposition below is BP7's own fully transparent, by-design equivalent.</p>
+    <div class="badge-row" id="governance-badges"></div>
+    <div class="prod-banner" id="prod-banner"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <section class="panel">
+    <h2>Gate 3 — Decision-Rule-Scheme Benchmark &amp; Champion Selection</h2>
+    <div class="panel-desc">BP7 selects a champion RULE SCHEME (a weighting scheme over BP2/BP3/BP4's
+      real fields), never a champion classifier. All 4 real candidate schemes structurally pass; the
+      champion is selected via a real, live-computed Cram&eacute;r's V correlation-awareness discount
+      (BP2/BP3's outputs share the identical real CFPB source value) plus a diagnostic logistic-
+      regression cross-check.</div>
+    <div class="chart-grid">
+      <div class="chart-box wide" id="chart-champion-benchmark"></div>
+    </div>
+    <div class="table-scroll" style="margin-top:16px;">
+      <table class="data-table" id="candidate-table">
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Champion</th>
+            <th>Weight BP2</th>
+            <th>Weight BP3</th>
+            <th>Weight BP4</th>
+            <th>Intervention Flag Rate</th>
+            <th>BP3 Agreement Rate</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 4 — Statistical Validation &amp; Explainability</h2>
+    <div class="panel-desc">Gate 4 independently re-derives Gate 3's entire champion-selection
+      pipeline from scratch and confirms it matches bit-exact, then computes real percentile
+      bootstrap 95% confidence intervals on two real rates over the full real, ~1.05M-row scored
+      population.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-bootstrap-ci-intervention"></div>
+      <div class="chart-box" id="chart-bootstrap-ci-agreement"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 4 — Exact Contribution Decomposition (BP7's Transparent Stand-In for SHAP)</h2>
+    <div class="panel-desc">BP7 fits no black-box model, so there is no SHAP feature-importance
+      chart here. Because BP7's rule already IS a deterministic linear combination, this real,
+      per-row decomposition is EXACT, not approximate — contribution_bp2 + contribution_bp3 +
+      contribution_bp4 reconstructs priority_score exactly for every scored row
+      (max_abs_reconstruction_error is the real, live-computed structural check below).</div>
+    <div class="chart-grid">
+      <div class="chart-box wide" id="chart-contribution-decomposition"></div>
+    </div>
+    <div class="detail-heading">Real per-row sample (first 25 of 1,048,575 real scored rows)</div>
+    <div class="table-scroll" style="margin-top:8px;">
+      <table class="data-table" id="contribution-table">
+        <thead>
+          <tr>
+            <th>Complaint ID</th>
+            <th>priority_score</th>
+            <th>contribution_bp2</th>
+            <th>contribution_bp3</th>
+            <th>contribution_bp4</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 4/5 — Real ECOA/Reg B Disparate-Impact Audit (Applicable to BP7)</h2>
+    <div class="panel-desc">Unlike BP4/BP6 (NOT_APPLICABLE), BP7 DOES run a real four-fifths-rule
+      disparate-impact check on its own intervention_flag, grouped by real tags_group. Gate 3
+      honestly deferred this check (BP7's own Gold layer does not preserve tags_group, and
+      reconstructing it would have made 'Tags' a barred scoring input); Gate 4 resolves the
+      deferral by joining tags_group from BP3's own, separate, already-governance-approved Gold
+      layer strictly AFTER scoring, for audit-grouping only. This is a monitoring signal for a
+      human reviewer, never a legal determination of ECOA/Reg B compliance.</div>
+    <div class="chart-grid">
+      <div class="chart-box wide" id="chart-disparate-impact"></div>
+    </div>
+    <div class="table-scroll" style="margin-top:16px;">
+      <table class="data-table" id="disparate-impact-table">
+        <thead>
+          <tr>
+            <th>Tags Group</th>
+            <th>N Rows</th>
+            <th>N Intervention Flagged</th>
+            <th>Selection Rate</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 5 — Decision Outputs (Real, Full Population)</h2>
+    <div class="panel-desc">The real, deterministic recommended_action breakdown and the real
+      BP4-tier &times; BP7-intervention crosstab, both over the full real 1,048,575-row scored
+      population. recommended_action is a deterministic, reason-code-keyed lookup — never GenAI
+      text (UDAAP is Not Applicable to BP7 Gate 5, per policy.json's own compliance_touchpoint).</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-recommended-action"></div>
+      <div class="chart-box" id="chart-bp4-tier-crosstab"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 3/4/5/6 — Real Governance Checklist</h2>
+    <div class="panel-desc">BP7 carries no citation/UDAAP checks (recommended_action is a
+      deterministic lookup, never GenAI-generated text) — this checklist instead covers the real
+      checks specific to a transparent, auditable decision-rule layer: reproduction, leakage,
+      exact reconstruction, weight rederivation, cross-gate agreement, and the real, applicable
+      disparate-impact check.</div>
+    <div class="chart-grid">
+      <div class="chart-box wide" id="chart-governance-checklist"></div>
+    </div>
+    <div class="checklist-grid" id="checklist-grid"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 1 — Business Understanding &amp; Policy</h2>
+    <div class="panel-desc">Real target definition, leakage rules, assumptions, and compliance
+      touchpoints recorded at Gate 1 — including the explicit "Not Applicable to BP7 Gate 5"
+      statements for UDAAP and NIST AI RMF, and the "Applicable" statement for ECOA/Reg B.</div>
+    <div id="gate1-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 6 — Governance &amp; Known Limitations</h2>
+    <div class="panel-desc">Real governance status from this run, plus open items carried forward
+      honestly rather than hidden.</div>
+    <div id="gate6-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>SMART Suggestions</h2>
+    <div class="panel-desc">Specific, Measurable, Achievable, Relevant, Time-bound recommendations —
+      each grounded in a real number from Gates 1&ndash;6, not freeform text.</div>
+    <div class="suggestion-grid" id="suggestion-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Generated by <code>bp7_customer_navigator_decision_engine_g7_executive_rollup_report.ipynb</code> &middot;
+  Governance: ================ 410 passed, 3 skipped, 182 warnings in 13.74s ================ &middot; Notebook syntax audit: returncode=0 &middot;
+  Customer360 Navigator Enterprise Suite &mdash; BP7 Customer Navigator Decision Engine
+</footer>
+
+<script id="rollup-data" type="application/json">{"palette": {"primary_navy": "#1E2761", "accent_blue": "#4C6EF5", "ice_blue": "#CADCFC", "success_green": "#1B998B", "warning_amber": "#E8A33D", "danger_red": "#C1292E", "neutral_gray": "#6B7280", "surface_light": "#F7F8FC", "ink": "#101828", "ink_muted": "#4B5468"}, "categorical_sequence": ["#1E2761", "#4C6EF5", "#1B998B", "#E8A33D", "#C1292E", "#6B7280"], "kpis": {"primary_target": "customer360_priority_decision", "genai_api_used": false, "bp1_role": "OPTIONAL_CONTEXT_ONLY - real BANKING77-derived CFPB coverage is only 6.55% (BP4 Gate 1's own live-verified figure); never a required, always-populated weighted input, to avoid silently nulling 93.45% of rows on a 'required' field.", "bp5_role": "PENDING - no field name invented. Expected qualitative contribution per Master Plan Section 7 ('associations... distinguish association from causation'): driver-association context, not a numeric weight, finalized only once BP5's own real Gate 1 exists. BP7's config carries this as an explicit placeholder.", "live_row_count": 1048575, "bp2_pct_available": 100.0, "bp3_pct_available": 100.0, "bp4_joined_rows": 1022746, "bp4_unscored_rows": 25829, "candidates_total": ["equal_weight_baseline", "domain_informed_weighted", "correlation_aware", "correlation_aware_plus_lr_diagnostic"], "n_candidates_structurally_passing": 4, "champion_rule_scheme": "correlation_aware_plus_lr_diagnostic", "champion_weights_normalized": {"bp2": 0.222714, "bp3": 0.170774, "bp4": 0.606512}, "champion_bp3_agreement_rate": 0.285865, "champion_coverage_pct": 100.0, "bp2_bp3_cramers_v": 0.21443806441558086, "bp2_bp3_association_strength": "weak", "bp4_join_coverage": 0.975368, "lr_diagnostic_held_out_roc_auc": 0.895153, "intervention_threshold": 0.5, "reproduction_bit_exact": true, "intervention_flag_rate_point_estimate": 0.768415, "intervention_flag_rate_ci_low": 0.767609, "intervention_flag_rate_ci_high": 0.769243, "bp3_agreement_rate_ci_low": 0.284984, "bp3_agreement_rate_ci_high": 0.286725, "bootstrap_n": 1000, "mean_contribution_bp2": 0.139346, "mean_contribution_bp3": 0.015184, "mean_contribution_bp4": 0.399635, "max_abs_reconstruction_error": 0.0, "reconstruction_exact": true, "leakage_reconfirmed_clean": true, "adverse_impact_ratio": 0.908127, "flagged_four_fifths_rule": false, "lowest_selection_rate_group": "Servicemember", "highest_selection_rate_group": "Older American", "bp3_own_adverse_impact_ratio_for_comparison": 0.139, "n_decision_records": 1048575, "gate5_coverage_pct": 100.0, "avg_reason_codes_per_row": 7.8864, "reason_codes_all_nonempty": true, "weight_rederivation_matches_config": true, "cross_checks_vs_gate3_gate4_all_passed": true, "udaap_applicability": "Not Applicable to BP7 Gate 5 - recommended_action is Gate 1's own named deterministic, reason-code-keyed lookup, never GenAI-generated text. Real GenAI-drafted customer-facing text (subject to UDAAP review) is scoped to BP6 per the Master Plan, the identical standing scope decision confirmed at every upstream BP's own Gate 5.", "nist_ai_rmf_applicability": "Not Applicable to BP7 Gate 5 for the same reason - no GenAI output is produced here. Applies at BP6.", "ecoa_reg_b_applicability": "Applicable - Section 9 above freshly re-derives the disparate-impact audit on this gate's own scored full population and cross-checks it against Gate 4's own already-real-run-confirmed finding, rather than simply re-printing Gate 4's number. Monitoring signal for a human reviewer, not a legal determination of ECOA/Reg B compliance - the identical limitation Gate 4 and BP3's own Gate 4 both stated, not softened here.", "gate6_pytest_n_passed": 410, "gate6_pytest_n_failed": 0, "gate6_pytest_all_passed": true, "gate6_notebook_syntax_all_passed": true, "gate6_fastapi_self_test_all_checks_passed": true, "gate6_fastapi_health_check_status": "ok", "gate6_fastapi_self_test_n_rows_checked": 100, "gate6_fastapi_real_external_api_call_made": false, "gate3_gate5_champion_rule_scheme_agree": true, "bp4_unscored_rate_detected": true, "bp4_unscored_rate": 0.024632, "low_bp3_agreement_rate_detected": true, "bp1_optional_context_coverage_pct": 6.5527, "production_recommendation": {"tier": "RECOMMENDED FOR PRODUCTION", "tier_code": 1, "reason": "All 6 gates real-run confirmed (each gate's own config marker block present, combined with a real confirming generated_at_utc timestamp - Gates 2-4 checked against their own artifact JSON's timestamp per this BP's real flat-config shape, Gates 5-6 checked against the config's own gate5_generated_at_utc/gate6_generated_at_utc fields); every real structural/governance check passed (pytest 410 passed/0 failed, notebook-syntax audit all passed, Gate 3/Gate 5 champion rule scheme 'correlation_aware_plus_lr_diagnostic' agrees, Gate 4's independent reproduction of Gate 3's entire champion-selection pipeline is bit-exact, leakage reconfirmed clean, the exact contribution decomposition reconstructs priority_score exactly (max_abs_reconstruction_error=0.0), Gate 5's weight rederivation matches the config and all 4 Gate 3/Gate 4 cross-checks passed, and Gate 6's own real FastAPI self-test reported all_checks_passed=True); and the real, independently re-derived-at-Gate-5 four-fifths-rule disparate-impact check is NOT flagged (adverse_impact_ratio=0.908127, above the 0.8 four-fifths-rule convention threshold). Tier 2 (CONDITIONAL - GOVERNANCE REVIEW REQUIRED) is genuinely reachable for BP7 - unlike BP4's/BP6's own NOT_APPLICABLE ECOA/Reg B finding, BP7 DOES run a real disparate-impact check (resolved at Gate 4 after an honest Gate 3 deferral) - it is simply not triggered on this real run's own numbers.", "structural_checks": {"gate1_real_run_confirmed": true, "gate2_real_run_confirmed": true, "gate3_real_run_confirmed": true, "gate4_real_run_confirmed": true, "gate5_real_run_confirmed": true, "gate6_real_run_confirmed": true, "gate6_pytest_all_passed": true, "gate6_notebook_syntax_all_passed": true, "gate6_fastapi_self_test_all_checks_passed": true, "gate3_gate5_champion_rule_scheme_agree": true, "gate4_reproduction_bit_exact": true, "gate4_leakage_reconfirmed_clean": true, "gate4_contribution_reconstruction_exact": true, "gate5_weight_rederivation_matches_config": true, "gate5_cross_checks_vs_gate3_gate4_all_passed": true}, "all_structural_checks_passed": true, "flagged_four_fifths_rule": false, "adverse_impact_ratio": 0.908127, "four_fifths_rule_threshold": 0.8, "tier_2_reachable_for_this_bp": true, "tier_2_trigger_mechanism": "Genuinely reachable - triggered specifically when the real, independently re-derived-at-Gate-5 four-fifths-rule disparate-impact check (gate5_summary.disparate_impact_audit.flagged_four_fifths_rule) is True. On this real run it is False (adverse_impact_ratio=0.908127), so this run resolves to Tier 1 - unlike BP4/BP6, where ECOA/Reg B is NOT_APPLICABLE and Tier 2 is structurally unreachable."}, "generated_at_utc": "2026-09-25T07:45:22.492499+00:00"}, "governance_checklist": [{"label": "Gate 3/Gate 5 champion rule scheme agree", "passed": true, "detail": "champion_rule_scheme='correlation_aware_plus_lr_diagnostic' at both gates"}, {"label": "Gate 4 reproduction bit-exact", "passed": true, "detail": "tolerance=1e-06, weights_match=True"}, {"label": "Gate 4 leakage reconfirmed clean", "passed": true, "detail": "5 real barred column(s) re-checked, 0 present"}, {"label": "Exact contribution decomposition reconstructs priority_score exactly", "passed": true, "detail": "max_abs_reconstruction_error=0.0"}, {"label": "Gate 5 weight rederivation matches config", "passed": true, "detail": "cramers_v_matches_config=True, bp4_coverage_matches_config=True, weights_match_config=True"}, {"label": "Gate 5 cross-checks vs. Gate 3/Gate 4 all passed", "passed": true, "detail": "coverage_pct_matches_gate3=True, intervention_flag_rate_matches_gate4=True, bp3_agreement_rate_matches_gate4=True, adverse_impact_ratio_matches_gate4=True"}, {"label": "Four-fifths-rule disparate-impact check not flagged", "passed": true, "detail": "adverse_impact_ratio=0.908127 (threshold=0.8)"}, {"label": "Gate 6 pytest all passed", "passed": true, "detail": "410 passed / 0 failed"}, {"label": "Gate 6 FastAPI self-test all checks passed", "passed": true, "detail": "health_check_status='ok', n_rows_checked=100, real_external_api_call_made=False"}], "candidate_benchmark": [{"candidate": "equal_weight_baseline", "is_champion": false, "weight_bp2_normalized": 0.333333, "weight_bp3_normalized": 0.333333, "weight_bp4_normalized": 0.333333, "intervention_flag_rate": 0.11595, "bp3_agreement_rate": 0.94662, "coverage_pct": 100.0, "structurally_passes": true}, {"candidate": "domain_informed_weighted", "is_champion": false, "weight_bp2_normalized": 0.256011, "weight_bp3_normalized": 0.196306, "weight_bp4_normalized": 0.547684, "intervention_flag_rate": 0.769439, "bp3_agreement_rate": 0.28697, "coverage_pct": 100.0, "structurally_passes": true}, {"candidate": "correlation_aware", "is_champion": false, "weight_bp2_normalized": 0.222714, "weight_bp3_normalized": 0.170774, "weight_bp4_normalized": 0.606512, "intervention_flag_rate": 0.768415, "bp3_agreement_rate": 0.285865, "coverage_pct": 100.0, "structurally_passes": true}, {"candidate": "correlation_aware_plus_lr_diagnostic", "is_champion": true, "weight_bp2_normalized": 0.222714, "weight_bp3_normalized": 0.170774, "weight_bp4_normalized": 0.606512, "intervention_flag_rate": 0.768415, "bp3_agreement_rate": 0.285865, "coverage_pct": 100.0, "structurally_passes": true}], "contribution_sample": [{"Complaint ID": 7254902, "priority_score": 0.5528349487664956, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 1.7822246597e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 25768066, "priority_score": 0.5529250328190685, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 0.0001079062991699, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 7482556, "priority_score": 0.5528442509304055, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 2.71244105069e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 7098183, "priority_score": 0.478618540014582, "contribution_bp2": 0.0742379945778579, "contribution_bp3": 3.94080725414e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 7224915, "priority_score": 0.5528559592585531, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 3.88327386545e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 6940547, "priority_score": 0.5528559592585531, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 3.88327386545e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 26234426, "priority_score": 0.5528464888165513, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 2.93622966527e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 6965567, "priority_score": 0.4786524860260384, "contribution_bp2": 0.0742379945778579, "contribution_bp3": 7.33540839978e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 27200720, "priority_score": 0.5529370258792643, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 0.0001198993593657, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 7417575, "priority_score": 0.552974602885371, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 0.0001574763654725, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 6899669, "priority_score": 0.5529561765747237, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 0.0001390500548251, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 7300004, "priority_score": 0.5528515820326356, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 3.4455512737e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 7065091, "priority_score": 0.4864459915966148, "contribution_bp2": 0.0742379945778579, "contribution_bp3": 0.0078668596545742, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 26520956, "priority_score": 0.552850343616218, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 3.32170963193e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 27282757, "priority_score": 0.5528446952228383, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 2.75687029397e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 6881886, "priority_score": 0.5528584462479648, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 4.13197280661e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 27349972, "priority_score": 0.5528232208266131, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 6.094306714518698e-06, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 26459633, "priority_score": 0.5529250328190685, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 0.0001079062991699, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 6923766, "priority_score": 0.5528541840495602, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 3.70575296616e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 6770291, "priority_score": 0.4785898274753898, "contribution_bp2": 0.0742379945778579, "contribution_bp3": 1.06955333492e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 27590350, "priority_score": 0.5528350949757165, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 1.79684558179e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 7318317, "priority_score": 0.7754079470474577, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 0.0204202518454677, "contribution_bp4": 0.606511706046274}, {"Complaint ID": 7031723, "priority_score": 0.4787049203661302, "contribution_bp2": 0.0742379945778579, "contribution_bp3": 0.0001257884240896, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 6852058, "priority_score": 0.4785898274753898, "contribution_bp2": 0.0742379945778579, "contribution_bp3": 1.06955333492e-05, "contribution_bp4": 0.4043411373641826}, {"Complaint ID": 7255721, "priority_score": 0.5044804822407671, "contribution_bp2": 0.1484759891557159, "contribution_bp3": 0.1538339244029598, "contribution_bp4": 0.2021705686820913}], "disparate_impact_breakdown": [{"tags_group": "NO_TAG", "n_rows": 995094, "n_intervention_flagged": 767144, "selection_rate": 0.770926}, {"tags_group": "Servicemember", "n_rows": 36094, "n_intervention_flagged": 25294, "selection_rate": 0.700781}, {"tags_group": "Older American", "n_rows": 13713, "n_intervention_flagged": 10582, "selection_rate": 0.771677}, {"tags_group": "Older American, Servicemember", "n_rows": 3674, "n_intervention_flagged": 2721, "selection_rate": 0.74061}], "recommended_action_breakdown": [{"recommended_action": "ESCALATE_ROOT_CAUSE_REVIEW_RECURRING_CLUSTER", "n_rows": 788955, "mean_priority_score": 0.5840138663606513, "intervention_flag_rate": 1.0, "pct_of_population": 75.240684}, {"recommended_action": "STANDARD_QUEUE", "n_rows": 242834, "mean_priority_score": 0.4494550105026503, "intervention_flag_rate": 0.0, "pct_of_population": 23.158477}, {"recommended_action": "PRIORITY_QUEUE_REVIEW", "n_rows": 16786, "mean_priority_score": 0.6660745793813543, "intervention_flag_rate": 1.0, "pct_of_population": 1.600839}], "bp4_tier_crosstab": [{"bp4_review_priority_tier": "UNSCORED_MISSING_UPSTREAM_INPUT", "intervention_flag": false, "n_rows": 9249}, {"bp4_review_priority_tier": "UNSCORED_MISSING_UPSTREAM_INPUT", "intervention_flag": true, "n_rows": 16580}, {"bp4_review_priority_tier": "HIGH", "intervention_flag": true, "n_rows": 82670}, {"bp4_review_priority_tier": "LOW", "intervention_flag": false, "n_rows": 22611}, {"bp4_review_priority_tier": "LOW", "intervention_flag": true, "n_rows": 2652}, {"bp4_review_priority_tier": "MEDIUM", "intervention_flag": false, "n_rows": 195896}, {"bp4_review_priority_tier": "MEDIUM", "intervention_flag": true, "n_rows": 703839}, {"bp4_review_priority_tier": "NONE", "intervention_flag": false, "n_rows": 15078}], "gate1": {"target_definition": {"primary_target": "customer360_priority_decision", "primary_target_description": "NOT a single trained ML target. Per Master Plan Section 5.1/7, BP7 is a transparent, auditable decision-rule layer that combines BP1-BP5's own already-computed prediction fields into three output fields per in-scope complaint: priority_score, intervention_flag, and recommended_action - every row also carrying reason_codes and the exact thresholds applied. See this notebook's markdown cell 'The transparent-scoring-vs-model tension, resolved' for the full reasoning.", "output_fields": {"priority_score": "Deterministic weighted combination of BP2's friction tier, BP3's intervention probability, and BP4's cluster tier (BP1 optional context, BP5 pending) - weights/thresholds are a Gate 3/4 decision, recorded in policy.json once set, never a raw upstream model score passed through unmodified.", "intervention_flag": "Boolean, from a documented threshold applied to priority_score - threshold value is a Gate 3/4 decision.", "recommended_action": "Deterministic, reason-code-keyed lookup text - never GenAI (GenAI-drafted customer-facing text stays scoped to BP6 per every upstream BP's own Gate 5 disclosure; UDAAP Section 9 does not map BP7).", "reason_codes": "Every output row records which upstream BP fields and thresholds drove its priority_score/intervention_flag - Section 5.1/7's explicit requirement."}, "combining_methodology": "A documented, deterministic weighted rule, never a retrained black-box classifier producing the final score directly. A Gate 3/4 scope decision MAY evaluate an interpretable model (logistic regression specifically) as one additional reason-coded input field into the rule framework - the framework, its weights, its thresholds, and the final decision stay the deterministic, auditable layer regardless.", "upstream_input_contract": {"bp1_customer_intent_classification": {"status": "REAL_GATE6_ARTIFACTS_PRESENT", "fields_used": ["predicted_label", "confidence_top1"], "role": "OPTIONAL_CONTEXT_ONLY - real BANKING77-derived CFPB coverage is only 6.55% (BP4 Gate 1's own live-verified figure); never a required, always-populated weighted input, to avoid silently nulling 93.45% of rows on a 'required' field."}, "bp2_customer_friction_classification": {"status": "REAL_GATE6_ARTIFACTS_PRESENT", "fields_used": ["predicted_label", "confidence_top1"], "role": "CORE_INPUT - ordinal friction-severity tier (LOW_FRICTION..HIGH_FRICTION), mapped to a numeric weight at Gate 3/4. NEVER true_label (see leakage_rules)."}, "bp3_complaint_escalation_prediction": {"status": "REAL_GATE6_ARTIFACTS_PRESENT", "fields_used": ["predicted_probability", "predicted_label"], "role": "CORE_INPUT - real intervention-risk probability, the Master Plan's own named BP7 ingredient ('intervention risk'). NEVER true_label (see leakage_rules). Carries forward BP3's own real, already-flagged ECOA disparate-impact monitoring result (see compliance_touchpoint below) rather than dropping it silently."}, "bp4_customer_journey_analytics": {"status": "REAL_GATE6_ARTIFACTS_PRESENT", "fields_used": ["review_priority_tier", "recurring_flag", "high_volume_flag"], "role": "CORE_INPUT, DIFFERENT GRAIN - issue-cluster level (Company, Product, Sub-product, Issue, Sub-issue), joined onto each complaint row via that real, always-present CFPB key at Gate 2. Never presented alone as BP7's decision (BP4 Gate 5's own explicit disclosure, carried forward verbatim)."}, "bp5_root_cause_driver_analytics": {"status": "PENDING_NOT_YET_DELIVERED", "fields_used": null, "role": "PENDING - no field name invented. Expected qualitative contribution per Master Plan Section 7 ('associations... distinguish association from causation'): driver-association context, not a numeric weight, finalized only once BP5's own real Gate 1 exists. BP7's config carries this as an explicit placeholder."}}, "grain_and_join_strategy": "BP1/BP2/BP3 outputs are per-complaint (row-level); BP4's output is per-issue-cluster. BP4's tier is joined onto each complaint via the real, always-present (Company, Product, Sub-product, Issue, Sub-issue) key - a Gate 2 join, not a Gate 1 assumption.", "known_dependency_gaps": ["BP1/BP2/BP3's real gate5_decision_records.csv artifacts are held-out TEST-SPLIT predictions (each BP's own independent random split), keyed only by a row_index local to that BP - live-verified below to carry no 'Complaint ID' column. Three independently-split BPs cannot be joined row-for-row from today's artifacts alone. Resolution (backward-compatible artifact addition, or a BP7-owned common re-scoring pass) is deferred to Gate 2/3, not worked around here.", "BP5 has no real Gate 1 yet; its eligible field names are unknown until it does."]}, "leakage_rules": ["Raw CFPB 'Company response to consumer' is never read or used directly by BP7 - it is the exact field BP2's friction taxonomy and BP3's intervention_required target are both defined from; reading it directly here would let BP7 re-derive BP2/BP3's own targets circularly instead of combining their already-computed, already-validated outputs.", "No upstream BP's 'true_label' column (in its own gate5_decision_records.csv) is ever used by BP7 - only each BP's 'predicted_*' fields. Using a true/realized label would make BP7 trivially non-predictive for exactly the open/unresolved complaints it exists to help prioritize.", "'Tags' is barred from every BP7 priority-score input - live re-checked in Section 4 above (not trusted from BP1-4's own prior findings alone) and confirmed to contain demographic-adjacent values. Matches BP1-4's own precedent.", "'Timely response?', 'Date received', 'Date sent to company' stay barred as direct BP7 inputs, for the same reasons BP2/BP3 barred them (they leak the fields those BPs' own targets are built from) - BP7 only touches them indirectly through BP2/BP3's already-validated predictions, never by reading the raw columns itself.", "BP4's review_priority_score/tier may be combined into BP7's own score only as one input among several - never presented alone as BP7's decision (BP4 Gate 5's own explicit disclosure, carried forward verbatim, not re-litigated here).", "No BP7 output row may be produced for a complaint outside the real join coverage (Section 5's live column/coverage checks) - an unjoinable row is reported as UNSCORED_MISSING_UPSTREAM_INPUT, never silently defaulted to a score.", "No field name for BP5's eventual output is hardcoded anywhere in this policy or the written config - BP5 is carried as an explicit PENDING placeholder only."], "assumptions": ["BP2's LOW_FRICTION class and BP3's positive class (intervention_required=1) are both defined on the identical real CFPB value 'Closed with monetary relief' - not leakage between BP2/BP3 (each already disclosed this at its own Gate 1), but BP7 must not assume their predicted outputs are independent, additively-combinable signals; Gate 3/4 must empirically check this correlation before finalizing weights.", "BP1's real BANKING77-derived intent coverage is only 6.55% of CFPB rows (BP4 Gate 1's own live-verified figure) - used as optional context only, never a required weighted input.", "BP5 has not yet real-run its Gate 1 (live-verified config status: 'gate1_confirmed', real_artifact_status: 'PENDING_NOT_YET_DELIVERED' - both checked live in Section 5, never hardcoded); BP7's policy is written forward-compatible and will be amended via write_front_matter (non-destructive to Gates 2+ once they exist) once BP5 clears its own real Gate 1.", "Final numeric weights and the intervention_flag threshold are a Gate 3/4 decision, not fixed here - Gate 1 defines which real fields are eligible inputs and the transparency constraint they must satisfy (Section 5.1/7's 'no black-box scoring'), not their coefficients.", "BP4's cluster-level tier is joined onto complaint-level rows via the real (Company, Product, Sub-product, Issue, Sub-issue) key present on every real CFPB row, not just BP4's own artifact rows.", "src/utils/bp1_config_sync.py is reused unmodified for BP7's own config file - already fully generic, no BP1-specific logic (its fifth reuse, after BP2/BP3/BP4).", "random_state=42 reused for consistency with every other BP in this suite, though BP7's rule-based core has no stochastic fitting step of its own at Gate 1."], "compliance_touchpoint": {"data_minimization_purpose_limitation": "GLBA/GDPR-aligned (Master Plan Section 8's Gate 1 exit-criteria compliance touchpoint, applies to every BP). BP7 processes only already-computed BP1-BP5 output fields (already governed under each BP's own Gate 1 policy) plus the real CFPB product-taxonomy join key (Company, Product, Sub-product, Issue, Sub-issue) - no new raw customer data, and no narrative/PII-bearing field, is read by BP7 beyond what BP1-BP5 already processed under their own policies.", "ecoa_reg_b": "Applicable (Master Plan Section 9 maps BP7 alongside BP1/BP2/BP3). The real CFPB extract carries no demographic field by name, but 'Tags' (re-checked live in Section 4) contains real demographic-adjacent values (Servicemember, Older American) - matching BP1-4's own finding; barred from every BP7 input, same as upstream precedent. This is NOT stated as a bare 'Not Applicable', because BP7 combines BP3's own output, and BP3's Gate 4/5 already ran a real disparate-impact check on that output and found 'adverse_impact_ratio_recomputed = 0.139, flagged: true' across the real tags_group breakdown (re-read live from BP3's own policy.json in Section 5 above). BP7 Gate 1 commits to carrying that real, already-flagged finding forward explicitly when it ingests BP3's output, and to re-running a disparate-impact-style check on BP7's own final priority_score/intervention_flag, grouped by the same tags_group dimension, at BP7's own Gate 4 - not a legal determination of ECOA/Reg B compliance, a monitoring signal for a human reviewer, exactly BP3's own stated limitation.", "udaap": "Not Applicable to BP7 - Master Plan Section 9's UDAAP row maps only BP2 (friction), BP5 (root-cause), and BP6 (GenAI resolution text); BP7 is not listed. recommended_action is a deterministic, reason-code-keyed lookup, never a GenAI call.", "genai_api_used": false}, "upstream_bp_status": {"bp1": {"artifacts_dir_exists": true, "policy_json_exists": true, "config_yaml_status": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed", "decision_records_exists": true, "decision_records_columns": ["row_index", "true_label", "predicted_label", "correct", "confidence_top1", "rank2_label", "rank2_confidence", "rank3_label", "rank3_confidence", "in_shap_sample", "reason_codes", "text"], "decision_records_has_complaint_id": false, "decision_layer_summary_exists": true, "real_artifact_status": "REAL_GATE6_ARTIFACTS_PRESENT"}, "bp2": {"artifacts_dir_exists": true, "policy_json_exists": true, "config_yaml_status": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed", "decision_records_exists": true, "decision_records_columns": ["row_index", "true_label", "predicted_label", "correct", "confidence_top1", "rank2_label", "rank2_confidence", "rank3_label", "rank3_confidence", "in_shap_sample", "reason_codes", "feature_summary"], "decision_records_has_complaint_id": false, "decision_layer_summary_exists": true, "real_artifact_status": "REAL_GATE6_ARTIFACTS_PRESENT"}, "bp3": {"artifacts_dir_exists": true, "policy_json_exists": true, "config_yaml_status": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed", "decision_records_exists": true, "decision_records_columns": ["row_index", "true_label", "predicted_label", "predicted_probability", "correct", "predicted_label_at_best_f1_threshold", "tags_group", "in_shap_sample", "reason_codes", "feature_summary"], "decision_records_has_complaint_id": false, "decision_layer_summary_exists": true, "real_artifact_status": "REAL_GATE6_ARTIFACTS_PRESENT"}, "bp4": {"artifacts_dir_exists": true, "policy_json_exists": true, "config_yaml_status": "gate6_complete", "decision_records_exists": true, "decision_records_columns": ["Company", "Product", "Sub-product", "Issue", "Sub-issue", "n_complaints_total", "first_complaint_date", "last_complaint_date", "n_active_months", "avg_response_lag_days", "banking77_coverage_fraction", "is_recurring_cluster", "recurring_flag", "elevated_lag_flag", "high_volume_flag", "review_priority_score", "review_priority_tier", "reason_codes", "reason_evidence"], "decision_records_has_complaint_id": false, "decision_layer_summary_exists": true, "real_artifact_status": "REAL_GATE6_ARTIFACTS_PRESENT"}, "bp5": {"artifacts_dir_exists": true, "policy_json_exists": true, "config_yaml_status": "gate1_confirmed", "decision_records_exists": false, "decision_records_columns": null, "decision_records_has_complaint_id": null, "decision_layer_summary_exists": false, "real_artifact_status": "PENDING_NOT_YET_DELIVERED"}}, "demographic_adjacent_tags_found": ["Servicemember", "Older American", "Older American, Servicemember"], "generated_at_utc": "2026-09-25T06:12:08.692639+00:00"}, "gate6_detail": {"bp_id": "bp7", "gate": 6, "pytest_summary_line": "\u001b[33m================ \u001b[32m410 passed\u001b[0m, \u001b[33m\u001b[1m3 skipped\u001b[0m, \u001b[33m\u001b[1m182 warnings\u001b[0m\u001b[33m in 13.74s\u001b[0m\u001b[33m ================\u001b[0m", "pytest_n_passed": 410, "pytest_n_failed": 0, "pytest_all_passed": true, "notebook_syntax_audit_returncode": 0, "notebook_syntax_all_passed": true, "fastapi_self_test_all_checks_passed": true, "fastapi_self_test_real_external_api_call_made": false, "gate3_gate5_champion_rule_scheme_agree": true, "open_items": {"bp4_unscored_rate_detected": true, "bp4_unscored_rate": 0.024632, "low_bp3_agreement_rate_detected": true, "bp3_agreement_rate": 0.285865, "bp1_optional_context_coverage_pct": 6.5527}, "model_card_path": "reports\\bp7_customer_navigator_decision_engine\\MODEL_CARD.md", "changelog_path": "reports\\bp7_customer_navigator_decision_engine\\CHANGELOG.md", "generated_at_utc": "2026-09-25T06:49:02.757522+00:00", "fastapi_health_check_status": "ok", "fastapi_self_test_n_rows_checked": 100, "fastapi_real_external_api_call_made": false, "fastapi_self_test_note": "This self-test artifact is a Gate 6 governance/testing record, NOT a customer-facing decision - it is separate from, and never overwrites, Gate 5's own gate5_full_population_decision_records.csv or gate5_decision_layer_summary.json.", "fastapi_self_test_generated_at_utc": "2026-09-25T06:49:02.757155+00:00", "model_card_exists_on_this_machine": true, "changelog_exists_on_this_machine": true}, "suggestions": [{"title": "Resolve the real 2.46% BP4-unscored rate before wider rollout", "specific": "25,829 of 1,048,575 real complaint rows could not be joined to a real BP4 issue-cluster tier at Gate 2 (real unscored rate=0.024632, live-flagged by Gate 6 as a real, disclosed open item) - these rows are reported UNSCORED_MISSING_UPSTREAM_INPUT for the BP4 field only, per Gate 1's own leakage_rules, never silently defaulted.", "measurable": "bp4_unscored_rate_detected=True at real rate 0.024632 - target: reduce the real unjoinable-cluster-key rate on the next real Gate 2 re-run.", "timebound": "Before the next scheduled Gate 2 re-scoring re-run.", "owner_placeholder": "BP7 data engineering owner (name TBD by the user's team)"}, {"title": "Review the real, low BP3-agreement rate as a governance/interpretability signal", "specific": "BP7's own champion intervention_flag agrees with BP3's own independently-validated bp3_predicted_label on only 28.5865% of the real, full 1,048,575-row population (95% bootstrap CI [0.2850, 0.2867], n=1,000 bootstrap draws) - expected, since bp3_predicted_label is a disclosed reference point, not ground truth for BP7's own decision (Gate 4's own bp3_agreement_crosstab disclosure), but live-flagged by Gate 6 as a real, disclosed open item worth a human governance review.", "measurable": "low_bp3_agreement_rate_detected=True at real rate 0.285865 - target: a documented governance review of whether this real gap is expected (different objectives: BP3 predicts intervention risk alone, BP7 combines 3 real signals) or worth further investigation.", "timebound": "Reviewed at every future real Gate 5/Gate 6 re-run.", "owner_placeholder": "BP7 governance reviewer (name TBD by the user's team)"}, {"title": "Expand real BP1 optional-context coverage beyond the current 6.55%", "specific": "BP1's real BANKING77-derived intent/taxonomy context is available for only 6.5527% of the real CFPB population (per BP4 Gate 1's own live-verified figure, carried forward unmodified into BP7's own policy.json) - used as optional context only, never a required weighted input, so this does not block scoring, but it does limit how often BP1's real signal can inform recommended_action's reason codes.", "measurable": "bp1_optional_context_coverage_pct=6.5527% today - target: a documented decision on whether wider real BP1 taxonomy coverage is worth pursuing, or whether 6.55% is an accepted structural ceiling of BANKING77's own real text-classification scope on CFPB's non-narrative rows.", "timebound": "Reviewed at BP1's next real model refresh cycle.", "owner_placeholder": "BP7/BP1 data engineering owner (name TBD by the user's team)"}, {"title": "Maintain the real four-fifths-rule disparate-impact monitoring cadence", "specific": "The real, independently-recomputed-at-Gate-5 adverse-impact ratio is 0.908127 (not flagged, above the 0.8 four-fifths-rule convention threshold) - real selection rate is lowest for `Servicemember` and highest for `Older American`. Per policy.json's own compliance_touchpoint.ecoa_reg_b commitment, this is a monitoring signal for a human reviewer, not a legal determination of ECOA/Reg B compliance - re-run and re-reviewed every time, not a one-time check.", "measurable": "flagged_four_fifths_rule=False maintained on every future real re-run (threshold=0.8); Tier 2 (CONDITIONAL - GOVERNANCE REVIEW REQUIRED) is genuinely reachable for BP7 if this ever flips to True - monitored, not assumed impossible.", "timebound": "Every time Gate 4 or Gate 5 is re-run.", "owner_placeholder": "BP7 compliance / model-risk owner (name TBD by the user's team)"}, {"title": "Integrate BP5's real driver-association output once it clears its own Gate 1", "specific": "BP5 (Root-Cause Driver Analytics) was still `PENDING_NOT_YET_DELIVERED` at BP7's own real Gate 1 time (policy.json upstream_input_contract.bp5) and was never used as a scoring input - Gate 2's real coverage numbers (PENDING_NOT_YET_DELIVERED) confirm no BP5 field name was ever hardcoded or assumed.", "measurable": "0 hardcoded BP5 field names anywhere in BP7's own config/policy today (real, live-verified) - target: a documented Gate 1 policy amendment via write_front_matter (non-destructive to Gates 2+) once BP5 delivers its own real Gate 1, adding BP5's real qualitative driver-association context as a disclosed, non-numeric reason-code input, never a silently-added weight.", "timebound": "Once BP5 delivers its own real Gate 1 (no fixed date - dependency-gated).", "owner_placeholder": "BP7/BP5 product owner (name TBD by the user's team)"}]}</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('rollup-data').textContent);
+  const PALETTE = DATA.palette;
+  const CAT_SEQ = DATA.categorical_sequence;
+  const CHART_FONT = {family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", color: PALETTE.ink};
+  const CHART_HOVERLABEL = {bgcolor: PALETTE.primary_navy, bordercolor: PALETTE.primary_navy, font: {color: '#ffffff', size: 12, family: CHART_FONT.family}};
+
+  // ---------- resilient chart loading ----------
+  function markChartUnavailable(boxId) {
+    const box = document.getElementById(boxId);
+    if (box && !box.dataset.filled) {
+      box.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:300px;padding:20px;text-align:center;font-size:13px;color:var(--ink-muted);">Chart library (Plotly) could not be reached at cdn.plot.ly. The real underlying numbers for this chart are still available in the tables and checklist on this page.</div>';
+    }
+  }
+  function safePlot(boxId, drawFn) {
+    const run = () => {
+      try { drawFn(); const box = document.getElementById(boxId); if (box) box.dataset.filled = '1'; }
+      catch (e) { markChartUnavailable(boxId); }
+    };
+    if (window.Plotly) { run(); return; }
+    const cdnScript = document.getElementById('plotly-cdn');
+    if (!cdnScript) { markChartUnavailable(boxId); return; }
+    cdnScript.addEventListener('load', run, {once: false});
+    cdnScript.addEventListener('error', () => markChartUnavailable(boxId), {once: true});
+  }
+  setTimeout(() => {
+    if (!window.Plotly) {
+      document.querySelectorAll('.chart-box').forEach(box => markChartUnavailable(box.id));
+    }
+  }, 15000);
+
+  // ---------- animated count-up ----------
+  function groupThousands(numStr) {
+    const parts = numStr.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+  function animateValue(el, endText, duration) {
+    const numMatch = endText.match(/-?[\d.]+/);
+    if (!numMatch) { el.textContent = endText; return; }
+    const end = parseFloat(numMatch[0]);
+    const prefix = endText.slice(0, numMatch.index);
+    const suffix = endText.slice(numMatch.index + numMatch[0].length);
+    const decimals = (numMatch[0].split('.')[1] || '').length;
+    const start = 0;
+    const startTime = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = start + (end - start) * eased;
+      el.textContent = prefix + groupThousands(val.toFixed(decimals)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- Recommendation banner ----------
+  const prod = DATA.kpis.production_recommendation;
+  const banner = document.getElementById('prod-banner');
+  banner.className = 'prod-banner tier-' + prod.tier_code;
+  banner.innerHTML = '<span class="tier-label">' + prod.tier + '</span><span>' + prod.reason + '</span>' +
+    '<span class="tier-2-note">Note: unlike BP4/BP6 (where ECOA/Reg B is NOT_APPLICABLE and Tier 2 is structurally unreachable), Tier 2 (CONDITIONAL - GOVERNANCE REVIEW REQUIRED) IS genuinely reachable for BP7 - it triggers specifically when the real, applicable four-fifths-rule disparate-impact check flags. On this real run it does not (adverse_impact_ratio=' + prod.adverse_impact_ratio + ', flagged=' + prod.flagged_four_fifths_rule + ').</span>';
+
+  // ---------- governance badges ----------
+  const badgeRow = document.getElementById('governance-badges');
+  const gov = DATA.kpis;
+  const badges = [
+    {label: 'pytest: ' + gov.gate6_pytest_n_passed + ' passed / ' + gov.gate6_pytest_n_failed + ' failed', ok: gov.gate6_pytest_n_failed === 0},
+    {label: 'Notebook syntax audit: ' + (gov.gate6_notebook_syntax_all_passed ? 'all passed' : 'issues found'), ok: gov.gate6_notebook_syntax_all_passed},
+    {label: 'FastAPI self-test all checks passed: ' + gov.gate6_fastapi_self_test_all_checks_passed, ok: gov.gate6_fastapi_self_test_all_checks_passed},
+    {label: 'Gate 3/Gate 5 champion rule scheme agree: ' + gov.gate3_gate5_champion_rule_scheme_agree, ok: gov.gate3_gate5_champion_rule_scheme_agree},
+    {label: 'Gate 4 reproduction bit-exact: ' + gov.reproduction_bit_exact, ok: gov.reproduction_bit_exact},
+    {label: 'Four-fifths-rule flagged: ' + gov.flagged_four_fifths_rule, ok: !gov.flagged_four_fifths_rule},
+    {label: 'Open item: BP4 unscored rate ' + gov.bp4_unscored_rate, ok: !gov.bp4_unscored_rate_detected},
+    {label: 'Open item: low BP3-agreement rate detected', ok: !gov.low_bp3_agreement_rate_detected},
+    {label: 'GenAI API used (any gate): ' + gov.genai_api_used, ok: true},
+  ];
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'badge' + (b.ok ? '' : ' warn');
+    el.innerHTML = '<span class="dot"></span>' + b.label;
+    badgeRow.appendChild(el);
+  });
+
+  // ---------- KPI cards ----------
+  const kpiGrid = document.getElementById('kpi-grid');
+  const w = gov.champion_weights_normalized;
+  const kpiDefs = [
+    {label: 'Champion Rule Scheme', value: gov.champion_rule_scheme, sub: 'weights BP2/BP3/BP4=' + w.bp2.toFixed(4) + '/' + w.bp3.toFixed(4) + '/' + w.bp4.toFixed(4)},
+    {label: 'Real Intervention Flag Rate', value: gov.intervention_flag_rate_point_estimate.toFixed(4), sub: '95% CI [' + gov.intervention_flag_rate_ci_low.toFixed(4) + ', ' + gov.intervention_flag_rate_ci_high.toFixed(4) + ']'},
+    {label: 'Real Decision Records Scored', value: gov.n_decision_records.toLocaleString(), sub: gov.gate5_coverage_pct + '% real coverage'},
+    {label: 'Gate 4 Reproduction', value: String(gov.reproduction_bit_exact), sub: 'bit-exact vs. Gate 3'},
+    {label: 'Exact Reconstruction Error', value: String(gov.max_abs_reconstruction_error), sub: 'contribution_bp2+bp3+bp4 = priority_score'},
+    {label: 'ECOA/Reg B Adverse-Impact Ratio', value: String(gov.adverse_impact_ratio), sub: 'flagged=' + gov.flagged_four_fifths_rule + ' (threshold 0.8)'},
+    {label: 'BP3 Agreement Rate (reference)', value: gov.champion_bp3_agreement_rate.toFixed(4), sub: '95% CI [' + gov.bp3_agreement_rate_ci_low.toFixed(4) + ', ' + gov.bp3_agreement_rate_ci_high.toFixed(4) + ']'},
+    {label: 'GenAI API Used', value: String(gov.genai_api_used), sub: 'never, at any BP7 gate'},
+  ];
+  kpiDefs.forEach((k, i) => {
+    const card = document.createElement('div');
+    const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+    card.className = 'kpi-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.style.setProperty('--accent-color', accentColor);
+    const isLongText = typeof k.value === 'string' && /[a-zA-Z]{4,}/.test(k.value) && k.value.replace(/[^a-zA-Z]/g, '').length > 8;
+    const valueClass = 'kpi-value' + (isLongText ? ' kpi-value--text' : '');
+    card.innerHTML =
+      '<div class="kpi-top"><span class="kpi-dot"></span><span class="kpi-label">' + k.label + '</span></div>' +
+      '<div class="' + valueClass + '" data-final="' + k.value + '"></div>' +
+      '<div class="kpi-sub">' + k.sub + '</div>';
+    kpiGrid.appendChild(card);
+  });
+  document.querySelectorAll('.kpi-value').forEach(el => {
+    if (/^-?[\d.,]+$/.test(el.dataset.final)) { animateValue(el, el.dataset.final, 900); }
+    else { el.textContent = el.dataset.final; }
+  });
+
+  // ---------- Gate 3 — champion benchmark bar ----------
+  function renderChampionBenchmarkChart() {
+    const rows = DATA.candidate_benchmark.slice().sort((a, b) => a.bp3_agreement_rate - b.bp3_agreement_rate);
+    safePlot('chart-champion-benchmark', () => Plotly.newPlot('chart-champion-benchmark', [{
+      type: 'bar', orientation: 'h',
+      y: rows.map(r => r.candidate), x: rows.map(r => r.bp3_agreement_rate),
+      marker: {color: rows.map(r => r.is_champion ? PALETTE.primary_navy : PALETTE.neutral_gray)},
+      text: rows.map(r => r.bp3_agreement_rate.toFixed(4)), textposition: 'outside',
+      hovertemplate: '%{y}<br>Real BP3-agreement rate: %{x:.4f}<extra></extra>',
+    }], {
+      title: {text: 'Gate 3 — 4 Real Candidate Rule Schemes (champion in navy)', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 260, t: 45, r: 60, b: 45}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Real BP3-agreement rate (reference, not ground truth)', gridcolor: '#9FADDB'},
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+  renderChampionBenchmarkChart();
+
+  // ---------- Gate 4 — bootstrap CI charts ----------
+  function ciChart(boxId, pointEstimate, ciLow, ciHigh, n, title) {
+    safePlot(boxId, () => Plotly.newPlot(boxId, [{
+      type: 'bar', x: [pointEstimate], y: [title], orientation: 'h',
+      marker: {color: PALETTE.accent_blue},
+      error_x: {type: 'data', symmetric: false, array: [ciHigh - pointEstimate], arrayminus: [pointEstimate - ciLow], color: PALETTE.primary_navy, thickness: 2.5, width: 8},
+      text: [pointEstimate.toFixed(4)], textposition: 'outside',
+      hovertemplate: 'Point estimate: %{x:.4f}<br>95% CI: [' + ciLow.toFixed(4) + ', ' + ciHigh.toFixed(4) + ']<extra></extra>',
+    }], {
+      title: {text: title + ' — Bootstrap 95% CI (n=' + n.toLocaleString() + ')', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 20, t: 45, r: 40, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, showlegend: false,
+      xaxis: {title: 'Real point estimate + 95% bootstrap CI', gridcolor: '#9FADDB'}, yaxis: {showticklabels: false},
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+  ciChart('chart-bootstrap-ci-intervention', gov.intervention_flag_rate_point_estimate, gov.intervention_flag_rate_ci_low, gov.intervention_flag_rate_ci_high, gov.bootstrap_n, 'Intervention Flag Rate');
+  ciChart('chart-bootstrap-ci-agreement', gov.champion_bp3_agreement_rate, gov.bp3_agreement_rate_ci_low, gov.bp3_agreement_rate_ci_high, gov.bootstrap_n, 'BP3 Agreement Rate');
+
+  // ---------- Gate 4 — exact contribution decomposition ----------
+  safePlot('chart-contribution-decomposition', () => Plotly.newPlot('chart-contribution-decomposition', [{
+    type: 'bar',
+    x: ['BP2 (friction)', 'BP3 (escalation risk)', 'BP4 (journey cluster)'],
+    y: [gov.mean_contribution_bp2, gov.mean_contribution_bp3, gov.mean_contribution_bp4],
+    marker: {color: [PALETTE.accent_blue, PALETTE.warning_amber, PALETTE.primary_navy]},
+    text: [gov.mean_contribution_bp2.toFixed(4), gov.mean_contribution_bp3.toFixed(4), gov.mean_contribution_bp4.toFixed(4)], textposition: 'outside',
+    hovertemplate: '%{x}<br>Real mean contribution: %{y:.4f}<extra></extra>',
+  }], {
+    title: {text: 'Exact Contribution Decomposition (real, not approximate; max_abs_reconstruction_error=' + gov.max_abs_reconstruction_error + ')', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+    margin: {t: 55, b: 45, l: 55, r: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+    yaxis: {title: 'Real mean per-row contribution to priority_score', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+  }, {responsive: true, displaylogo: false}));
+
+  // ---------- Gate 4/5 — disparate impact bar ----------
+  safePlot('chart-disparate-impact', () => {
+    const rows = DATA.disparate_impact_breakdown.slice().sort((a, b) => a.selection_rate - b.selection_rate);
+    const maxRate = Math.max(...rows.map(r => r.selection_rate));
+    Plotly.newPlot('chart-disparate-impact', [{
+      type: 'bar', orientation: 'h',
+      y: rows.map(r => r.tags_group), x: rows.map(r => r.selection_rate),
+      marker: {color: PALETTE.accent_blue},
+      text: rows.map(r => r.selection_rate.toFixed(4)), textposition: 'outside',
+      hovertemplate: '%{y}<br>Real selection rate: %{x:.4f}<extra></extra>',
+    }], {
+      title: {text: 'Real ECOA/Reg B Disparate-Impact Check by Tags Group (not flagged)', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 220, t: 45, r: 60, b: 45}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Real intervention_flag selection rate', gridcolor: '#9FADDB'},
+      shapes: [{type: 'line', x0: maxRate * 0.8, x1: maxRate * 0.8, y0: -0.5, y1: rows.length - 0.5, line: {color: PALETTE.danger_red, width: 1.5, dash: 'dash'}}],
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false});
+  });
+
+  // ---------- Gate 5 — recommended action donut ----------
+  safePlot('chart-recommended-action', () => Plotly.newPlot('chart-recommended-action', [{
+    type: 'pie', hole: 0.5,
+    labels: DATA.recommended_action_breakdown.map(r => r.recommended_action),
+    values: DATA.recommended_action_breakdown.map(r => r.n_rows),
+    marker: {colors: [PALETTE.danger_red, PALETTE.neutral_gray, PALETTE.warning_amber]},
+    textinfo: 'label+percent', hovertemplate: '%{label}<br>%{value:,} real row(s)<extra></extra>',
+  }], {
+    title: {text: 'Real recommended_action Breakdown (' + gov.n_decision_records.toLocaleString() + ' rows)', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+    margin: {t: 45, b: 20, l: 20, r: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, showlegend: false,
+    plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+  }, {responsive: true, displaylogo: false}));
+
+  // ---------- Gate 5 — BP4 tier crosstab stacked bar ----------
+  safePlot('chart-bp4-tier-crosstab', () => {
+    const rows = DATA.bp4_tier_crosstab;
+    const tiers = [...new Set(rows.map(r => r.bp4_review_priority_tier))].sort();
+    const trueCounts = tiers.map(t => { const r = rows.find(x => x.bp4_review_priority_tier === t && x.intervention_flag); return r ? r.n_rows : 0; });
+    const falseCounts = tiers.map(t => { const r = rows.find(x => x.bp4_review_priority_tier === t && !x.intervention_flag); return r ? r.n_rows : 0; });
+    Plotly.newPlot('chart-bp4-tier-crosstab', [
+      {type: 'bar', x: tiers, y: falseCounts, name: 'intervention_flag=False', marker: {color: PALETTE.neutral_gray}},
+      {type: 'bar', x: tiers, y: trueCounts, name: 'intervention_flag=True', marker: {color: PALETTE.primary_navy}},
+    ], {
+      barmode: 'stack',
+      title: {text: 'Real BP4 Tier &times; BP7 intervention_flag Crosstab', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {t: 45, b: 45, l: 55, r: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      yaxis: {title: 'Real row count', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+      legend: {orientation: 'h', y: -0.2},
+    }, {responsive: true, displaylogo: false});
+  });
+
+  // ---------- Gate 3/4/5/6 — governance checklist bar ----------
+  function renderGovernanceChecklistChart() {
+    const rows = DATA.governance_checklist.slice().reverse();
+    safePlot('chart-governance-checklist', () => Plotly.newPlot('chart-governance-checklist', [{
+      type: 'bar', orientation: 'h',
+      y: rows.map(r => r.label), x: rows.map(() => 1),
+      marker: {color: rows.map(r => r.passed ? PALETTE.success_green : PALETTE.danger_red)},
+      text: rows.map(r => r.passed ? 'PASS' : 'FAIL'), textposition: 'outside',
+      hovertemplate: '%{y}<extra></extra>',
+    }], {
+      title: {text: 'Real Governance Checklist', font: {size: 13, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 340, t: 45, r: 60, b: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {visible: false, range: [0, 1.3]}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+  renderGovernanceChecklistChart();
+
+  // ---------- governance checklist rows (HTML) ----------
+  function renderChecklistGrid() {
+    const grid = document.getElementById('checklist-grid');
+    DATA.governance_checklist.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'checklist-row ' + (c.passed ? 'pass' : 'fail');
+      row.innerHTML =
+        '<span class="check-icon">' + (c.passed ? '✓' : '✗') + '</span>' +
+        '<span class="check-text"><span class="check-label">' + c.label + '</span>' +
+        '<span class="check-detail">' + c.detail + '</span></span>';
+      grid.appendChild(row);
+    });
+  }
+  renderChecklistGrid();
+
+  // ---------- candidate benchmark table ----------
+  function renderCandidateTable() {
+    const tbody = document.querySelector('#candidate-table tbody');
+    DATA.candidate_benchmark.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r.candidate + '</td>' +
+        '<td><span class="pill used-' + (r.is_champion ? 'yes">Champion' : 'no">&mdash;') + '</span></td>' +
+        '<td>' + r.weight_bp2_normalized.toFixed(4) + '</td>' +
+        '<td>' + r.weight_bp3_normalized.toFixed(4) + '</td>' +
+        '<td>' + r.weight_bp4_normalized.toFixed(4) + '</td>' +
+        '<td>' + r.intervention_flag_rate.toFixed(4) + '</td>' +
+        '<td>' + r.bp3_agreement_rate.toFixed(4) + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  renderCandidateTable();
+
+  // ---------- contribution decomposition sample table ----------
+  function renderContributionTable() {
+    const tbody = document.querySelector('#contribution-table tbody');
+    DATA.contribution_sample.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r['Complaint ID'] + '</td>' +
+        '<td>' + Number(r.priority_score).toFixed(4) + '</td>' +
+        '<td>' + Number(r.contribution_bp2).toFixed(4) + '</td>' +
+        '<td>' + Number(r.contribution_bp3).toFixed(4) + '</td>' +
+        '<td>' + Number(r.contribution_bp4).toFixed(4) + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  renderContributionTable();
+
+  // ---------- disparate impact breakdown table ----------
+  function renderDisparateImpactTable() {
+    const tbody = document.querySelector('#disparate-impact-table tbody');
+    DATA.disparate_impact_breakdown.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r.tags_group + '</td>' +
+        '<td>' + r.n_rows.toLocaleString() + '</td>' +
+        '<td>' + r.n_intervention_flagged.toLocaleString() + '</td>' +
+        '<td>' + r.selection_rate.toFixed(4) + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  renderDisparateImpactTable();
+
+  // ---------- Gate 1 detail (real, from policy.json) ----------
+  function renderGate1() {
+    const g1 = DATA.gate1;
+    const el = document.getElementById('gate1-detail');
+    let html = '<div class="assumption-row"><span class="a-label">' + (g1.target_definition && g1.target_definition.primary_target_description ? g1.target_definition.primary_target_description : '') + '</span></div>';
+    html += '<div class="detail-heading">Compliance touchpoints (real)</div><div class="detail-grid">';
+    const ct = g1.compliance_touchpoint || {};
+    html += '<div class="assumption-row"><span class="a-label">ECOA/Reg B</span><span class="a-value">' + (ct.ecoa_reg_b ? 'Applicable' : '') + '</span></div>';
+    html += '<div class="assumption-row"><span class="a-label">UDAAP</span><span class="a-value">' + (ct.udaap ? 'Not Applicable' : '') + '</span></div>';
+    html += '<div class="assumption-row"><span class="a-label">GenAI API used</span><span class="a-value">' + ct.genai_api_used + '</span></div>';
+    html += '</div>';
+    html += '<div class="detail-heading">Leakage rules (real, ' + (g1.leakage_rules ? g1.leakage_rules.length : 0) + ')</div><div class="detail-grid">';
+    (g1.leakage_rules || []).forEach(r => { html += '<div class="assumption-row"><span class="a-label">' + r + '</span></div>'; });
+    html += '</div>';
+    html += '<div class="detail-heading">Assumptions documented at Gate 1 (real)</div><div class="detail-grid">';
+    (g1.assumptions || []).forEach(a => { html += '<div class="assumption-row"><span class="a-label">' + a + '</span></div>'; });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- Gate 6 detail (real governance status) ----------
+  function renderGate6() {
+    const g6 = DATA.gate6_detail;
+    const el = document.getElementById('gate6-detail');
+    const rows = [
+      ['pytest suite', g6.pytest_summary_line],
+      ['Notebook syntax audit returncode', String(g6.notebook_syntax_audit_returncode)],
+      ['FastAPI health check', g6.fastapi_health_check_status],
+      ['FastAPI self-test all checks passed', String(g6.fastapi_self_test_all_checks_passed)],
+      ['FastAPI self-test rows checked', String(g6.fastapi_self_test_n_rows_checked)],
+      ['FastAPI self-test made a real external API call', String(g6.fastapi_real_external_api_call_made)],
+      ['Gate 3/Gate 5 champion rule scheme agree', String(g6.gate3_gate5_champion_rule_scheme_agree)],
+      ['Open item — BP4 unscored rate detected', String(g6.open_items ? g6.open_items.bp4_unscored_rate_detected : '') + ' (rate=' + (g6.open_items ? g6.open_items.bp4_unscored_rate : '') + ')'],
+      ['Open item — low BP3-agreement rate detected', String(g6.open_items ? g6.open_items.low_bp3_agreement_rate_detected : '') + ' (rate=' + (g6.open_items ? g6.open_items.bp3_agreement_rate : '') + ')'],
+      ['Open item — BP1 optional-context coverage', (g6.open_items ? g6.open_items.bp1_optional_context_coverage_pct : '') + '%'],
+      ['Model card', g6.model_card_path],
+      ['Changelog', g6.changelog_path],
+    ];
+    let html = '<div class="detail-grid">';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + label + '</span><span class="a-value">' + val + '</span></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- SMART suggestions ----------
+  function renderSuggestions() {
+    const grid = document.getElementById('suggestion-grid');
+    DATA.suggestions.forEach((s, i) => {
+      const card = document.createElement('div');
+      const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+      card.className = 'suggestion-card';
+      card.style.setProperty('--accent-color', accentColor);
+      card.innerHTML =
+        '<h3><span class="panel-dot" style="background:' + accentColor + '"></span>' + s.title + '</h3>' +
+        '<div class="smart-row"><span class="smart-tag">Specific:</span>' + s.specific + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Measurable:</span>' + s.measurable + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Time-bound:</span>' + s.timebound + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Owner:</span>' + s.owner_placeholder + '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- section panel accent dots ----------
+  function applyPanelDots() {
+    document.querySelectorAll('section.panel h2').forEach((h2, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'panel-dot';
+      dot.style.background = CAT_SEQ[i % CAT_SEQ.length];
+      h2.prepend(dot);
+    });
+  }
+
+  // ---------- initial render ----------
+  applyPanelDots();
+  renderGate1();
+  renderGate6();
+  renderSuggestions();
+
+  // fade-in panels on scroll
+  const panels = document.querySelectorAll('section.panel');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = (idx * 0.05) + 's';
+        entry.target.style.opacity = 1;
+        io.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.08});
+  panels.forEach(p => io.observe(p));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "bp_id": "bp6",
+  "gate": 6,
+  "compliance_touchpoint": "Master Plan paragraph 205 - runnable FastAPI service with a live self-test proving API output matches direct computation",
+  "health_check_status": "ok",
+  "self_test_identical": true,
+  "self_test_real_gemini_call_made": true,
+  "note": "This self-test artifact is a Gate 6 governance/testing record, NOT a customer -facing recommendation - it is separate from, and never overwrites, Gate 5's own gate5_recommendation_pending_human_review.json.",
+  "generated_at_utc": "2026-09-24T16:45:52.154991+00:00"
+}

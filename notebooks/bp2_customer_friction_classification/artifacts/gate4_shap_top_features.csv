@@ -1,0 +1,21 @@
+feature,mean_abs_shap
+Company_freq,2.1122527
+ohe__Sub-product_Federal student loan servicing,0.57673955
+ohe__Product_Credit reporting or other personal consumer reports,0.32712528
+ohe__Sub-issue_Application denied,0.2630605
+ohe__Sub-product_Title loan,0.25807628
+ohe__State_CA,0.23618303
+ohe__State_NV,0.23500061
+ohe__State_RI,0.23228945
+ohe__State_NJ,0.21989046
+ohe__Sub-issue_Received bad information about your loan,0.20969127
+ohe__Product_Credit card,0.2046461
+ohe__State_PA,0.19845718
+ohe__Sub-product_General-purpose prepaid card,0.19830397
+ohe__State_FL,0.19429713
+ohe__Sub-issue_Account opened without my consent or knowledge,0.19044793
+ohe__Sub-product_Store credit card,0.1840959
+ohe__Issue_Credit monitoring or identity theft protection services,0.17628677
+ohe__Sub-issue_Can't close your account,0.16887772
+ohe__Sub-issue_Fees or costs during the application process,0.16546687
+ohe__Sub-issue_Fee problem,0.16476566

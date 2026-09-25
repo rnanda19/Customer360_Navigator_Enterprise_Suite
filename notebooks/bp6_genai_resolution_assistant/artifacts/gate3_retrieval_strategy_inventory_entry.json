@@ -1,0 +1,27 @@
+{
+  "bp_id": "bp6",
+  "gate": 3,
+  "compliance_touchpoint": "Retrieval strategy inventory entry opened (SR 11-7 first-line record analog - BP6 has no classifier, so the entry records a retrieval strategy, not a model)",
+  "champion_strategy": "taxonomy_bucket_match",
+  "champion_coverage": 0.333333,
+  "runner_up_strategy": "raw_string_match",
+  "runner_up_coverage": 0.0,
+  "candidates_evaluated": [
+    "taxonomy_bucket_match",
+    "raw_string_match"
+  ],
+  "candidates_failed": [],
+  "strategy_a_detail": {
+    "strategy": "taxonomy_bucket_match",
+    "n_query_buckets": 9,
+    "n_buckets_with_cross_corpus_hit": 3,
+    "coverage": 0.333333
+  },
+  "strategy_b_detail": {
+    "strategy": "raw_string_match",
+    "n_query_products": 5,
+    "n_products_with_raw_string_hit": 0,
+    "coverage": 0.0
+  },
+  "generated_at_utc": "2026-09-24T15:44:05.107516+00:00"
+}

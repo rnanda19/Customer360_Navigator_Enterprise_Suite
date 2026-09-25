@@ -1,0 +1,64 @@
+[1m============================= test session starts =============================[0m
+platform win32 -- Python 3.13.14, pytest-9.1.1, pluggy-1.6.0 -- C:\Anaconda3\envs\home_credit_env\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\rnand\Documents\Customer360_Navigator_Enterprise_Suite
+configfile: pytest.ini
+plugins: anyio-4.14.2, cov-7.1.0
+[1mcollecting ... [0mcollected 52 items
+
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_tfidf_kwargs_matches_gate3_4_5_definitions [32mPASSED[0m[32m [  1%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_needs_dense_matches_gate3_4_5_definitions [32mPASSED[0m[32m [  3%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_make_candidates_returns_all_six_models [32mPASSED[0m[32m [  5%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_make_candidates_uses_given_random_state [32mPASSED[0m[32m [  7%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_make_candidates_hist_gradient_boosting_is_correct_type [32mPASSED[0m[32m [  9%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_to_dense_converts_sparse [32mPASSED[0m[32m [ 11%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_to_dense_passthrough_for_already_dense [32mPASSED[0m[32m [ 13%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_make_pipeline_no_densify_for_logistic_regression [32mPASSED[0m[32m [ 15%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_make_pipeline_includes_densify_for_hist_gradient_boosting [32mPASSED[0m[32m [ 17%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_make_pipeline_unknown_candidate_raises_keyerror [32mPASSED[0m[32m [ 19%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_make_pipeline_end_to_end_fit_predict [32mPASSED[0m[32m [ 21%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_reason_codes_for_row_only_returns_nonzero_weight_terms [32mPASSED[0m[32m [ 23%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_reason_codes_for_row_respects_top_k [32mPASSED[0m[32m [ 25%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_reason_codes_for_row_empty_when_no_nonzero_weights [32mPASSED[0m[32m [ 26%][0m
+tests/bp1_customer_intent_classification/test_bp1_intent_classifier.py::test_reason_codes_for_row_shape_mismatch_raises [32mPASSED[0m[32m [ 28%][0m
+tests/bp1_customer_intent_classification/test_gate_artifacts.py::test_gate1_target_definition_present [32mPASSED[0m[32m [ 30%][0m
+tests/bp1_customer_intent_classification/test_gate_artifacts.py::test_gate3_cv_results_schema_and_champion [32mPASSED[0m[32m [ 32%][0m
+tests/bp1_customer_intent_classification/test_gate_artifacts.py::test_gate4_statistical_validation_schema [32mPASSED[0m[32m [ 34%][0m
+tests/bp1_customer_intent_classification/test_gate_artifacts.py::test_gate5_decision_records_schema_and_row_count [32mPASSED[0m[32m [ 36%][0m
+tests/bp1_customer_intent_classification/test_gate_artifacts.py::test_gate5_compliance_touchpoint_documented [32mPASSED[0m[32m [ 38%][0m
+tests/bp1_customer_intent_classification/test_gate_artifacts.py::test_model_inventory_entry_accumulates_all_completed_gates [32mPASSED[0m[32m [ 40%][0m
+tests/shared/test_performance_setup.py::test_resolve_project_root_env_override_valid [32mPASSED[0m[32m [ 42%][0m
+tests/shared/test_performance_setup.py::test_resolve_project_root_env_override_invalid_raises [32mPASSED[0m[32m [ 44%][0m
+tests/shared/test_performance_setup.py::test_resolve_project_root_upward_walk [32mPASSED[0m[32m [ 46%][0m
+tests/shared/test_performance_setup.py::test_resolve_project_root_downward_search [32mPASSED[0m[32m [ 48%][0m
+tests/shared/test_performance_setup.py::test_resolve_project_root_raises_when_not_found [32mPASSED[0m[32m [ 50%][0m
+tests/shared/test_performance_setup.py::test_load_resource_limits_missing_raises [32mPASSED[0m[32m [ 51%][0m
+tests/shared/test_performance_setup.py::test_load_resource_limits_loads_valid_yaml [32mPASSED[0m[32m [ 53%][0m
+tests/shared/test_performance_setup.py::test_configure_performance_sets_env_vars_and_returns_summary [32mPASSED[0m[32m [ 55%][0m
+tests/shared/test_performance_setup.py::test_configure_performance_min_one_thread_never_zero [32mPASSED[0m[32m [ 57%][0m
+tests/shared/test_performance_setup.py::test_configure_performance_raises_without_safety_flag [32mPASSED[0m[32m [ 59%][0m
+tests/shared/test_performance_setup.py::test_pin_core_affinity_applies_and_returns_target [32mPASSED[0m[32m [ 61%][0m
+tests/shared/test_performance_setup.py::test_pin_core_affinity_returns_none_when_unsupported [32mPASSED[0m[32m [ 63%][0m
+tests/shared/test_performance_setup.py::test_pin_core_affinity_returns_none_on_oserror [32mPASSED[0m[32m [ 65%][0m
+tests/shared/test_performance_setup.py::test_memory_headroom_gb_default_ceiling [32mPASSED[0m[32m [ 67%][0m
+tests/shared/test_performance_setup.py::test_memory_headroom_gb_custom_ceiling [32mPASSED[0m[32m [ 69%][0m
+tests/shared/test_performance_setup.py::test_assert_within_ram_ceiling_passes_when_below [32mPASSED[0m[32m [ 71%][0m
+tests/shared/test_performance_setup.py::test_assert_within_ram_ceiling_raises_when_above [32mPASSED[0m[32m [ 73%][0m
+tests/shared/test_taxonomy_mapper.py::test_load_mapping_config_missing_file_raises [32mPASSED[0m[32m [ 75%][0m
+tests/shared/test_taxonomy_mapper.py::test_load_mapping_config_missing_keys_raises [32mPASSED[0m[32m [ 76%][0m
+tests/shared/test_taxonomy_mapper.py::test_load_mapping_config_wrong_category_count_raises [32mPASSED[0m[32m [ 78%][0m
+tests/shared/test_taxonomy_mapper.py::test_load_mapping_config_valid_returns_dict [32mPASSED[0m[32m [ 80%][0m
+tests/shared/test_taxonomy_mapper.py::test_bucket_for_banking77_category_found [32mPASSED[0m[32m [ 82%][0m
+tests/shared/test_taxonomy_mapper.py::test_bucket_for_banking77_category_not_found_returns_none [32mPASSED[0m[32m [ 84%][0m
+tests/shared/test_taxonomy_mapper.py::test_product_to_bucket_lookup_first_bucket_wins [32mPASSED[0m[32m [ 86%][0m
+tests/shared/test_taxonomy_mapper.py::test_cfpb_bucket_expr_maps_known_out_of_scope_and_unknown [32mPASSED[0m[32m [ 88%][0m
+tests/shared/test_taxonomy_mapper.py::test_load_banking77_with_bucket_wrong_category_count_raises [32mPASSED[0m[32m [ 90%][0m
+tests/shared/test_taxonomy_mapper.py::test_load_banking77_with_bucket_unmapped_category_raises [32mPASSED[0m[32m [ 92%][0m
+tests/shared/test_taxonomy_mapper.py::test_load_banking77_with_bucket_success [32mPASSED[0m[32m [ 94%][0m
+tests/shared/test_taxonomy_mapper.py::test_load_cfpb_with_bucket_is_lazy_and_adds_column [32mPASSED[0m[32m [ 96%][0m
+tests/shared/test_taxonomy_mapper.py::test_mapping_coverage_report_counts_and_fractions_sum_to_one [32mPASSED[0m[32m [ 98%][0m
+tests/shared/test_taxonomy_mapper.py::test_build_common_taxonomy_layer_writes_parquet_and_returns_counts [32mPASSED[0m[32m [100%][0m
+
+[32m============================= [32m[1m52 passed[0m[32m in 2.21s[0m[32m ==============================[0m
+
+--- STDERR ---

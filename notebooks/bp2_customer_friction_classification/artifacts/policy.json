@@ -1,0 +1,143 @@
+{
+  "bp_id": "bp2",
+  "bp_name": "bp2_customer_friction_classification",
+  "gate": 1,
+  "generated_at_utc": "2026-09-22T08:40:12.439074+00:00",
+  "target_definition": {
+    "primary_target": "friction_severity_class",
+    "primary_target_description": "An ordinal friction-severity class derived from the real CFPB `Company response to consumer` and `Timely response?` fields. The concrete bucket-to-ordinal-class mapping (which of the real values in Section 5's live output map to which severity level) is deliberately deferred to Gate 2 (taxonomy engineering) - the same sequencing BP1 used for its CFPB<->BANKING77 crosswalk - because only the live-enumerated real label strings above, not an assumed set, may ground it.",
+    "scoped_out_signals": {
+      "sentiment_proxy": "NOT built as literally named in the Master Plan - no narrative/complaint-text column exists in the real CFPB extract (RAW_DATA_MANIFEST.md Finding 2) and BANKING77 carries no sentiment annotation (schema verified live in Section 6: text, category only). `Company public response` is the nearest real structured substitute if wanted later; using it that way is a labeled substitution for Gate 2 human review, not asserted here.",
+      "repeat_contact_signal": "NOT built - the real CFPB schema (verified live in Section 4) has no persistent customer/consumer identifier, only `Complaint ID` (identifies the complaint, not the person). Scoped out entirely, applying the identical real-data resolution the Master Plan already uses for BP4 ('do not invent customer IDs... call this event/issue journey analytics explicitly')."
+    },
+    "feature_variable_candidates": "Structured CFPB fields only (Product, Sub-product, Issue, Sub-issue, State, Submitted via) plus the Gate-2/BP1 `common_taxonomy_bucket` (configs/taxonomy_mapping.yaml) as an optional categorical feature for the ~6.55% of CFPB rows already in scope for BANKING77 overlap (UNMAPPED_UNKNOWN_CATEGORY for the rest) - this is how BP2 satisfies the Master Plan's 'Integrates BANKING77: YES' requirement, since BANKING77 itself carries no friction signal to train on directly. Final feature set is a Gate 2/3 decision.",
+    "train_test_split_source": "CFPB ships no pre-defined train/test split (unlike BANKING77) - BP2 will use a fresh random split of the real CFPB extract, stratified by the derived target, random_state=42 (matching BP1's random_state for consistency, not a shared value)."
+  },
+  "leakage_rules": [
+    "`Company response to consumer` and `Timely response?` define the target and must NEVER also be used as input features - they are not traditional train/test leakage, they are the label itself. This is the single most important rule in this policy.",
+    "`Company public response` is NOT pre-cleared as a safe feature - it is ~54% null (live-checked in Section 5) and its relationship to the target is unverified; Gate 2/3 must test it for suspiciously high predictive power before treating it as a legitimate feature rather than a leakage proxy.",
+    "No CFPB row may appear in both the train and test split of BP2's fresh random split - verified structurally by construction (single stratified split call, not a manual/ad hoc merge) once Gate 3 builds it.",
+    "BANKING77 is never a source of friction/severity training labels - verified live in Section 6 that its schema carries no such field. It contributes only the Gate-2/BP1 taxonomy-bucket feature described above."
+  ],
+  "assumptions": [
+    "BP2's friction taxonomy is honestly narrowed to ONE of the Master Plan's three named signal types (severity) - sentiment proxy and repeat-contact signal are scoped out for the documented real-data reasons above, not silently substituted.",
+    "The severity bucket-to-class mapping itself is NOT decided in this notebook - it is deferred to Gate 2, to be built as a documented judgment mapping (HIGH/MEDIUM/LOW confidence per bucket, same pattern as configs/taxonomy_mapping.yaml) against the real values live-enumerated in Section 5, with explicit human review before Gate 3 trains on it.",
+    "`src/utils/bp1_config_sync.py` is reused unmodified for BP2's own config file (configs/bp2_customer_friction_classification.yaml) - its read/write functions are already fully parameterized by config_path and contain no BP1-specific logic."
+  ],
+  "compliance_touchpoint": {
+    "requirement": "UDAAP (Unfair, Deceptive, or Abusive Acts or Practices) framing",
+    "statement": "Per Master Plan Section 9: friction findings from this classifier are framed as potential risk indicators only when statistically supported - never as a determination of unfair, deceptive, or abusive conduct by any named company. No demographic or protected-class field exists in the real CFPB extract in scope for this project (docs/data_dictionary/RAW_DATA_MANIFEST.md Finding 3), so ECOA/Regulation B disparate-impact testing is Not Applicable - No Protected-Class Field in Scope, stated honestly rather than skipped silently."
+  },
+  "live_checks": {
+    "cfpb_row_count": 1048575,
+    "cfpb_columns": [
+      "Date received",
+      "Product",
+      "Sub-product",
+      "Issue",
+      "Sub-issue",
+      "Company public response",
+      "Company",
+      "State",
+      "ZIP code",
+      "Tags",
+      "Submitted via",
+      "Date sent to company",
+      "Company response to consumer",
+      "Timely response?",
+      "Complaint ID"
+    ],
+    "suspected_customer_id_columns": [],
+    "banking77_columns": [
+      "category",
+      "text"
+    ],
+    "company_response_to_consumer_distribution": [
+      {
+        "Company response to consumer": "Closed with explanation",
+        "n": 492340
+      },
+      {
+        "Company response to consumer": "Closed with non-monetary relief",
+        "n": 312602
+      },
+      {
+        "Company response to consumer": "In progress",
+        "n": 231856
+      },
+      {
+        "Company response to consumer": "Closed with monetary relief",
+        "n": 10511
+      },
+      {
+        "Company response to consumer": "Untimely response",
+        "n": 1264
+      },
+      {
+        "Company response to consumer": null,
+        "n": 2
+      }
+    ],
+    "timely_response_distribution": [
+      {
+        "Timely response?": "Yes",
+        "n": 1045348
+      },
+      {
+        "Timely response?": "No",
+        "n": 3227
+      }
+    ],
+    "company_public_response_distribution": [
+      {
+        "Company public response": null,
+        "n": 570861
+      },
+      {
+        "Company public response": "Company has responded to the consumer and the CFPB and chooses not to provide a public response",
+        "n": 464042
+      },
+      {
+        "Company public response": "Company believes it acted appropriately as authorized by contract or law",
+        "n": 10249
+      },
+      {
+        "Company public response": "Company disputes the facts presented in the complaint",
+        "n": 776
+      },
+      {
+        "Company public response": "Company believes the complaint is the result of a misunderstanding",
+        "n": 746
+      },
+      {
+        "Company public response": "Company believes the complaint provided an opportunity to answer consumer's questions",
+        "n": 716
+      },
+      {
+        "Company public response": "Company believes complaint caused principally by actions of third party outside the control or direction of the company",
+        "n": 368
+      },
+      {
+        "Company public response": "Company believes complaint is the result of an isolated error",
+        "n": 346
+      },
+      {
+        "Company public response": "Company can't verify or dispute the facts in the complaint",
+        "n": 255
+      },
+      {
+        "Company public response": "Company believes complaint represents an opportunity for improvement to better serve consumers",
+        "n": 201
+      },
+      {
+        "Company public response": "Company chooses not to provide a public response",
+        "n": 9
+      },
+      {
+        "Company public response": "Company believes complaint relates to a discontinued policy or procedure",
+        "n": 6
+      }
+    ],
+    "company_public_response_null_rows": 570861
+  }
+}

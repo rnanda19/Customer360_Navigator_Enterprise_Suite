@@ -1,0 +1,491 @@
+{
+  "generated_at_utc": "2026-09-22T04:53:04.213423+00:00",
+  "file_inventory": [
+    {
+      "path": "data\\raw\\cfpb_complaints.csv",
+      "size_bytes": 322577548
+    },
+    {
+      "path": "data\\external\\banking77_train.csv",
+      "size_bytes": 839073
+    },
+    {
+      "path": "data\\external\\banking77_test.csv",
+      "size_bytes": 239961
+    },
+    {
+      "path": "data\\external\\banking77_categories.json",
+      "size_bytes": 2036
+    }
+  ],
+  "cfpb": {
+    "row_count": 1048575,
+    "column_count": 15,
+    "columns": [
+      "Date received",
+      "Product",
+      "Sub-product",
+      "Issue",
+      "Sub-issue",
+      "Company public response",
+      "Company",
+      "State",
+      "ZIP code",
+      "Tags",
+      "Submitted via",
+      "Date sent to company",
+      "Company response to consumer",
+      "Timely response?",
+      "Complaint ID"
+    ],
+    "null_counts": {
+      "Date received": 0,
+      "Product": 0,
+      "Sub-product": 21,
+      "Issue": 0,
+      "Sub-issue": 25808,
+      "Company public response": 570861,
+      "Company": 0,
+      "State": 2193,
+      "ZIP code": 382,
+      "Tags": 995094,
+      "Submitted via": 0,
+      "Date sent to company": 0,
+      "Company response to consumer": 2,
+      "Timely response?": 0,
+      "Complaint ID": 0
+    },
+    "distinct_counts": {
+      "Date received": 607,
+      "Product": 15,
+      "Sub-product": 61,
+      "Issue": 96,
+      "Sub-issue": 222,
+      "Company public response": 12,
+      "Company": 2970,
+      "State": 62,
+      "ZIP code": 19031,
+      "Tags": 4,
+      "Submitted via": 4,
+      "Date sent to company": 623,
+      "Company response to consumer": 6,
+      "Timely response?": 2,
+      "Complaint ID": 1048575
+    },
+    "duplicate_complaint_id_groups": 0,
+    "date_received_range_str": {
+      "min_date_received_str": "1/10/2026",
+      "max_date_received_str": "9/9/2026"
+    },
+    "product_distribution": [
+      {
+        "product": "Credit reporting, credit repair services, or other personal consumer reports",
+        "row_count": 477097,
+        "fraction_of_total": 0.455
+      },
+      {
+        "product": "Credit reporting or other personal consumer reports",
+        "row_count": 430204,
+        "fraction_of_total": 0.4103
+      },
+      {
+        "product": "Debt collection",
+        "row_count": 44493,
+        "fraction_of_total": 0.0424
+      },
+      {
+        "product": "Checking or savings account",
+        "row_count": 27952,
+        "fraction_of_total": 0.0267
+      },
+      {
+        "product": "Credit card or prepaid card",
+        "row_count": 25486,
+        "fraction_of_total": 0.0243
+      },
+      {
+        "product": "Mortgage",
+        "row_count": 12133,
+        "fraction_of_total": 0.0116
+      },
+      {
+        "product": "Money transfer, virtual currency, or money service",
+        "row_count": 8263,
+        "fraction_of_total": 0.0079
+      },
+      {
+        "product": "Vehicle loan or lease",
+        "row_count": 7215,
+        "fraction_of_total": 0.0069
+      },
+      {
+        "product": "Credit card",
+        "row_count": 6575,
+        "fraction_of_total": 0.0063
+      },
+      {
+        "product": "Student loan",
+        "row_count": 3948,
+        "fraction_of_total": 0.0038
+      },
+      {
+        "product": "Payday loan, title loan, or personal loan",
+        "row_count": 3308,
+        "fraction_of_total": 0.0032
+      },
+      {
+        "product": "Payday loan, title loan, personal loan, or advance loan",
+        "row_count": 1187,
+        "fraction_of_total": 0.0011
+      },
+      {
+        "product": "Prepaid card",
+        "row_count": 434,
+        "fraction_of_total": 0.0004
+      },
+      {
+        "product": "Debt or credit management",
+        "row_count": 259,
+        "fraction_of_total": 0.0002
+      },
+      {
+        "product": "Credit reporting",
+        "row_count": 21,
+        "fraction_of_total": 0.0
+      }
+    ],
+    "taxonomy_config_drift_check": "[OK] Live CFPB row count (1,048,575) matches taxonomy_mapping.yaml's baked-in total - no drift."
+  },
+  "banking77": {
+    "row_counts": {
+      "train": 10003,
+      "test": 3080,
+      "total": 13083
+    },
+    "categories_expected": 77,
+    "categories_found_in_data": 77,
+    "categories_missing_from_data": [],
+    "categories_unexpected_in_data": [],
+    "null_counts": {
+      "text": 0,
+      "category": 0
+    },
+    "duplicate_text_rows": 0,
+    "text_length_stats_chars": {
+      "min_chars": 13,
+      "max_chars": 433,
+      "mean_chars": 58.24,
+      "median_chars": 46.0
+    },
+    "category_distribution": [
+      {
+        "category": "card_payment_fee_charged",
+        "row_count": 227
+      },
+      {
+        "category": "direct_debit_payment_not_recognised",
+        "row_count": 222
+      },
+      {
+        "category": "balance_not_updated_after_cheque_or_cash_deposit",
+        "row_count": 221
+      },
+      {
+        "category": "wrong_amount_of_cash_received",
+        "row_count": 220
+      },
+      {
+        "category": "cash_withdrawal_charge",
+        "row_count": 217
+      },
+      {
+        "category": "transaction_charged_twice",
+        "row_count": 215
+      },
+      {
+        "category": "declined_cash_withdrawal",
+        "row_count": 213
+      },
+      {
+        "category": "transfer_fee_charged",
+        "row_count": 212
+      },
+      {
+        "category": "transfer_not_received_by_recipient",
+        "row_count": 211
+      },
+      {
+        "category": "balance_not_updated_after_bank_transfer",
+        "row_count": 211
+      },
+      {
+        "category": "request_refund",
+        "row_count": 209
+      },
+      {
+        "category": "card_payment_not_recognised",
+        "row_count": 208
+      },
+      {
+        "category": "card_payment_wrong_exchange_rate",
+        "row_count": 207
+      },
+      {
+        "category": "extra_charge_on_statement",
+        "row_count": 206
+      },
+      {
+        "category": "wrong_exchange_rate_for_cash_withdrawal",
+        "row_count": 203
+      },
+      {
+        "category": "Refund_not_showing_up",
+        "row_count": 202
+      },
+      {
+        "category": "reverted_card_payment?",
+        "row_count": 201
+      },
+      {
+        "category": "cash_withdrawal_not_recognised",
+        "row_count": 200
+      },
+      {
+        "category": "activate_my_card",
+        "row_count": 199
+      },
+      {
+        "category": "pending_card_payment",
+        "row_count": 199
+      },
+      {
+        "category": "cancel_transfer",
+        "row_count": 197
+      },
+      {
+        "category": "beneficiary_not_allowed",
+        "row_count": 196
+      },
+      {
+        "category": "card_arrival",
+        "row_count": 193
+      },
+      {
+        "category": "declined_card_payment",
+        "row_count": 193
+      },
+      {
+        "category": "pending_top_up",
+        "row_count": 189
+      },
+      {
+        "category": "pending_transfer",
+        "row_count": 188
+      },
+      {
+        "category": "top_up_reverted",
+        "row_count": 186
+      },
+      {
+        "category": "top_up_failed",
+        "row_count": 185
+      },
+      {
+        "category": "pending_cash_withdrawal",
+        "row_count": 183
+      },
+      {
+        "category": "card_linking",
+        "row_count": 179
+      },
+      {
+        "category": "failed_transfer",
+        "row_count": 177
+      },
+      {
+        "category": "visa_or_mastercard",
+        "row_count": 175
+      },
+      {
+        "category": "declined_transfer",
+        "row_count": 173
+      },
+      {
+        "category": "getting_spare_card",
+        "row_count": 169
+      },
+      {
+        "category": "supported_cards_and_currencies",
+        "row_count": 169
+      },
+      {
+        "category": "country_support",
+        "row_count": 169
+      },
+      {
+        "category": "card_about_to_expire",
+        "row_count": 169
+      },
+      {
+        "category": "transfer_timing",
+        "row_count": 168
+      },
+      {
+        "category": "automatic_top_up",
+        "row_count": 167
+      },
+      {
+        "category": "verify_top_up",
+        "row_count": 166
+      },
+      {
+        "category": "apple_pay_or_google_pay",
+        "row_count": 166
+      },
+      {
+        "category": "fiat_currency_support",
+        "row_count": 166
+      },
+      {
+        "category": "change_pin",
+        "row_count": 162
+      },
+      {
+        "category": "why_verify_identity",
+        "row_count": 161
+      },
+      {
+        "category": "lost_or_stolen_phone",
+        "row_count": 161
+      },
+      {
+        "category": "exchange_charge",
+        "row_count": 161
+      },
+      {
+        "category": "disposable_card_limits",
+        "row_count": 161
+      },
+      {
+        "category": "edit_personal_details",
+        "row_count": 161
+      },
+      {
+        "category": "order_physical_card",
+        "row_count": 160
+      },
+      {
+        "category": "exchange_via_app",
+        "row_count": 158
+      },
+      {
+        "category": "pin_blocked",
+        "row_count": 155
+      },
+      {
+        "category": "top_up_by_cash_or_cheque",
+        "row_count": 154
+      },
+      {
+        "category": "top_up_by_card_charge",
+        "row_count": 154
+      },
+      {
+        "category": "verify_source_of_funds",
+        "row_count": 153
+      },
+      {
+        "category": "transfer_into_account",
+        "row_count": 153
+      },
+      {
+        "category": "exchange_rate",
+        "row_count": 152
+      },
+      {
+        "category": "card_not_working",
+        "row_count": 152
+      },
+      {
+        "category": "card_delivery_estimate",
+        "row_count": 152
+      },
+      {
+        "category": "top_up_by_bank_transfer_charge",
+        "row_count": 151
+      },
+      {
+        "category": "age_limit",
+        "row_count": 150
+      },
+      {
+        "category": "terminate_account",
+        "row_count": 148
+      },
+      {
+        "category": "get_physical_card",
+        "row_count": 146
+      },
+      {
+        "category": "passcode_forgotten",
+        "row_count": 145
+      },
+      {
+        "category": "verify_my_identity",
+        "row_count": 144
+      },
+      {
+        "category": "topping_up_by_card",
+        "row_count": 143
+      },
+      {
+        "category": "unable_to_verify_identity",
+        "row_count": 142
+      },
+      {
+        "category": "getting_virtual_card",
+        "row_count": 138
+      },
+      {
+        "category": "get_disposable_virtual_card",
+        "row_count": 137
+      },
+      {
+        "category": "top_up_limits",
+        "row_count": 137
+      },
+      {
+        "category": "receiving_money",
+        "row_count": 135
+      },
+      {
+        "category": "atm_support",
+        "row_count": 127
+      },
+      {
+        "category": "compromised_card",
+        "row_count": 126
+      },
+      {
+        "category": "lost_or_stolen_card",
+        "row_count": 122
+      },
+      {
+        "category": "card_swallowed",
+        "row_count": 101
+      },
+      {
+        "category": "card_acceptance",
+        "row_count": 99
+      },
+      {
+        "category": "virtual_card_not_working",
+        "row_count": 81
+      },
+      {
+        "category": "contactless_not_working",
+        "row_count": 75
+      }
+    ]
+  }
+}

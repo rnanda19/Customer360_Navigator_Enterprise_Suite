@@ -1,0 +1,32 @@
+{
+  "bp_id": "bp4",
+  "gate": 6,
+  "champion_pipeline": "polars_lazy_streaming",
+  "pytest_summary_line": "\u001b[33m================ \u001b[32m219 passed\u001b[0m, \u001b[33m\u001b[1m5 skipped\u001b[0m, \u001b[33m\u001b[1m125 warnings\u001b[0m\u001b[33m in 13.58s\u001b[0m\u001b[33m ================\u001b[0m",
+  "pytest_counts": {
+    "passed": 219,
+    "failed": 0,
+    "skipped": 5,
+    "errors": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "pytest_returncode": 0,
+  "pytest_all_passed": true,
+  "notebook_syntax_check_n_passed": 34,
+  "notebook_syntax_check_n_failed": 0,
+  "notebook_syntax_check_returncode": 0,
+  "notebook_syntax_all_passed": true,
+  "n_gate3_failed_candidates_detected": 0,
+  "gate3_failed_candidates": [],
+  "n_gate3_slow_but_correct_candidates_detected": 2,
+  "gate3_slow_but_correct_candidates": [
+    "pandas_groupby",
+    "duckdb_sql"
+  ],
+  "slow_candidate_multiplier": 2.0,
+  "model_inventory_applicability": "NOT_APPLICABLE - BP4 registers no trained model",
+  "model_card_path": "reports\\bp4_customer_journey_analytics\\MODEL_CARD.md",
+  "changelog_path": "reports\\bp4_customer_journey_analytics\\CHANGELOG.md",
+  "generated_at_utc": "2026-09-23T15:18:29.558475+00:00"
+}

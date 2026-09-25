@@ -1,0 +1,147 @@
+{
+  "bp_id": "bp6",
+  "bp_name": "bp6_genai_resolution_assistant",
+  "gate": 1,
+  "generated_at_utc": "2026-09-24T15:44:03.886329+00:00",
+  "scope_definition": {
+    "purpose": "Retrieve structured evidence from BP1-BP5's real outputs, summarize it, and recommend a next action with a citation/evidence field on every claim, per Master Plan Section 5.1/7 - human-in-the-loop approval required before any recommendation is treated as final.",
+    "genai_call_occurs_at_this_gate": false,
+    "genai_call_first_occurs_at_gate": 5,
+    "this_gate_establishes": "Scope, real upstream-dependency status (live-checked), and the GenAI governance policy every later gate's output must satisfy - no retrieval, no generation, no external API call of any kind happens in this notebook."
+  },
+  "upstream_dependency_policy": {
+    "bp1": {
+      "bp_id": "bp1",
+      "bp_name": "bp1_customer_intent_classification",
+      "config_status_string_live": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+      "highest_confirmed_gate_live": 6,
+      "gate1_policy_artifact_exists_live": true,
+      "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY",
+      "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp1_customer_intent_classification_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"
+    },
+    "bp2": {
+      "bp_id": "bp2",
+      "bp_name": "bp2_customer_friction_classification",
+      "config_status_string_live": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+      "highest_confirmed_gate_live": 6,
+      "gate1_policy_artifact_exists_live": true,
+      "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY",
+      "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp2_customer_friction_classification_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"
+    },
+    "bp3": {
+      "bp_id": "bp3",
+      "bp_name": "bp3_complaint_escalation_prediction",
+      "config_status_string_live": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+      "highest_confirmed_gate_live": 6,
+      "gate1_policy_artifact_exists_live": true,
+      "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY",
+      "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp3_complaint_escalation_prediction_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"
+    },
+    "bp4": {
+      "bp_id": "bp4",
+      "bp_name": "bp4_customer_journey_analytics",
+      "config_status_string_live": "gate6_complete",
+      "highest_confirmed_gate_live": 6,
+      "gate1_policy_artifact_exists_live": true,
+      "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY",
+      "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp4_customer_journey_analytics_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"
+    },
+    "bp5": {
+      "bp_id": "bp5",
+      "bp_name": "bp5_root_cause_driver_analytics",
+      "config_status_string_live": "gate1_confirmed",
+      "highest_confirmed_gate_live": 1,
+      "gate1_policy_artifact_exists_live": true,
+      "evidence_retrieval_readiness": "ARTIFACT_AVAILABLE_TODAY",
+      "evidence_schema_status": "OWN_REAL_SCHEMA_EXISTS_IN_bp5_root_cause_driver_analytics_GATE1_POLICY_JSON_NOT_HARDCODED_HERE"
+    }
+  },
+  "genai_usage_policy": {
+    "grounding_definition": "A BP6 claim is 'grounded' only if every factual statement in it carries at least one citation/evidence record (schema below) pointing to a real field in a real upstream BP artifact - never an ungrounded free-text generation presented as fact.",
+    "citation_evidence_schema": {
+      "evidence_id": "A stable identifier for one cited piece of evidence within a single BP6 recommendation - unique within that recommendation, never reused across recommendations.",
+      "source_bp": "Which upstream BP (bp1-bp5) this evidence was retrieved from.",
+      "source_gate": "Which gate of that upstream BP produced the artifact this evidence was read from (e.g. 1, 3, 6) - never assumed to be Gate 1 by default.",
+      "source_artifact_relative_path": "The real, project-root-relative file path this evidence was read from (e.g. notebooks/bp1_customer_intent_classification/artifacts/policy.json) - always a real path to a real file that exists at retrieval time, never a description.",
+      "source_field_or_metric": "The exact field, column, or metric name inside that artifact this evidence value was read from - never paraphrased.",
+      "extracted_value": "The real value read from that field at retrieval time, copied verbatim (numbers as numbers, strings as strings) - never summarized or rounded without saying so.",
+      "retrieval_timestamp_utc": "When this evidence was actually retrieved, in ISO-8601 UTC - so a later audit can tell whether the upstream artifact has since changed.",
+      "verification_method": "How this evidence's presence in the source artifact was confirmed (e.g. 'read directly from JSON key path X') - never 'assumed' or 'recalled'."
+    },
+    "human_in_the_loop": {
+      "required": true,
+      "auto_apply_allowed": false,
+      "description": "No BP6 recommendation is ever applied, sent, or treated as final without an explicit human approval step - Master Plan Section 5.1's own words: 'human-in-the-loop approval gate before any recommendation is treated as final.'"
+    },
+    "udaap_language_review": {
+      "required": true,
+      "applies_to": "Every GenAI-drafted customer-facing recommendation, before human approval (Master Plan Section 9, UDAAP row).",
+      "description": "Reviewed for deceptive/misleading language before a human may approve it - this review is separate from, and precedes, the human-in-the-loop approval step above."
+    },
+    "nist_ai_rmf": {
+      "functions_mapped": "Govern / Map / Measure / Manage mapped onto Gates 1-6 (Master Plan Section 9, NIST AI RMF row) - this Gate 1 notebook is the 'Govern' function for BP6: the policy itself, not yet a Measure/Manage check on a real GenAI output.",
+      "risk_category_field_required": true,
+      "risk_category_value": "TBD_PENDING_FIRST_REAL_GATE5_GENAI_OUTPUT",
+      "description": "Every GenAI output requires human-in-loop approval plus a documented risk category - the field is declared here (Govern); it is populated with a real value only once a real Gate 5 output exists to categorize (Measure/Manage)."
+    },
+    "glba_pii_masking": {
+      "required": true,
+      "applies_before": "Any GenAI call (BP6) or external API use (Gate 2 compliance touchpoint, Master Plan Section 8's gate table) - stated as policy here; the actual screen is a Gate 2 compliance touchpoint, not performed by this Gate 1 notebook.",
+      "in_scope_narrative_text_source": "BANKING77's real 'text' field, surfaced via BP1's evidence - the only real narrative-text source in this suite, since the real CFPB extract carries no narrative-text column (Section 4 above, RAW_DATA_MANIFEST.md Finding 2).",
+      "description": "Any PII surfaced in narrative text evidence is screened and masked before that text is placed into a GenAI prompt or returned in a GenAI output."
+    }
+  },
+  "grounding_integrity_rules": [
+    "No BP6 recommendation may be treated as final without at least one citation/evidence record per factual claim, each conforming to the schema above - verified structurally below (citation_evidence_schema_has_required_fields).",
+    "No BP6 recommendation may be auto-applied - human_in_the_loop.required and human_in_the_loop.auto_apply_allowed are both verified structurally below.",
+    "Evidence retrieved from a CFPB-derived upstream BP (e.g. BP3, BP4, BP5) and evidence retrieved from a BANKING77-derived upstream BP (e.g. BP1) must never be silently merged into one row via a fabricated join key - each citation record references its own source BP's real key independently (Section 4 above: zero shared columns between the two real schemas, so no identifier-based join is possible by construction).",
+    "This notebook itself makes zero external API calls and loads zero GenAI SDK module - verified live in Section 6 (genai_sdk_modules_loaded_this_run must be empty)."
+  ],
+  "compliance_touchpoints": {
+    "gate1_baseline": {
+      "requirement": "Data-minimization & purpose-limitation statement (GLBA/GDPR-aligned) - Master Plan Section 8's own Gate 1 row, applied to every BP.",
+      "statement": "This Gate 1 notebook processes only real column NAMES (CFPB's 15-column schema, read as metadata, never row-level CFPB data) and the real BANKING77 `text`/`category` fields (anonymized customer-service utterances, no real-customer PII), for the stated purpose of recording BP6's scope and GenAI governance policy. No BP1-BP5 row-level output is retrieved, read, or processed by this notebook."
+    },
+    "udaap": "See genai_usage_policy.udaap_language_review above (Master Plan Section 9).",
+    "nist_ai_rmf": "See genai_usage_policy.nist_ai_rmf above (Master Plan Section 9).",
+    "glba": "See genai_usage_policy.glba_pii_masking above (Master Plan Section 9)."
+  },
+  "assumptions": [
+    "BP6 retrieves evidence from BP1-BP5's real outputs (Master Plan Section 5.1) - this notebook does not require those outputs to exist yet to define this policy; it records, live, which of the five already have a real Gate 1 policy.json today (Section 7 above).",
+    "The real CFPB extract used in this project carries no narrative-text column (RAW_DATA_MANIFEST.md Finding 2, re-verified live in Section 4) - BANKING77's real `text` field, surfaced only via BP1's own evidence, is the sole real narrative-text source the GLBA PII-masking policy above needs to cover.",
+    "BP6's citation/evidence schema is deliberately generic (source_bp/source_gate/source_artifact_relative_path/source_field_or_metric) rather than hardcoded to any upstream BP's internal field names, so it remains valid even as BP2/BP5's own schemas continue to evolve before BP6's own Gate 5 first retrieves from them.",
+    "The NIST AI RMF risk-category value cannot be populated with a real category until a real Gate 5 GenAI output exists to categorize - recorded here as a required field with an explicit TBD value, never a guessed category.",
+    "src/utils/bp1_config_sync.py is reused unmodified for BP6's own config file - already fully generic, parameterized by config_path, already reused unmodified by BP2/BP3/BP4."
+  ],
+  "live_checks": {
+    "cfpb_columns": [
+      "Company",
+      "Company public response",
+      "Company response to consumer",
+      "Complaint ID",
+      "Date received",
+      "Date sent to company",
+      "Issue",
+      "Product",
+      "State",
+      "Sub-issue",
+      "Sub-product",
+      "Submitted via",
+      "Tags",
+      "Timely response?",
+      "ZIP code"
+    ],
+    "cfpb_narrative_text_columns": [],
+    "shared_columns_cfpb_banking77": [],
+    "banking77_train_rows": 10003,
+    "banking77_test_rows": 3080,
+    "banking77_train_test_exact_text_overlap_rows": 0,
+    "banking77_class_balance": {
+      "n_classes": 77,
+      "n_classes_in_train": 77,
+      "min_class_count": 35,
+      "max_class_count": 187
+    },
+    "genai_sdk_modules_loaded_this_run": []
+  }
+}

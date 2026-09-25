@@ -1,0 +1,6 @@
+model,status,elapsed_seconds,cv_n_jobs_used,ram_headroom_gb_before_candidate,mean_f1_macro,std_f1_macro,mean_f1_weighted,mean_accuracy
+logistic_regression,OK,7.14,4,10.08,0.1384,0.0,0.2118,0.3827
+random_forest,OK,542.94,2,10.15,0.3942,0.0037,0.6086,0.5792
+hist_gradient_boosting,OK,148.72,1,9.84,0.4525,0.0068,0.7385,0.757
+xgboost,OK,32.14,4,11.51,0.4584,0.0075,0.7395,0.7582
+lightgbm,OK,24.27,4,11.4,0.4478,0.0013,0.6889,0.6642

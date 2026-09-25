@@ -1,0 +1,37 @@
+{
+  "report": "bp2_customer_friction_classification_executive_rollup",
+  "champion_model": "xgboost",
+  "source_artifacts_dir": "notebooks\\bp2_customer_friction_classification\\artifacts",
+  "source_artifact_files": [
+    "executive_rollup_manifest.json",
+    "gate2_severity_distribution.csv",
+    "gate3_champion_test_classification_report.json",
+    "gate3_champion_test_confusion_matrix.csv",
+    "gate3_cv_benchmark_results.csv",
+    "gate4_shap_top_features.csv",
+    "gate4_statistical_validation.json",
+    "gate5_decision_layer_summary.json",
+    "gate5_decision_records.csv",
+    "gate6_governance_summary.json",
+    "gate6_notebook_syntax_check_output.log",
+    "gate6_pytest_output.log",
+    "model_inventory_entry.json",
+    "policy.json"
+  ],
+  "outputs": {
+    "dashboard_html": "reports\\bp2_customer_friction_classification\\executive_rollup\\bp2_executive_rollup_dashboard.html",
+    "report_docx": "reports\\bp2_customer_friction_classification\\executive_rollup\\bp2_executive_rollup_report.docx",
+    "workbook_xlsx": "reports\\bp2_customer_friction_classification\\executive_rollup\\bp2_executive_rollup_workbook.xlsx",
+    "deck_pptx": "reports\\bp2_customer_friction_classification\\executive_rollup\\bp2_executive_rollup_deck.pptx"
+  },
+  "output_sizes_bytes": {
+    "dashboard_html": 2687902,
+    "report_docx": 296873,
+    "workbook_xlsx": 5189506,
+    "deck_pptx": 296309
+  },
+  "contains_financial_impact_section": false,
+  "contains_assumption_based_content": false,
+  "n_gate3_failed_candidates_represented": 0,
+  "generated_at_utc": "2026-09-24T04:04:26.787919+00:00"
+}

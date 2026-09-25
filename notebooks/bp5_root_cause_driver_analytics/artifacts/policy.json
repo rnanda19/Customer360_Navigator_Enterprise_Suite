@@ -1,0 +1,223 @@
+{
+  "bp_id": "bp5",
+  "bp_name": "bp5_root_cause_driver_analytics",
+  "gate": 1,
+  "generated_at_utc": "2026-09-24T07:16:13.829757+00:00",
+  "target_definition": {
+    "no_single_supervised_target_two_real_outcome_fields": true,
+    "scoping_note": "Master Plan Section 6 (Integration Architecture) names 'CFPB outcome fields' (plural) feeding BP3/BP5 - BP5 draws on that same real CFPB outcome-field family BP3's Gate 1 already defined and used, not a different data source. BP5 tests real product/issue/process fields for statistical association against TWO real, distinct outcome fields (below), not one - grounded live in Section 6's outcome-field overlap check, not assumed redundant or assumed independent.",
+    "outcome_1_intervention_required": {
+      "description": "Reused verbatim from BP3 Gate 1's own real target definition on the identical 'Company response to consumer' field (HYPER: not reinvented). Binary: 1 if 'Closed with monetary relief'; 0 if 'Closed with explanation' or 'Closed with non-monetary relief'. 'In progress', 'Untimely response', and null-response rows excluded from the trainable set - identical exclusion reasoning to BP3 Gate 1 (see this notebook's markdown cell).",
+      "source_field": "Company response to consumer",
+      "reused_from": "bp3_complaint_escalation_prediction Gate 1 (identical definition, independently re-verified live in Section 6 below, never copied from BP3's own already-real-run artifact)."
+    },
+    "outcome_2_timely_response_failure": {
+      "description": "New to BP5 - the second real CFPB outcome field the Master Plan's own plural 'CFPB outcome fields' wording anticipates. Binary: 1 if the real 'Timely response?' value is 'No' (CFPB's own timeliness judgment); 0 if 'Yes'. Computed over the full real population (independent of 'Company response to consumer''s value); null 'Timely response?' rows excluded from the trainable set.",
+      "source_field": "Timely response?",
+      "distinct_from_outcome_1_by_construction": "'Timely response?' is CFPB's own independent timeliness assessment, not a value of 'Company response to consumer' - the real overlap between this outcome and 'Company response to consumer' == 'Untimely response' is live-verified in Section 6 (outcome_field_overlap_live_check below) rather than assumed to be either identical or unrelated."
+    },
+    "candidate_driver_fields": {
+      "product_issue_fields": [
+        "Product",
+        "Sub-product",
+        "Issue",
+        "Sub-issue"
+      ],
+      "process_fields": [
+        "Submitted via",
+        "Company"
+      ],
+      "secondary_control_field": "State - kept only as a geographic control dimension, never presented as a named 'product/issue/process' driver per the Master Plan's own BP5 wording.",
+      "company_encoding_note": "'Company' is real high-cardinality and will be frequency-encoded at Gate 2/3 (HYPER-reusing BP2/BP3's own pattern in src/features/) - not one-hot encoded.",
+      "excluded_from_candidate_set": {
+        "Company public response": "Excluded at Gate 1 - real null rate live-verified in Section 6 (BP2 Gate 1's own prior finding was ~54% null; re-verified live and independently here, not carried over), and its content is the company's own public statement ABOUT the complaint's outcome, an outcome-adjacent field BP2 Gate 3 already flagged for an explicit leakage test before use. Deferred to a later gate, same posture as BP3 Gate 1's own omission of this field from its candidate feature list.",
+        "Date received / Date sent to company": "Barred as a conservative default - see leakage_rules.",
+        "Tags": "Barred - demographic-adjacent, re-verified live in Section 5. See leakage_rules and compliance_touchpoint.",
+        "Complaint ID / ZIP code": "Barred as a pure identifier and a fine-grained quasi-identifier respectively - matches BP2/BP3/BP4's own BARRED_COLUMNS precedent (HYPER-consistent)."
+      }
+    },
+    "methodology_policy": {
+      "note": "Policy-level only - defines WHAT Gate 3/4 will test, not HOW. No hypothesis test, regression, or SHAP run in this Gate 1 notebook.",
+      "hypothesis_testing": "Chi-square test of independence (categorical driver x binary outcome) with Cramer's V effect size, per Master Plan Section 14's own named-metric rule (no self-invented scoring rubric).",
+      "regression": "Logistic regression (statsmodels/scikit-learn) per real candidate driver field, coefficients reported with confidence intervals, per Master Plan Section 10.2's own BP4-BP5 SMART objective wording.",
+      "explainability_shap": "SHAP applied to the Gate 3 champion model on a representative sample only, never the full corpus, per Master Plan Section 14.",
+      "two_outcomes_tested_separately": "Both outcome_1 and outcome_2 are tested against the same real candidate driver fields as two separate association analyses, never combined into a single joint target."
+    },
+    "association_not_causation_disclaimer": "Every BP5 finding, at every later gate, is reported as a statistical ASSOCIATION between a real candidate driver field and a real outcome field - never as a causal claim. This is a structural policy field, not only a markdown comment, per Master Plan Section 5.1/7's own explicit BP5 methodology rule ('every finding labeled as association, with a reminder that association is not causation') and Section 9's UDAAP mapping for BP5 ('root-cause findings framed as potential risk indicators only when statistically supported'). No BP5 deliverable at any gate may claim or imply that a driver field CAUSES an outcome."
+  },
+  "leakage_rules": [
+    "'Company response to consumer' defines outcome_1 (intervention_required) and must never also be used as a candidate driver field for outcome_1 - it is the outcome itself, not traditional train/test leakage.",
+    "'Timely response?' defines outcome_2 (timely_response_failure) and must never also be used as a candidate driver field for outcome_2, for the same reason.",
+    "'Company response to consumer' (and outcome_1 itself) is barred as a candidate driver field for outcome_2 (timely_response_failure) - an outcome-echo risk, not classic leakage: Section 6's live overlap check quantifies how much 'Untimely response' (one of 'Company response to consumer''s own values) coincides with 'Timely response?' == 'No' on the real data, and treating one real outcome field as a 'driver' of a second, overlapping real outcome field would not be a genuine product/issue/process association finding.",
+    "'Timely response?' (and outcome_2 itself) is barred as a candidate driver field for outcome_1 (intervention_required), symmetrically, and as a conservative default consistent with BP3 Gate 1's own bar on this same field for the same target - BP2 Gate 2 already found 1,963 real rows where 'Timely response?' disagrees with 'Company response to consumer', so its true association-vs-leakage risk for outcome_1 is unverified. Deferred to Gate 3 for an explicit test before any relaxation.",
+    "'Date received' and 'Date sent to company' are barred from the candidate driver set for BOTH outcomes as a conservative default - a computed response-time duration was found to leak the timeliness-derived half of BP2's own target on this identical data (BP2 Gate 3 finding), and 'Timely response?' (outcome_2 here) is itself a timeliness judgment on the same two dates. Deferred to Gate 3 for an explicit test, the same posture BP3 Gate 1 took on these identical fields.",
+    "'Tags' is barred from the candidate driver set for both outcomes - live-re-checked in Section 5 rather than trusting any prior Gate 1's now-superseded 'no protected-class field' claim, and found (or re-confirmed found, matching BP2 Gate 3's and BP3 Gate 1's real findings) to contain demographic-adjacent values.",
+    "'Company public response' is excluded from BP5's Gate 1 candidate driver set - see target_definition.candidate_driver_fields.excluded_from_candidate_set for the real, live-verified null-rate and outcome-adjacency reasoning.",
+    "'Complaint ID' and 'ZIP code' are barred as a pure identifier and a fine-grained quasi-identifier respectively - matches BP2/BP3/BP4's own BARRED_COLUMNS precedent (HYPER-consistent).",
+    "No BANKING77 data is used for BP5 at all (Master Plan BP table: Integrates BANKING77? = NO) - not loaded in this notebook; the Gold-layer common_taxonomy_bucket column is not read here.",
+    "Every BP5 finding at every later gate is reported as an ASSOCIATION, never a causal claim - see target_definition.association_not_causation_disclaimer."
+  ],
+  "assumptions": [
+    "BP5 tests statistical association against two real, distinct CFPB outcome fields (intervention_required, reused from BP3 Gate 1's own definition, and timely_response_failure, newly defined here) rather than a single target - an explicit, disclosed design choice grounded in Master Plan Section 6's own plural 'CFPB outcome fields' wording and in Section 6's live overlap check below, open to Gate 3 review if the real class balance or overlap makes either outcome untenable.",
+    "'Company public response' is excluded from BP5's Gate 1 candidate driver set given its real, live-verified null rate and its outcome-adjacent content (the company's own public statement about the complaint) - not proven necessary, open to Gate 2/3 review.",
+    "'Timely response?', 'Date received', and 'Date sent to company' are barred from the candidate driver set for BOTH outcomes at Gate 1 as a conservative default, not yet proven necessary - deferred to Gate 3 for an explicit association/leakage test before any relaxation, the same practice BP3 Gate 1 established for these same fields.",
+    "'State' is kept only as a secondary geographic control field, never presented as a primary named 'product/issue/process' driver per the Master Plan's own BP5 wording - an explicit scoping choice, not a claim that geography has no real association.",
+    "No CFPB field in this real 15-column extract is treated as demographic/protected-class by name; 'Tags' is barred anyway as a conservative default given its live-verified demographic-adjacent values, consistent with BP3/BP4 Gate 1's own precedent, even though ECOA/Reg B does not map to BP5 per Master Plan Section 9's own mapping (BP1, BP2, BP3, BP7 only - re-verified against the full Master Plan document, not the excerpt alone).",
+    "src/utils/bp1_config_sync.py is reused unmodified for BP5's own config file - already fully generic, parameterized by config_path, no BP1-specific logic (already reused unmodified by BP2, BP3, and BP4)."
+  ],
+  "compliance_touchpoint": {
+    "requirement": "UDAAP - Unfair, Deceptive, or Abusive Acts or Practices (Master Plan Section 9; BP5 is one of the three BPs this section explicitly maps to UDAAP, alongside BP2 and BP6)",
+    "statement": "Per Master Plan Section 9's own UDAAP row, BP5's root-cause/driver findings are framed as potential risk indicators only when statistically supported - operationalized here as the structural association_not_causation_disclaimer field above, carried into every later BP5 gate's reporting, never softened to a causal claim at any point.",
+    "ecoa_reg_b_not_applicable": "Master Plan Section 9's Regulatory Frameworks table maps ECOA / Regulation B to BP1, BP2, BP3, and BP7 only - BP5 is explicitly NOT listed (re-verified against the full Master Plan document text, not the excerpt alone). Stated honestly as Not Applicable for BP5's own compliance touchpoint, rather than silently reusing BP3's ECOA/Reg B statement. 'Tags' is still barred from BP5's candidate driver set anyway, as a conservative scope decision (see leakage_rules), HYPER-consistent with BP3/BP4 Gate 1's own precedent of barring 'Tags' even where ECOA/Reg B does not map to the BP in question (BP4).",
+    "data_minimization_purpose_limitation": "Gate 1's own Section 8 compliance touchpoint (GLBA/GDPR-aligned) for every BP: BP5 reads only the real CFPB structured fields already in scope for BP1-BP4 (no new external data source), uses each field only for the specific association-testing purpose defined above, and does not re-identify or attempt to recover any consumer identity (none exists in this real extract, re-confirmed live in Section 4)."
+  },
+  "live_checks": {
+    "cfpb_row_count": 1048575,
+    "cfpb_columns": [
+      "Date received",
+      "Product",
+      "Sub-product",
+      "Issue",
+      "Sub-issue",
+      "Company public response",
+      "Company",
+      "State",
+      "ZIP code",
+      "Tags",
+      "Submitted via",
+      "Date sent to company",
+      "Company response to consumer",
+      "Timely response?",
+      "Complaint ID"
+    ],
+    "cfpb_columns_match_manifest": true,
+    "suspected_customer_id_columns": [],
+    "company_response_to_consumer_distribution": [
+      {
+        "Company response to consumer": "Closed with explanation",
+        "n": 492340
+      },
+      {
+        "Company response to consumer": "Closed with non-monetary relief",
+        "n": 312602
+      },
+      {
+        "Company response to consumer": "In progress",
+        "n": 231856
+      },
+      {
+        "Company response to consumer": "Closed with monetary relief",
+        "n": 10511
+      },
+      {
+        "Company response to consumer": "Untimely response",
+        "n": 1264
+      },
+      {
+        "Company response to consumer": null,
+        "n": 2
+      }
+    ],
+    "timely_response_distribution": [
+      {
+        "Timely response?": "Yes",
+        "n": 1045348
+      },
+      {
+        "Timely response?": "No",
+        "n": 3227
+      }
+    ],
+    "tags_distribution": [
+      {
+        "Tags": null,
+        "n": 995094
+      },
+      {
+        "Tags": "Servicemember",
+        "n": 36094
+      },
+      {
+        "Tags": "Older American",
+        "n": 13713
+      },
+      {
+        "Tags": "Older American, Servicemember",
+        "n": 3674
+      }
+    ],
+    "demographic_adjacent_tags_found": [
+      "Servicemember",
+      "Older American",
+      "Older American, Servicemember"
+    ],
+    "outcome_1_intervention_required_class_balance": {
+      "n_intervention_required": 10511,
+      "n_no_intervention_required": 804942,
+      "n_trainable_total": 815453,
+      "n_excluded_in_progress": 231856,
+      "n_excluded_untimely_response": 1264,
+      "n_excluded_null_response": 2,
+      "n_excluded_total": 233122,
+      "positive_class_ratio_of_trainable": 0.0129
+    },
+    "outcome_2_timely_response_failure_class_balance": {
+      "n_timely_response_failure": 3227,
+      "n_timely_response_ok": 1045348,
+      "n_trainable_total": 1048575,
+      "n_excluded_null_timely_response": 0,
+      "positive_class_ratio_of_trainable": 0.0031
+    },
+    "outcome_field_overlap_live_check": {
+      "n_untimely_response_rows": 1264,
+      "n_untimely_response_and_timely_no": 1264,
+      "n_untimely_response_and_timely_yes": 0,
+      "pct_untimely_response_rows_also_timely_no": 1.0,
+      "n_timely_no_rows": 3227,
+      "pct_timely_no_rows_also_untimely_response": 0.3917,
+      "n_intervention_required_and_timely_no": 84,
+      "pct_intervention_required_rows_also_timely_no": 0.008
+    },
+    "candidate_driver_field_profile": {
+      "Product": {
+        "n_unique": 15,
+        "n_null": 0,
+        "pct_null": 0.0
+      },
+      "Sub-product": {
+        "n_unique": 61,
+        "n_null": 21,
+        "pct_null": 0.0
+      },
+      "Issue": {
+        "n_unique": 96,
+        "n_null": 0,
+        "pct_null": 0.0
+      },
+      "Sub-issue": {
+        "n_unique": 222,
+        "n_null": 25808,
+        "pct_null": 0.0246
+      },
+      "Company": {
+        "n_unique": 2970,
+        "n_null": 0,
+        "pct_null": 0.0
+      },
+      "Submitted via": {
+        "n_unique": 4,
+        "n_null": 0,
+        "pct_null": 0.0
+      },
+      "State": {
+        "n_unique": 62,
+        "n_null": 2193,
+        "pct_null": 0.0021
+      }
+    },
+    "company_public_response_null_profile": {
+      "n_null": 570861,
+      "pct_null": 0.5444
+    }
+  }
+}

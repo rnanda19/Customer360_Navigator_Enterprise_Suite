@@ -1,0 +1,12 @@
+[flake8]
+# Line-length matches [tool.black] in pyproject.toml (110) - not black's own 88 default, and not
+# flake8's own 79 default. 110 was chosen as the real, already-observed maximum line length
+# across this project's own pre-existing, real-run-confirmed src/ files (109 chars in
+# taxonomy_mapper.py and bp1_intent_classifier.py, both predating this hardening pass) plus a
+# small buffer - not an arbitrary round number, and deliberately NOT narrow enough to force
+# rewriting this project's established dense, heavily-commented documentation style throughout
+# already-confirmed code. E203 (whitespace before ':') and W503 (line break before binary
+# operator) are black's own deliberate style choices, incompatible with flake8's defaults by
+# design - the standard, documented black+flake8 pairing.
+max-line-length = 110
+extend-ignore = E203, W503

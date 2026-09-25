@@ -1,0 +1,394 @@
+feature,coefficient,odds_ratio
+Sub-issue_Problem with fees or penalties,4.6198373,101.47752
+Sub-issue_Account opened as a result of fraud,3.9601285,52.46407
+Issue_Problem adding money,3.6197224,37.3272
+Sub-issue_Problem when attempting to purchase vehicle at the end of the lease,3.6138885,37.110073
+Sub-issue_Changes in loan terms during or after closing,3.3799589,29.369562
+Sub-issue_Confusing or misleading advertising about the credit card,2.9273062,18.67725
+Sub-issue_Other problem,2.8797722,17.810215
+"Sub-issue_Excess mileage, damage, or wear fees, or other problem after the lease is finished",2.67132,14.459043
+Sub-issue_Problem with balance transfer,2.6691856,14.428215
+Sub-issue_Late or other fees,2.6675713,14.404941
+Sub-issue_Unable to open an account,2.4990547,12.170982
+Sub-product_Government benefit card,2.4666023,11.782345
+Sub-issue_Contacted before 8am or after 9pm,2.4520583,11.612224
+Issue_Problem with fraud alerts or security freezes,2.3901713,10.915363
+Sub-issue_Problem with rewards from credit card,2.3862877,10.873055
+Sub-issue_Non-sufficient funds and associated fees,2.275218,9.730041
+Sub-issue_Account sold or transferred to another company,2.1608982,8.67893
+Issue_Applying for a mortgage or refinancing an existing mortgage,2.0397255,7.6884985
+Sub-issue_Other problem getting your report or credit score,1.9291261,6.8834925
+Sub-product_Title loan,1.8841327,6.580645
+Sub-issue_Money was taken from your account on the wrong day or for the wrong amount,1.8684652,6.4783454
+Sub-product_Credit repair services,1.7947248,6.0178185
+Sub-issue_Trouble getting information about the card,1.7910769,5.9959054
+Sub-issue_Unable to receive car title or other problem after the loan is paid off,1.7626868,5.8280754
+"Issue_Was approved for a loan, but didn't receive the money",1.7169392,5.5674615
+Sub-issue_Paying off the loan,1.7017494,5.483532
+Issue_Unexpected or other fees,1.677067,5.349842
+"Product_Payday loan, title loan, personal loan, or advance loan",1.6654943,5.288287
+Issue_Didn't provide services promised,1.6249436,5.0781326
+"Sub-issue_Problem with forgiveness, cancellation, or discharge",1.5895071,4.9013324
+Sub-issue_Loan estimate or other related disclosures,1.5747608,4.829586
+"Sub-issue_Trying to communicate with the company to fix an issue related to modification, forbearance, short sale, deed-in-lieu, bankruptcy, or foreclosure",1.5199358,4.571932
+Sub-issue_Billing or statement issues,1.4816834,4.4003468
+Sub-issue_Private mortgage insurance (PMI),1.4667902,4.3352976
+Sub-issue_Changes in terms mid-deal or after closing,1.425424,4.1596212
+Sub-issue_High-pressure sales tactics,1.4013216,4.060563
+Sub-issue_Trouble using the card to spend money in a store or online,1.357941,3.8881793
+Issue_Closing on a mortgage,1.3511221,3.8617563
+Sub-product_International money transfer,1.3161198,3.7289245
+"Sub-product_Money order, traveler's check or cashier's check",1.3106208,3.708475
+Sub-issue_Can't use card to make purchases,1.28955,3.631152
+Issue_Issue with income share agreement,1.2805803,3.5987275
+Issue_Wrong amount charged or received,1.2756604,3.5810654
+Sub-issue_Credit card company isn't resolving a dispute about a purchase on your statement,1.2550765,3.5081065
+Sub-product_Gift card,1.2348789,3.437962
+Sub-issue_Personal information incorrect,1.2153926,3.3716173
+Sub-issue_Was not notified of investigation status or results,1.1592371,3.187501
+Sub-issue_Trying to communicate with the company to fix an issue while managing or servicing your loan,1.1585357,3.1852655
+"Sub-issue_Impersonated attorney, law enforcement, or government official",1.1545095,3.172467
+Issue_Can't contact lender or servicer,1.1151239,3.0499456
+Sub-issue_Confusing or misleading advertising,1.1149596,3.049445
+Sub-issue_Problem with the interest rate,1.0980864,2.9984226
+Issue_Electronic communications,1.0738161,2.9265258
+Sub-issue_Fraudulent loan,1.06043,2.8876123
+Sub-product_Pawn loan,1.0502795,2.8584497
+Sub-issue_Transaction was not authorized,1.0271611,2.7931252
+Sub-product_Payday loan debt,1.0132682,2.754589
+Issue_Property was sold,0.9994008,2.7166536
+"Product_Payday loan, title loan, or personal loan",0.9910742,2.6941268
+Sub-issue_Problem getting a working replacement card,0.9835427,2.673912
+Issue_Dealing with your lender or servicer,0.9773003,2.6572726
+Sub-issue_Frequent or repeated calls,0.9697408,2.637261
+"Sub-issue_Escrow, taxes, or insurance",0.9659727,2.6273422
+Sub-product_Rental debt,0.964907,2.6245437
+Sub-issue_Received unwanted marketing or advertising,0.9285311,2.5307891
+Sub-issue_You never received your bill or did not know a payment was due,0.91444796,2.4953973
+Sub-product_Other type of mortgage,0.91154844,2.4881723
+Sub-product_Federal student loan servicing,0.9069611,2.4767845
+Sub-issue_Trouble closing card,0.89975643,2.4590042
+Sub-issue_Can't close your account,0.89444363,2.4459743
+Sub-issue_Payment process,0.8893,2.4334257
+Issue_Other service problem,0.8846453,2.422125
+Sub-issue_Fees or costs after closing,0.8844314,2.421607
+Issue_Problem with cash advance,0.87919885,2.408969
+Issue_Problem with customer service,0.87658924,2.4026906
+Product_Debt or credit management,0.838862,2.3137324
+Sub-issue_Fees charged,0.8333495,2.301013
+Sub-product_Debt settlement,0.81458175,2.258231
+Sub-issue_Loan sold or transferred to another company,0.7924185,2.2087317
+Sub-product_Medical debt,0.7835649,2.189263
+Issue_Trouble during payment process,0.7469768,2.1106095
+Sub-issue_Company explaining amount owed,0.7361604,2.0879033
+Sub-issue_Trying to communicate with the company to fix an issue with the loan closing,0.7298414,2.0747516
+Sub-issue_Talked to a third-party about your debt,0.7273396,2.0695677
+Sub-issue_Credit card company won't work with you while you're going through financial hardship,0.7221223,2.058798
+Issue_Struggling to pay mortgage,0.7203835,2.055221
+Sub-product_USDA mortgage,0.71618223,2.0466049
+Sub-product_Virtual currency,0.69553286,2.004777
+Issue_Vehicle was repossessed or sold the vehicle,0.6886746,1.991075
+Issue_Confusing or misleading advertising or marketing,0.68757725,1.988891
+"Sub-issue_Used obscene, profane, or other abusive language",0.6739105,1.9618943
+Issue_Identity theft protection or other monitoring services,0.66270244,1.9400281
+Issue_Other transaction problem,0.6565113,1.9280541
+Issue_Problems receiving the advance,0.64501446,1.9060146
+Sub-issue_Funds not received from closed account,0.641074,1.8985188
+Sub-issue_Foreclosure,0.63996565,1.8964158
+Sub-product_Other banking product or service,0.6308123,1.8791366
+Issue_Credit monitoring or identity theft protection services,0.6170607,1.8534721
+Sub-issue_Confusing or misleading advertising or marketing,0.6122452,1.8445681
+Sub-issue_Problem with fees charged,0.60785687,1.8364913
+Sub-issue_Changes in loan terms during the application process,0.6059361,1.8329674
+Issue_Struggling to repay your loan,0.60446835,1.8302788
+Sub-issue_Account reinstatement or redemption after repossession,0.58113784,1.7880719
+Sub-product_Mortgage modification or foreclosure avoidance,0.5711576,1.7703152
+Issue_Loan payment wasn't credited to your account,0.5614853,1.7532748
+Sub-issue_Didn't receive services that were advertised,0.55445206,1.7409868
+Sub-issue_Card was charged for something you did not purchase with the card,0.54645836,1.7271254
+Sub-product_Checking account,0.545889,1.7261422
+Issue_Incorrect information on your report,0.544622,1.7239567
+Issue_Confusing or missing disclosures,0.53282696,1.7037418
+Issue_Repossession,0.52405566,1.6888633
+Sub-issue_Indicated you were committing crime by not paying debt,0.51693743,1.6768842
+Sub-issue_Lender trying to repossess or disable the vehicle,0.5150323,1.6736926
+Issue_Managing an account,0.50611675,1.6588368
+Sub-issue_Problem canceling credit monitoring or identify theft protection service,0.48981434,1.6320132
+Sub-issue_Attempted to collect wrong amount,0.46803132,1.5968475
+Sub-issue_Problem after you declared or threatened to declare bankruptcy,0.46493858,1.5919164
+Sub-issue_Application denials,0.4411974,1.5545675
+Sub-product_General-purpose prepaid card,0.43334284,1.5424049
+Issue_Fraud or scam,0.4284183,1.534828
+Sub-product_Other advances of future income,0.42449686,1.5288209
+Sub-issue_Charged too much interest,0.4157498,1.5155066
+Sub-issue_Sent card you never applied for,0.39729178,1.48779
+"Sub-issue_You told them to stop contacting you, but they keep trying",0.3952004,1.4846817
+Sub-issue_Seized or attempted to seize your property,0.39406902,1.483003
+Issue_Problem with a company's investigation into an existing issue,0.38865575,1.4749966
+Sub-issue_Trying to communicate with the company to fix an issue with the application process,0.38623315,1.4714276
+Sub-product_Check cashing service,0.3832718,1.4670767
+Issue_Problem with a credit reporting company's investigation into an existing problem,0.38101786,1.4637737
+Issue_Money was not available when promised,0.364937,1.4404233
+Sub-issue_Threatened to arrest you or take you to jail if you do not pay,0.3438458,1.4103612
+Sub-issue_Fees or costs during the application process,0.33815897,1.4023633
+Issue_Charged upfront or unexpected fees,0.33462244,1.3974127
+Sub-product_VA mortgage,0.3252597,1.3843901
+Issue_Charged fees or interest you didn't expect,0.3209738,1.3784695
+Sub-issue_Delays with the closing process,0.3015588,1.3519646
+Sub-product_Earned wage access,0.2950122,1.3431427
+Issue_Struggling to pay your loan,0.29009414,1.3365532
+Sub-issue_Company closed your account,0.28869087,1.334679
+Sub-issue_Information is incorrect,0.28366062,1.3279823
+"Sub-issue_Applying for or obtaining a modification, forbearance plan, short sale, or deed-in-lieu",0.27897933,1.3217801
+Issue_Took or threatened to take negative or legal action,0.26870367,1.3082675
+Issue_Getting the loan,0.25188068,1.2864425
+Sub-product_Domestic (US) money transfer,0.25108826,1.2854236
+Sub-issue_Problem making or receiving payments,0.2506891,1.2849106
+Sub-product_Other debt,0.2394232,1.2705162
+Sub-issue_Collected or attempted to collect exempt funds,0.2254046,1.2528296
+Sub-issue_Old information reappears or never goes away,0.21908155,1.2449328
+Sub-issue_Debt was already discharged in bankruptcy and is no longer owed,0.21471953,1.2395142
+Sub-issue_Keep getting calls about your loan,0.20964478,1.23324
+Sub-issue_Credit denial,0.20802695,1.2312464
+Sub-issue_Threatened to sue you for very old debt,0.17828184,1.1951622
+Issue_Getting a credit card,0.17264418,1.1884432
+Issue_Problem with a company's investigation into an existing problem,0.17255838,1.1883411
+"Sub-issue_Trouble getting, activating, or registering a card",0.16903588,1.1841626
+Issue_Problem getting a card or closing an account,0.16740467,1.1822326
+Sub-issue_Information is missing that should be on the report,0.15692699,1.1699102
+Issue_Problem with the payoff process at the end of the loan,0.15235107,1.164569
+Sub-product_Savings account,0.14831293,1.1598758
+Sub-issue_Delay in processing application,0.14545205,1.1565623
+Issue_Unauthorized withdrawals or charges,0.13934138,1.1495165
+Sub-product_Manufactured home loan,0.13751633,1.1474204
+Issue_Threatened to contact someone or share information improperly,0.12851664,1.1371404
+Sub-issue_Notification didn't disclose it was an attempt to collect a debt,0.12584037,1.1341012
+Sub-issue_Trouble using the card to send money to another person,0.11678136,1.1238737
+Sub-issue_Reporting company used your report improperly,0.11639118,1.1234351
+Issue_Improper use of your report,0.10743949,1.1134235
+Sub-issue_Didn't receive notice of right to dispute,0.10724669,1.1132088
+Sub-product_Federal student loan debt,0.099681936,1.1048195
+Sub-issue_Credit inquiries on your report that you don't recognize,0.098778814,1.1038221
+Issue_Getting a loan,0.093787745,1.0983266
+Sub-product_Other personal consumer report,0.07608862,1.0790583
+Sub-product_I do not know,0.07313054,1.075871
+Sub-issue_Debt was paid,0.06943186,1.071899
+Sub-issue_Their investigation did not fix an error on your report,0.06251596,1.0645114
+Sub-issue_Received unsolicited financial product or insurance offers after opting out,0.058809232,1.0605729
+Sub-issue_Can't temporarily delay making payments,0.058729578,1.0604883
+Product_Debt collection,0.0565557,1.0581856
+Sub-product_Conventional home mortgage,0.038386222,1.0391325
+Sub-issue_Threatened or suggested your credit would be damaged,0.03587957,1.036531
+Sub-issue_Overcharged for a purchase or transfer you did make with the card,0.034007445,1.0345923
+Sub-issue_Problem with additional products or services purchased with the loan,0.022822998,1.0230854
+Sub-issue_Contacted you after you asked them to stop,0.0137609495,1.013856
+Sub-issue_Trouble getting a working replacement card,0.010840383,1.0108993
+Sub-issue_Denied request to lower payments,0.007131299,1.0071567
+Sub-product_Auto debt,0.005187697,1.0052011
+Sub-issue_Reinserted previously deleted info,-0.00020787289,0.99979216
+Sub-issue_Inadequate help over the phone,-0.0014539711,0.99854714
+Sub-issue_Account terms,-0.0016607319,0.99834067
+Sub-issue_Account status,-0.0023584573,0.9976444
+Sub-issue_Information is not mine,-0.0032991008,0.99670637
+Sub-issue_No notice of investigation status/result,-0.0043017236,0.9957075
+Issue_Credit reporting company's investigation,-0.005755695,0.9942608
+Issue_Incorrect information on credit report,-0.007526163,0.9925021
+Sub-product_MISSING_SUB_PRODUCT,-0.013281858,0.986806
+Product_Credit reporting,-0.013281858,0.986806
+Sub-issue_Debt is not yours,-0.020842073,0.9793736
+Sub-issue_Account information incorrect,-0.027463028,0.9729106
+"Issue_Managing, opening, or closing your mobile wallet account",-0.03454196,0.96604776
+Product_Student loan,-0.03590424,0.96473265
+Issue_Written notification about debt,-0.041770257,0.9590901
+Sub-issue_Public record information inaccurate,-0.042363957,0.9585208
+Sub-issue_Card company isn't resolving a dispute about a purchase or transfer,-0.04449458,0.95648074
+Sub-issue_Did not receive car title,-0.051034834,0.9502456
+"Sub-issue_Was signed up for overdraft on card, but don't want to be",-0.057998985,0.94365096
+Sub-issue_Issues with fees connected to the loan,-0.061259232,0.94057935
+Sub-issue_Issues with financial aid services,-0.06347003,0.9385022
+Sub-issue_Qualified for a better loan than the one offered,-0.06352953,0.9384464
+Sub-issue_Payment issues,-0.0670604,0.9351387
+Sub-issue_Debt is not mine,-0.06761175,0.93462324
+"Sub-product_Other (i.e. phone, health club, etc.)",-0.06761175,0.93462324
+Issue_Cont'd attempts collect debt not owed,-0.06761175,0.93462324
+Issue_Property was damaged or destroyed property,-0.07016374,0.93224114
+Sub-product_Mortgage debt,-0.0715838,0.9309183
+Sub-product_Tax refund anticipation loan or check,-0.071755104,0.9307588
+Sub-issue_Problem with personal statement of dispute,-0.072109304,0.93042916
+Sub-issue_Deposits and withdrawals,-0.07892322,0.92411095
+"Sub-issue_An existing modification, forbearance plan, short sale, or other loss mitigation relief",-0.08065265,0.9225141
+Issue_Vehicle was damaged or destroyed the vehicle,-0.08533467,0.91820496
+Sub-issue_Problem with your payment plan,-0.08662311,0.91702265
+Sub-product_Loan,-0.08878325,0.9150439
+Issue_Attempts to collect debt not owed,-0.09096168,0.9130526
+Sub-issue_Investigation took more than 30 days,-0.10039558,0.90447956
+Sub-issue_Cashing a check,-0.10503874,0.90028965
+Sub-issue_Difficulty submitting a dispute or getting information about a dispute over the phone,-0.10897624,0.89675176
+Product_Credit card,-0.118182555,0.88853383
+"Sub-issue_Cannot graduate, receive diploma, or get transcript due to money owed",-0.12291126,0.88434213
+Sub-product_Refund anticipation check,-0.123720534,0.8836268
+Sub-issue_High pressure sales tactics or recruiting,-0.12662101,0.8810675
+Sub-issue_Charged for a purchase or transfer you did not make with the card,-0.12761338,0.8801936
+Sub-product_Payday loan,-0.13292909,0.87552714
+Sub-issue_Dealing with provider of income share agreement,-0.1340426,0.8745528
+Issue_Problem with a purchase or transfer,-0.13810074,0.87101096
+Sub-issue_Problem with a check written from your prepaid card account,-0.1400262,0.86933553
+Sub-issue_Account status incorrect,-0.14199089,0.8676292
+Sub-product_Student loan debt relief,-0.14270441,0.8670103
+Sub-product_Student prepaid card,-0.16506512,0.84783846
+Sub-issue_Report provided to employer without your written authorization,-0.16748197,0.8457919
+Sub-product_FHA mortgage,-0.1677048,0.84560347
+Sub-issue_Billing problem,-0.17459762,0.8397949
+Issue_Problem when making payments,-0.17779689,0.8371124
+Issue_Issue where my lender is my school,-0.1841705,0.831794
+Sub-issue_Unexpected increase in interest rate,-0.19424605,0.8234553
+Sub-issue_Setting up an escrow account for taxes and insurance,-0.19931655,0.8192905
+Issue_Closing an account,-0.20072477,0.8181375
+Sub-issue_Problem using a debit or ATM card,-0.2015898,0.81743014
+Sub-issue_Trouble with how payments are being handled,-0.203419,0.81593627
+Sub-issue_Problem lowering your monthly payments,-0.206175,0.8136907
+Issue_Unexpected fees,-0.21315327,0.80803233
+Sub-issue_Problem with product or service terms changing,-0.21387905,0.807446
+Sub-issue_Contacted your employer,-0.2183607,0.80383545
+Sub-issue_Problem with convenience check,-0.21991809,0.8025845
+Sub-issue_Card opened as result of identity theft or fraud,-0.22778274,0.79629725
+Issue_Unable to get your credit report or credit score,-0.22819835,0.7959663
+Sub-issue_Sued you without properly notifying you of lawsuit,-0.24945877,0.7792224
+Product_Credit reporting or other personal consumer reports,-0.2523017,0.7770102
+Sub-issue_Loan balance remaining after the vehicle is repossessed and sold,-0.2552512,0.77472186
+Sub-issue_Threatened to turn you in to immigration or deport you,-0.25934726,0.771555
+Issue_Incorrect exchange rate,-0.26961818,0.763671
+Issue_Unauthorized transactions or other transaction problem,-0.27052522,0.7629786
+Sub-product_Credit reporting,-0.2711907,0.762471
+Sub-issue_Didn't receive enough information to verify debt,-0.2748532,0.75968355
+Sub-issue_Information belongs to someone else,-0.2763238,0.7585672
+Sub-issue_Changes in terms from what was offered or advertised,-0.29776555,0.7424754
+Sub-issue_Problem with renewal,-0.30570468,0.7366041
+Issue_Received a loan you didn't apply for,-0.3057243,0.7365896
+Issue_Fees or interest,-0.3092444,0.7340013
+Sub-issue_Co-signer,-0.3176048,0.7278904
+Sub-issue_Delays in the application process,-0.32656968,0.72139406
+Sub-product_General-purpose credit card or charge card,-0.32826322,0.72017336
+Sub-issue_Problem extending the lease,-0.32837898,0.72009003
+"Product_Money transfer, virtual currency, or money service",-0.33987114,0.711862
+Sub-issue_Card opened without my consent or knowledge,-0.341443,0.7107439
+Sub-issue_Debt was result of identity theft,-0.35415056,0.7017693
+Sub-product_Personal line of credit,-0.3628206,0.6957112
+Sub-product_Private student loan debt,-0.3647736,0.6943539
+Sub-product_Home equity loan or line of credit (HELOC),-0.39379942,0.6744894
+Sub-issue_Contacted you instead of your attorney,-0.3942238,0.67420316
+Sub-issue_Interest rate,-0.3953427,0.6734492
+Sub-issue_Sued you in a state where you do not live or did not sign for the debt,-0.39997342,0.67033786
+Sub-issue_Overdraft charges,-0.40083408,0.6697612
+Product_Prepaid card,-0.40553063,0.666623
+Issue_Managing the loan or lease,-0.40913054,0.66422755
+Sub-issue_Problem with a trade-in,-0.40976742,0.66380465
+Sub-product_Lease,-0.4124192,0.66204673
+Sub-issue_Denied loan,-0.4199783,0.6570611
+Issue_Can't stop withdrawals from your bank account,-0.4223633,0.6554958
+Sub-product_Mobile or digital wallet,-0.42658195,0.65273637
+Sub-product_Installment loan,-0.42983735,0.6506149
+Sub-product_Money order,-0.4361213,0.6465393
+Submitted via_Web,-0.44783297,0.6390114
+Issue_Problem with overdraft,-0.45883307,0.6320208
+Sub-issue_Filed for bankruptcy,-0.4694633,0.6253378
+Sub-issue_Billing dispute for services,-0.47915637,0.6193056
+Issue_False statements or representation,-0.48777917,0.61398846
+Sub-issue_Frequent or repeated messages,-0.48972082,0.61279744
+Product_Vehicle loan or lease,-0.5012161,0.60579354
+Issue_Closing your account,-0.5250026,0.59155387
+Sub-issue_Problem with fees,-0.5307527,0.5881621
+Sub-issue_Banking errors,-0.5334963,0.58655065
+Issue_Problem with additional add-on products or services,-0.5391098,0.5832672
+"Issue_Overdraft, savings, or rewards features",-0.54847,0.57783324
+Sub-issue_Negative impact of inaccurate appraisal,-0.54962426,0.5771667
+Sub-issue_Problem with direct deposit,-0.58158076,0.559014
+Sub-issue_Bankruptcy,-0.5923577,0.5530219
+Sub-issue_Confusing or misleading advertising about the card,-0.6016539,0.5479047
+Sub-issue_Problem adding money,-0.6180256,0.5390076
+Submitted via_Postal mail,-0.6343379,0.53028643
+"Issue_Was approved for a loan, but didn't receive money",-0.65709597,0.5183545
+Sub-issue_Problem with customer service,-0.6597132,0.5169996
+Sub-issue_Funds not handled or disbursed as instructed,-0.6718671,0.5107541
+Sub-issue_Credit card company forcing arbitration,-0.68529475,0.50394166
+"Product_Credit reporting, credit repair services, or other personal consumer reports",-0.69612485,0.49851337
+Issue_Issues with repayment,-0.70417815,0.49451482
+Sub-issue_Problem accessing account,-0.7203521,0.4865809
+Submitted via_Phone,-0.7218891,0.4858336
+Issue_Communication tactics,-0.7265489,0.48357496
+Sub-issue_Lien release,-0.7385343,0.47781378
+Sub-issue_Fee problem,-0.73960555,0.47730213
+Sub-issue_Problem during payment process,-0.74877137,0.4729473
+Issue_Trouble using your card,-0.77545553,0.46049398
+Sub-issue_Application denied,-0.7844324,0.45637864
+Issue_Trouble using the card,-0.8004152,0.44914243
+Sub-issue_Information that should be on the report is missing,-0.84388334,0.43003732
+Sub-issue_Problem with cash advances,-0.8621406,0.42225724
+Sub-issue_MISSING_SUB_ISSUE,-0.86246836,0.42211887
+Issue_Credit limit changed,-0.87479806,0.41694623
+Sub-product_Credit card debt,-0.8821842,0.41387796
+Issue_Advertising,-0.8994195,0.40680575
+Sub-issue_Don't want a card provided by your employer or the government,-0.91222733,0.40162864
+Sub-issue_Don't agree with the fees charged,-0.9417258,0.38995427
+Sub-product_Private student loan,-0.9428501,0.3895161
+Sub-issue_Received bad information about your loan,-0.98308057,0.37415668
+Issue_Problem with a lender or other company charging your account,-0.98989874,0.37161434
+Sub-issue_Deposits or withdrawals,-1.0078739,0.36499417
+Issue_Getting a line of credit,-1.0647851,0.34480193
+Issue_Struggling to pay your bill,-1.0716078,0.34245747
+Issue_Getting a loan or lease,-1.0845168,0.33806512
+Sub-issue_Problem with additional add-on products or services purchased with the loan,-1.1872898,0.3050469
+Product_Credit card or prepaid card,-1.2180898,0.29579467
+Sub-issue_Termination fees or other problem when ending the lease early,-1.2365141,0.29039475
+Sub-issue_Add-on products and services,-1.2631136,0.2827722
+Sub-issue_Need information about your loan balance or loan terms,-1.2913398,0.27490225
+Sub-issue_Company communicating payment assistance or payment extension options,-1.3283823,0.26490545
+Sub-issue_Problem using the card to withdraw money from an ATM,-1.3602437,0.25659823
+Sub-issue_Trouble using the card to pay a bill,-1.3663385,0.2550391
+Product_Mortgage,-1.3681041,0.2545892
+Sub-product_Store credit card,-1.3681194,0.2545853
+Issue_Problem with a purchase shown on your statement,-1.3924223,0.24847269
+Sub-issue_Notice to repossess,-1.4300689,0.23929244
+Sub-issue_Can't get other flexible options for repaying your loan,-1.4828807,0.22698288
+Sub-issue_Confusing or missing disclosures,-1.500644,0.22298652
+Submitted via_Referral,-1.5068035,0.22161722
+Sub-issue_Problem with signing the paperwork,-1.583488,0.20525791
+Issue_Lost or stolen money order,-1.6468982,0.19264653
+Sub-issue_Closing disclosure or other related disclosures,-1.7027488,0.18218204
+Sub-issue_Damage caused or loss of personal items in vehicle during the actual repossession,-1.708494,0.18113838
+Issue_Lost or stolen check,-1.7267162,0.17786755
+Sub-product_Telecommunications debt,-1.736499,0.17613599
+Product_Checking or savings account,-1.8363879,0.15939215
+Sub-issue_Loan opened without my consent or knowledge,-1.8440434,0.15817657
+Issue_Problems at the end of the loan or lease,-1.8646394,0.15495208
+Sub-issue_Problem related to refinancing,-1.8866678,0.15157604
+Issue_Problem caused by your funds being low,-1.8900963,0.15105726
+Sub-issue_Bounced checks or returned payments,-1.904076,0.14896022
+Issue_Excessive fees,-1.9526286,0.14190058
+Sub-issue_Deficiency balance after repossession,-2.006712,0.13442996
+Sub-issue_Problem getting your free annual credit report,-2.1573255,0.11563397
+"Issue_Advertising and marketing, including promotional offers",-2.1953177,0.11132319
+Sub-issue_Voluntary repossession,-2.2351735,0.10697357
+Sub-issue_Privacy issues,-2.3906896,0.09156651
+Issue_Money was taken from your bank account on the wrong day or for the wrong amount,-2.4226067,0.08869012
+Issue_Opening an account,-2.472013,0.08441476
+Sub-issue_Fees charged for closing account,-2.5499372,0.07808657
+Sub-issue_Problem while selling or giving up the vehicle,-2.5596054,0.07733525
+Sub-issue_Account opened without my consent or knowledge,-2.5771134,0.075993046
+Sub-issue_Told you not to respond to a lawsuit they filed against you,-2.6272576,0.0722764
+"Issue_Other features, terms, or problems",-2.6504576,0.07061889
+Sub-product_Foreign currency exchange,-2.7959042,0.061059643
+Company_freq_zscored,-2.926135,0.053603813
+Sub-product_Reverse mortgage,-2.9355516,0.053101417
+Sub-product_CD (Certificate of Deposit),-3.1613612,0.042368032
+Sub-issue_Overcharged for something you did purchase with the card,-3.193926,0.041010544
+Sub-product_Traveler's check or cashier's check,-3.5055022,0.030031689
+Sub-issue_Called before 8am or after 9pm,-3.6539168,0.025889523
+Sub-issue_Can't stop withdrawals from your account,-3.8855162,0.020537226
+Sub-issue_Problem with paying off the loan,-3.9013689,0.020214222
+Issue_Trouble accessing funds in your mobile or digital wallet,-3.9429421,0.01939108
+Sub-product_Payroll card,-4.015242,0.018038588
+Sub-issue_Credit card company won't increase or decrease your credit limit,-4.2259054,0.014612099
+Sub-issue_Didn't receive terms that were advertised,-4.853446,0.0078014475
+Sub-issue_Overdrafts and overdraft fees,-4.928807,0.007235131
+Sub-issue_Didn't receive advertised or promotional terms,-5.1226225,0.005960371

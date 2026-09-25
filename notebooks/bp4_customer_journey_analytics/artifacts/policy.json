@@ -1,0 +1,167 @@
+{
+  "bp_id": "bp4",
+  "bp_name": "bp4_customer_journey_analytics",
+  "gate": 1,
+  "generated_at_utc": "2026-09-23T13:53:52.050197+00:00",
+  "journey_definition": {
+    "no_customer_identifier_in_scope": true,
+    "naming_commitment": "BP4 is event/issue journey analytics, never customer/longitudinal journey analytics - stated in every BP4 deliverable from Gate 1 forward, per Master Plan Section 5.1/7's own explicit instruction for BP4.",
+    "unit_1_complaint_event_journey": {
+      "description": "Row-level, keyed by the real 'Complaint ID' (live-verified 1:1 with rows). A real two-step event sequence: 'Date received' -> 'Date sent to company', with a real computed 'response_lag_days' duration and a real terminal state ('Company response to consumer', 'Timely response?').",
+      "key_column": "Complaint ID",
+      "sequence_columns": [
+        "Date received",
+        "Date sent to company"
+      ],
+      "derived_metric": "response_lag_days = Date sent to company - Date received"
+    },
+    "unit_2_issue_cluster_journey": {
+      "description": "Aggregate-level, keyed by the real, disclosed (Company, Product, Sub-product, Issue, Sub-issue) combination, ordered by 'Date received' into a real monthly complaint-volume time series per cluster - the Master Plan's 'repeat-contact/bottleneck' signal, explicitly redefined as a recurring-issue-cluster signal, never a customer's own repeat-contact count.",
+      "key_columns": [
+        "Company",
+        "Product",
+        "Sub-product",
+        "Issue",
+        "Sub-issue"
+      ],
+      "secondary_overlay": "Gold-layer 'common_taxonomy_bucket' (derived BANKING77 integration per the Master Plan's BP table) - applied only to the real, honestly-scoped in-coverage subset (see banking77_derived_coverage below), never treated as covering the full real dataset."
+    },
+    "banking77_derived_coverage": {
+      "mechanism": "Reuses the Gold-layer 'common_taxonomy_bucket' column BP1/BP2's own Gate 2 work already built (HYPER) - never recomputed here, and BP1's text classifier is never run against CFPB rows, since this real extract carries no narrative-text column at all (live-verified in Section 4).",
+      "n_in_scope": 68710,
+      "n_total": 1048575,
+      "pct_in_scope": 0.0655,
+      "bucket_distribution": [
+        {
+          "common_taxonomy_bucket": "OUT_OF_SCOPE_NO_BANKING77_OVERLAP",
+          "n": 979865
+        },
+        {
+          "common_taxonomy_bucket": "CARD_ISSUANCE_AND_LIFECYCLE",
+          "n": 32495
+        },
+        {
+          "common_taxonomy_bucket": "ATM_CASH_WITHDRAWAL",
+          "n": 27952
+        },
+        {
+          "common_taxonomy_bucket": "TRANSFERS",
+          "n": 8263
+        }
+      ]
+    },
+    "explicitly_out_of_scope": [
+      "Any per-customer or per-consumer journey, cohort, retention, or survival-style analysis - none is buildable without inventing an identity this real extract does not carry.",
+      "Any claim that a real issue-cluster's recurrence count represents a single person's repeat contact."
+    ]
+  },
+  "scope_boundaries": [
+    "'Complaint ID' identifies one real complaint (one event), never a person - must never be described, here or downstream, as a customer identifier.",
+    "'Tags' is barred from every BP4 journey-grouping key - ECOA/Reg B is not a BP4 compliance touchpoint per Master Plan Section 9 (mapped to BP1, BP2, BP3, BP7 only), but this is kept as a conservative scope decision anyway, HYPER-consistent with BP1-BP3's own precedent of barring 'Tags' from any grouping/feature key.",
+    "'ZIP code' is barred from every BP4 journey-grouping key - a fine-grained quasi-identifier (BP2/BP3's own BARRED_COLUMNS precedent); 'State' (coarser, already used as a plain categorical field by BP1-BP3) is the only geographic dimension BP4 may use.",
+    "No BP4 gate may construct, infer, or approximate a persistent customer/consumer identifier from any combination of real fields (ZIP code + Company + Product + Issue + Date received or otherwise) - the issue-cluster journey (unit 2 above) is the only sanctioned aggregate-level grouping.",
+    "No BP4 gate may run BP1's text-intent classifier against CFPB rows - this real extract carries no narrative-text column (live-verified in Section 4); the Gold-layer 'common_taxonomy_bucket' overlay (already computed) is the only sanctioned BANKING77-derived signal, used only for its real in-scope subset."
+  ],
+  "assumptions": [
+    "This real CFPB extract carries no customer/consumer identifier of any kind (live-verified in Section 4, consistent with every prior BP1-BP3 Gate 1 finding on the same schema) - BP4's scope is built around this fact from Gate 1 forward, not worked around later.",
+    "'Complaint ID' is a real, unique event identifier (live-verified 1:1 with rows in Section 4) - safe to use as the complaint-event journey's key, never as a person key.",
+    "The (Company, Product, Sub-product, Issue, Sub-issue) issue-cluster key is real-data-supported: 37,160 real distinct clusters, 41.85% of which recur, covering 97.94% of all real rows (Section 6) - a well-supported aggregate signal, not a sparse or forced one.",
+    "The Gold-layer 'common_taxonomy_bucket' column real-covers only 6.55% of rows (Section 5) - used as an optional secondary overlay only, never as BP4's primary journey-grouping dimension.",
+    "'response_lag_days' (Date sent to company - Date received) is safe for BP4 to use directly, unlike BP3's Gate 1 barring of the same two Date fields: BP3 barred them as a predictive-leakage risk against a supervised target BP4 does not have. BP4 has no supervised target for this duration to leak into - it is reported descriptively, not used to predict 'Company response to consumer' or 'Timely response?'.",
+    "src/utils/bp1_config_sync.py is reused unmodified for BP4's own config file - already fully generic, parameterized by config_path, no BP1-specific logic (already reused unmodified by BP2 and BP3 too)."
+  ],
+  "compliance_touchpoint": {
+    "requirement": "CFPB supervisory & complaint-handling standards (Master Plan Section 9; governs all 8 BPs, primarily BP1-BP4)",
+    "statement": "BP4's primary journey-grouping key (Company, Product, Sub-product, Issue, Sub-issue) is CFPB's own real product/issue/sub-issue schema, used as-is, with no fabricated outcomes anywhere. Two real dataset limitations are stated plainly rather than left implicit: (1) no customer/consumer identifier exists in this extract, so every 'repeat-contact' or 'journey' claim in BP4's deliverables is an issue-cluster-level signal, never a per-person claim; (2) the Gold-layer BANKING77-derived taxonomy overlay real-covers only 6.55% of rows, so it is never presented as a population-level view of customer intent across the full real dataset."
+  },
+  "live_checks": {
+    "cfpb_row_count": 1048575,
+    "cfpb_columns": [
+      "Date received",
+      "Product",
+      "Sub-product",
+      "Issue",
+      "Sub-issue",
+      "Company public response",
+      "Company",
+      "State",
+      "ZIP code",
+      "Tags",
+      "Submitted via",
+      "Date sent to company",
+      "Company response to consumer",
+      "Timely response?",
+      "Complaint ID"
+    ],
+    "cfpb_columns_match_manifest": true,
+    "suspected_customer_id_columns": [],
+    "narrative_text_columns": [],
+    "complaint_id_n_unique": 1048575,
+    "complaint_id_is_unique_event_id": true,
+    "gold_taxonomy_parquet_row_count": 1048575,
+    "gold_taxonomy_row_count_matches_raw": true,
+    "gold_taxonomy_columns": [
+      "Date received",
+      "Product",
+      "Sub-product",
+      "Issue",
+      "Sub-issue",
+      "Company public response",
+      "Company",
+      "State",
+      "ZIP code",
+      "Tags",
+      "Submitted via",
+      "Date sent to company",
+      "Company response to consumer",
+      "Timely response?",
+      "Complaint ID",
+      "common_taxonomy_bucket"
+    ],
+    "response_lag_days_stats": {
+      "count": 1048575,
+      "mean": 0.4652266170755549,
+      "std": 4.286588203212614,
+      "min": 0,
+      "p25": 0.0,
+      "p50": 0.0,
+      "p75": 0.0,
+      "max": 544,
+      "n_negative": 0,
+      "n_null_date_received": 0,
+      "n_null_date_sent": 0
+    },
+    "date_received_range": {
+      "min": "2014-04-03",
+      "max": "2026-09-20"
+    },
+    "date_sent_to_company_range": {
+      "min": "2014-04-08",
+      "max": "2026-09-20"
+    },
+    "issue_cluster_stats": {
+      "cluster_key": [
+        "Company",
+        "Product",
+        "Sub-product",
+        "Issue",
+        "Sub-issue"
+      ],
+      "n_clusters": 37160,
+      "n_recurring_clusters": 15551,
+      "pct_clusters_recurring": 0.4185,
+      "max_cluster_size": 64477,
+      "rows_in_recurring_clusters": 1026966,
+      "pct_rows_in_recurring_clusters": 0.9794
+    },
+    "null_counts_journey_columns": {
+      "Company": 0,
+      "Product": 0,
+      "Sub-product": 21,
+      "Issue": 0,
+      "Sub-issue": 25808,
+      "State": 2193,
+      "ZIP code": 382
+    }
+  }
+}

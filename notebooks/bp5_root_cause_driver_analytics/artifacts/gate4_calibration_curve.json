@@ -1,0 +1,114 @@
+{
+  "outcome_1_intervention_required": {
+    "n_rows": 163091,
+    "brier_score": 0.07267583780063618,
+    "calibration_curve": [
+      {
+        "mean_predicted_probability": 0.0006003867570625256,
+        "fraction_of_positives": 0.0,
+        "n_rows": 22229
+      },
+      {
+        "mean_predicted_probability": 0.0010720638246384537,
+        "fraction_of_positives": 0.0,
+        "n_rows": 11401
+      },
+      {
+        "mean_predicted_probability": 0.001280367987376458,
+        "fraction_of_positives": 0.0,
+        "n_rows": 19355
+      },
+      {
+        "mean_predicted_probability": 0.0014862915929817703,
+        "fraction_of_positives": 0.0,
+        "n_rows": 12355
+      },
+      {
+        "mean_predicted_probability": 0.0019690124754023876,
+        "fraction_of_positives": 0.0,
+        "n_rows": 16252
+      },
+      {
+        "mean_predicted_probability": 0.0029967696041746637,
+        "fraction_of_positives": 5.825808330905913e-05,
+        "n_rows": 17165
+      },
+      {
+        "mean_predicted_probability": 0.004254222665749222,
+        "fraction_of_positives": 5.5349532296452096e-05,
+        "n_rows": 18067
+      },
+      {
+        "mean_predicted_probability": 0.01686757522604741,
+        "fraction_of_positives": 0.0002197158341877838,
+        "n_rows": 13654
+      },
+      {
+        "mean_predicted_probability": 0.2912255032491782,
+        "fraction_of_positives": 0.007297927143382804,
+        "n_rows": 16306
+      },
+      {
+        "mean_predicted_probability": 0.8423289761066934,
+        "fraction_of_positives": 0.12129760225669958,
+        "n_rows": 16307
+      }
+    ]
+  },
+  "outcome_2_timely_response_failure": {
+    "n_rows": 209715,
+    "brier_score": 0.09922606008769999,
+    "calibration_curve": [
+      {
+        "mean_predicted_probability": 0.0007609692034544371,
+        "fraction_of_positives": 0.0,
+        "n_rows": 21229
+      },
+      {
+        "mean_predicted_probability": 0.001057817591440949,
+        "fraction_of_positives": 0.0,
+        "n_rows": 21538
+      },
+      {
+        "mean_predicted_probability": 0.0013283394008198799,
+        "fraction_of_positives": 0.0,
+        "n_rows": 20219
+      },
+      {
+        "mean_predicted_probability": 0.0027652940238553176,
+        "fraction_of_positives": 0.00011726078799249531,
+        "n_rows": 25584
+      },
+      {
+        "mean_predicted_probability": 0.003991124020348998,
+        "fraction_of_positives": 0.0,
+        "n_rows": 25706
+      },
+      {
+        "mean_predicted_probability": 0.0053244026656957015,
+        "fraction_of_positives": 0.0,
+        "n_rows": 15333
+      },
+      {
+        "mean_predicted_probability": 0.00610143778977965,
+        "fraction_of_positives": 0.0,
+        "n_rows": 17233
+      },
+      {
+        "mean_predicted_probability": 0.008958402641003258,
+        "fraction_of_positives": 4.5126353790613716e-05,
+        "n_rows": 22160
+      },
+      {
+        "mean_predicted_probability": 0.44850818991191826,
+        "fraction_of_positives": 0.004659643435980551,
+        "n_rows": 19744
+      },
+      {
+        "mean_predicted_probability": 0.8600109077766562,
+        "fraction_of_positives": 0.02618150603271496,
+        "n_rows": 20969
+      }
+    ]
+  }
+}

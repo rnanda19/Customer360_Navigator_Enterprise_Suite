@@ -1,0 +1,70 @@
+{
+  "timely_response_vs_outcome_1": {
+    "driver_field": "Timely response?",
+    "outcome_field": "outcome_1_intervention_required",
+    "reference_category": "Yes",
+    "reference_n_rows": 813490,
+    "reference_n_outcome_positive": 10427,
+    "n_categories_reported": 1,
+    "method": "closed-form per-category log-odds-ratio vs reference category, equivalent to a saturated single-predictor logistic regression coefficient",
+    "categories": [
+      {
+        "category": "No",
+        "n_rows": 1963,
+        "n_outcome_positive": 84,
+        "n_outcome_negative": 1879,
+        "odds_ratio_vs_reference": 3.443045399442731,
+        "log_odds_ratio": 1.2363563702824438,
+        "ci_95_low": 2.7646745512047795,
+        "ci_95_high": 4.287868753831375,
+        "std_error_log_odds": 0.11195583940600363,
+        "z_statistic": 11.043250417683387,
+        "p_value": 0.0,
+        "continuity_correction_applied": false
+      }
+    ],
+    "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+  },
+  "response_duration_days_vs_outcomes": {
+    "outcome_1_intervention_required": {
+      "driver_field": "_response_duration_days",
+      "outcome_field": "outcome_1_intervention_required",
+      "n_rows_tested": 815453,
+      "encoding": "z-scored (real mean=0.5702, real std=4.6999) prior to fitting",
+      "coefficient_per_1sd": 0.12399589272740302,
+      "odds_ratio_per_1sd": 1.1320112215109572,
+      "ci_95_low_odds_ratio_per_1sd": 1.1219887940405702,
+      "ci_95_high_odds_ratio_per_1sd": 1.14212317666017,
+      "p_value": 1.9868891536518794e-164,
+      "converged": true,
+      "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+    },
+    "outcome_2_timely_response_failure": {
+      "driver_field": "_response_duration_days",
+      "outcome_field": "outcome_2_timely_response_failure",
+      "n_rows_tested": 1048575,
+      "encoding": "z-scored (real mean=0.4652, real std=4.2866) prior to fitting",
+      "coefficient_per_1sd": 0.15936701039821102,
+      "odds_ratio_per_1sd": 1.1727682858620136,
+      "ci_95_low_odds_ratio_per_1sd": 1.1618086505045082,
+      "ci_95_high_odds_ratio_per_1sd": 1.1838313062365933,
+      "p_value": 1.1248468394822499e-242,
+      "converged": true,
+      "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+    }
+  },
+  "company_response_to_consumer_vs_outcome_2": {
+    "driver_field": "Company response to consumer",
+    "outcome_field": "outcome_2_timely_response_failure",
+    "n_rows_tested": 1048573,
+    "n_distinct_levels": 5,
+    "chi2_statistic": 411128.75392432953,
+    "degrees_of_freedom": 4,
+    "p_value": 0.0,
+    "cramers_v": 0.6261661561560302,
+    "association_strength": "strong",
+    "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+  },
+  "bar_relaxed_by_this_notebook": false,
+  "disclosure": "This is a real Gate 3 diagnostic test of a field BP5 Gate 1 barred from the candidate driver set as a conservative default (see Gate 1's policy.json assumptions/leakage_rules). It does NOT relax that bar - the bar stays in place regardless of this real result; any change to it is a human governance decision for a later gate, never auto-applied here. Identical posture to src/models/bp3_fairness_mitigation.py's simulate_equalized_fpr_thresholds() disclosure."
+}

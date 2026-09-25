@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BP1 Customer Intent Classification — Executive Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1E2761;
+    --navy-deep: #12173f;
+    --accent: #4C6EF5;
+    --ice: #CADCFC;
+    --success: #1B998B;
+    --warning: #E8A33D;
+    --danger: #C1292E;
+    --gray: #6B7280;
+    --surface: #F7F8FC;
+    --card: #FFFFFF;
+    --ink: #101828;
+    --ink-muted: #4B5468;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(16, 24, 40, 0.08);
+    --shadow-hover: 0 10px 32px rgba(16, 24, 40, 0.14);
+    --font-display: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--surface); color: var(--ink); line-height: 1.5;
+  }
+  header.hero {
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 55%, #2c3a8c 100%);
+    color: #fff; padding: 48px 32px 64px; position: relative; overflow: hidden;
+  }
+  header.hero::after {
+    content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(76,110,245,0.35) 0%, rgba(76,110,245,0) 70%);
+    animation: auroraPulse 6.5s ease-in-out infinite;
+  }
+  header.hero::before {
+    content: ""; position: absolute; left: -70px; bottom: -110px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(27,153,139,0.28) 0%, rgba(27,153,139,0) 70%);
+    animation: auroraPulse 7.5s ease-in-out infinite reverse;
+  }
+  @keyframes auroraPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.65; transform: scale(1.1); } }
+  .hero-inner { max-width: 1320px; margin: 0 auto; position: relative; z-index: 1; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--ice); font-weight: 600; }
+  h1.title { font-size: clamp(28px, 4vw, 40px); margin: 10px 0 8px; font-weight: 700; font-family: var(--font-display); }
+  .title-accent { color: var(--ice); }
+  .subtitle { color: rgba(255,255,255,0.82); font-size: 15px; max-width: 760px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22); padding: 7px 14px; border-radius: 999px; font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .badge.warn .dot { background: var(--warning); }
+  .badge.fail .dot { background: var(--danger); animation: pulseDot 1.8s ease-in-out infinite; }
+  @keyframes pulseDot { 0%, 100% { box-shadow: 0 0 0 0 rgba(193,41,46,0.45); } 50% { box-shadow: 0 0 0 5px rgba(193,41,46,0); } }
+
+  .prod-banner {
+    margin-top: 22px; padding: 16px 20px; border-radius: var(--radius); font-size: 14.5px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; backdrop-filter: blur(4px);
+  }
+  .prod-banner .tier-label { font-weight: 800; font-size: 17px; font-family: var(--font-display); }
+  .prod-banner.tier-1 { background: rgba(27,153,139,0.22); border: 1px solid rgba(27,153,139,0.55); }
+  .prod-banner.tier-2 { background: rgba(232,163,61,0.22); border: 1px solid rgba(232,163,61,0.6); }
+  .prod-banner.tier-3 { background: rgba(193,41,46,0.22); border: 1px solid rgba(193,41,46,0.6); }
+
+  main { max-width: 1320px; margin: -40px auto 0; padding: 0 24px 64px; position: relative; z-index: 2; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 20px 18px; box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; opacity: 0; transform: translateY(14px);
+    animation: rise 0.6s ease forwards; position: relative; overflow: hidden; border: 1px solid transparent;
+  }
+  .kpi-card::before {
+    content: ""; position: absolute; top: -34px; right: -34px; width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-color, var(--accent)) 0%, transparent 72%); opacity: 0.16; pointer-events: none;
+  }
+  .kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--accent-color, var(--accent)); }
+  .kpi-top { display: flex; align-items: center; gap: 8px; }
+  .kpi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-color, var(--accent)); flex: none; }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 600; }
+  .kpi-value {
+    font-size: 30px; font-weight: 800; color: var(--navy); margin-top: 6px; font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word; word-break: break-word; line-height: 1.18; font-family: var(--font-display);
+  }
+  .kpi-value--text { font-size: clamp(16px, 2.3vw, 22px); line-height: 1.3; }
+  .kpi-sub { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  section.panel {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 26px 22px;
+    margin-bottom: 24px; opacity: 0; animation: rise 0.6s ease forwards;
+  }
+  section.panel h2 { font-size: 18px; margin: 0 0 4px; color: var(--navy); display: flex; align-items: center; gap: 9px; font-family: var(--font-display); }
+  section.panel .panel-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+  .panel-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  .filters-bar {
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 6px;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+  .filter-group label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  select, input[type="text"] {
+    padding: 9px 12px; border-radius: 8px; border: 1px solid #DDE1EC; font-size: 14px; background: #fff; color: var(--ink);
+  }
+  input[type="range"] { width: 220px; accent-color: var(--accent); }
+  .range-value { font-size: 13px; color: var(--navy); font-weight: 700; }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 20px; }
+  .chart-box { min-height: 340px; }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data-table th {
+    text-align: left; padding: 10px 12px; background: var(--surface); color: var(--ink-muted);
+    text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; position: sticky; top: 0;
+  }
+  table.data-table td { padding: 9px 12px; border-top: 1px solid #EEF0F6; }
+  table.data-table tr:hover td { background: #F2F5FF; }
+  .table-scroll { max-height: 360px; overflow-y: auto; border: 1px solid #EEF0F6; border-radius: 10px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .pill.good { background: rgba(27,153,139,0.12); color: var(--success); }
+  .pill.bad { background: rgba(193,41,46,0.12); color: var(--danger); }
+
+  .assumption-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed #E4E7F0; font-size: 13px; }
+  .assumption-row .a-label { color: var(--ink-muted); max-width: 70%; }
+  .assumption-row .a-value { font-weight: 700; color: var(--navy); white-space: nowrap; }
+
+  .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .suggestion-card {
+    border: 1px solid #EEF0F6; border-radius: 12px; padding: 16px 18px; background: #FBFCFF;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .suggestion-card:hover { box-shadow: var(--shadow); border-color: var(--accent-color, var(--accent)); transform: translateY(-2px); }
+  .suggestion-card h3 { font-size: 14.5px; margin: 0 0 8px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .suggestion-card .smart-row { font-size: 12.5px; margin-bottom: 5px; }
+  .smart-tag { font-weight: 700; color: var(--accent); margin-right: 4px; }
+
+  footer { max-width: 1320px; margin: 0 auto; padding: 8px 24px 40px; font-size: 12px; color: var(--ink-muted); text-align: center; }
+
+  @media (max-width: 640px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    header.hero { padding: 36px 18px 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Customer360 Navigator &middot; BP1 Executive Rollup</div>
+    <h1 class="title">Customer Intent Classification <span class="title-accent">— Executive Dashboard</span></h1>
+    <p class="subtitle">Real results from BP1 Gates 1&ndash;6, generated __GENERATED_AT__. Champion model:
+      <strong>__CHAMPION_MODEL__</strong>. Every figure, table, and KPI on this page is read live from the project's real,
+      real-run-confirmed gate artifacts &mdash; nothing on this page is assumption-based or estimated.</p>
+    <div class="badge-row" id="governance-badges"></div>
+    <div class="prod-banner" id="prod-banner"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <section class="panel">
+    <h2>Filters</h2>
+    <div class="panel-desc">Slice the charts and tables below by common-taxonomy bucket or by minimum prediction confidence — every number updates live from the real decision-record data.</div>
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label for="bucket-filter">Common-taxonomy bucket</label>
+        <select id="bucket-filter"><option value="__ALL__">All buckets</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="confidence-filter">Min. prediction confidence: <span class="range-value" id="confidence-value">0.00</span></label>
+        <input type="range" id="confidence-filter" min="0" max="1" step="0.01" value="0">
+      </div>
+      <div class="filter-group">
+        <label for="search-filter">Search confused-pair intents</label>
+        <input type="text" id="search-filter" placeholder="e.g. card, transfer...">
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Model Benchmark &amp; Explainability</h2>
+    <div class="panel-desc">Real Gate 3 5-fold cross-validation results and Gate 4's real global SHAP feature importance.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-model-benchmark"></div>
+      <div class="chart-box" id="chart-shap"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Decision Layer — Live Confidence Filter</h2>
+    <div class="panel-desc" id="decision-summary">Drag the confidence slider above to see how coverage and accuracy trade off across the real 3,080-row held-out decision set.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-confidence-dist"></div>
+      <div class="chart-box" id="chart-taxonomy"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Where the Model Gets Confused</h2>
+    <div class="panel-desc">Real off-diagonal confusion pairs from the held-out test set (77×77 confusion matrix, top pairs shown; search to filter).</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-confusion-heatmap" style="grid-column: 1 / -1;"></div>
+    </div>
+    <div class="table-scroll" style="margin-top:16px;">
+      <table class="data-table" id="confused-pairs-table">
+        <thead><tr><th>True intent</th><th>Predicted intent</th><th>Real count</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Best &amp; Worst Performing Intents</h2>
+    <div class="panel-desc">Real per-class F1-score from Gate 3's held-out test classification report.</div>
+    <div class="chart-grid">
+      <div>
+        <h3 style="font-size:13px;color:var(--success);">Top 10 (highest real F1)</h3>
+        <div class="table-scroll"><table class="data-table" id="best-intents-table">
+          <thead><tr><th>Intent</th><th>Precision</th><th>Recall</th><th>F1</th></tr></thead><tbody></tbody>
+        </table></div>
+      </div>
+      <div>
+        <h3 style="font-size:13px;color:var(--danger);">Bottom 10 (lowest real F1)</h3>
+        <div class="table-scroll"><table class="data-table" id="worst-intents-table">
+          <thead><tr><th>Intent</th><th>Precision</th><th>Recall</th><th>F1</th></tr></thead><tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 1 — Business Understanding &amp; Policy</h2>
+    <div class="panel-desc">Real target definition, leakage rules, scope assumptions, compliance touchpoint, and live data-quality checks recorded at Gate 1 — the policy this classifier was built under.</div>
+    <div id="gate1-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 6 — Governance &amp; Known Limitations</h2>
+    <div class="panel-desc">Real governance status from this run, plus open items carried forward honestly rather than hidden.</div>
+    <div id="gate6-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>SMART Suggestions</h2>
+    <div class="panel-desc">Specific, Measurable, Achievable, Relevant, Time-bound recommendations — each grounded in a real number from Gates 1&ndash;6, not freeform text.</div>
+    <div class="suggestion-grid" id="suggestion-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Generated by <code>bp1_customer_intent_classification_executive_rollup_report.ipynb</code> &middot;
+  Governance: __PYTEST_SUMMARY__ &middot; Notebook syntax audit: __SYNTAX_SUMMARY__ &middot;
+  Customer360 Navigator Enterprise Suite &mdash; BP1 Customer Intent Classification
+</footer>
+
+<script id="rollup-data" type="application/json">__ROLLUP_DATA_JSON__</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('rollup-data').textContent);
+  const PALETTE = DATA.palette;
+  const CAT_SEQ = DATA.categorical_sequence;
+  const CHART_FONT = {family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", color: PALETTE.ink};
+  const CHART_HOVERLABEL = {bgcolor: PALETTE.primary_navy, bordercolor: PALETTE.primary_navy, font: {color: '#ffffff', size: 12, family: CHART_FONT.family}};
+
+  // ---------- animated count-up ----------
+  function groupThousands(numStr) {
+    // Group commas into the INTEGER part only. The previous version ran the grouping regex over
+    // the whole toFixed() string (integer + fraction together), which incorrectly inserted a
+    // comma into the fractional digits of values like 0.8221 - rendering the wrong "0.8,221"
+    // instead of "0.8221". Splitting on the decimal point first and grouping only the integer
+    // part fixes the display without changing a single real digit.
+    const parts = numStr.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+  function animateValue(el, endText, duration) {
+    const numMatch = endText.match(/-?[\d.]+/);
+    if (!numMatch) { el.textContent = endText; return; }
+    const end = parseFloat(numMatch[0]);
+    const prefix = endText.slice(0, numMatch.index);
+    const suffix = endText.slice(numMatch.index + numMatch[0].length);
+    const decimals = (numMatch[0].split('.')[1] || '').length;
+    const start = 0;
+    const startTime = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = start + (end - start) * eased;
+      el.textContent = prefix + groupThousands(val.toFixed(decimals)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- Recommended for Production banner ----------
+  const prod = DATA.kpis.production_recommendation;
+  const banner = document.getElementById('prod-banner');
+  banner.className = 'prod-banner tier-' + prod.tier_code;
+  banner.innerHTML = '<span class="tier-label">' + prod.tier + '</span><span>' + prod.reason + '</span>';
+
+  // ---------- governance badges ----------
+  const badgeRow = document.getElementById('governance-badges');
+  const gov = DATA.kpis;
+  const badges = [
+    {label: gov.governance_gates_complete + '/6 Gates Real-Run Confirmed', ok: true},
+    {label: 'pytest: ' + gov.pytest_counts.passed + ' passed / ' + gov.pytest_counts.failed + ' failed', ok: gov.pytest_all_passed},
+    {label: 'Notebook syntax audit: ' + (gov.notebook_syntax_all_passed ? 'all passed' : 'issues found'), ok: gov.notebook_syntax_all_passed},
+    {label: 'Open item: ' + gov.n_gate3_near_random_anomalies + ' near-random anomaly(ies)', ok: gov.n_gate3_near_random_anomalies === 0},
+    {label: 'Open item: ' + gov.n_gate3_high_variance_anomalies + ' high-variance anomaly(ies)', ok: gov.n_gate3_high_variance_anomalies === 0},
+  ];
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'badge' + (b.ok ? '' : ' fail');
+    el.innerHTML = '<span class="dot"></span>' + b.label;
+    badgeRow.appendChild(el);
+  });
+
+  // ---------- KPI cards ----------
+  const kpiGrid = document.getElementById('kpi-grid');
+  const kpiDefs = [
+    {label: 'Champion Model', value: gov.champion_model, sub: gov.n_classes + '-class intent classifier'},
+    {label: 'Held-out Test Accuracy', value: (gov.held_out_test_accuracy * 100).toFixed(2) + '%', sub: 'real, on ' + gov.n_test_rows.toLocaleString() + ' held-out rows'},
+    {label: 'Held-out F1-macro', value: gov.held_out_test_f1_macro.toFixed(4), sub: 'real, single evaluation'},
+    {label: 'ROC-AUC (OvR macro)', value: gov.roc_auc_ovr_macro.toFixed(4), sub: 'real, 77-class one-vs-rest'},
+    {label: 'Decision Records', value: gov.n_decision_records.toLocaleString(), sub: (gov.reason_code_coverage * 100).toFixed(1) + '% with grounded reason codes'},
+    {label: 'Governance Gates Complete', value: gov.governance_gates_complete + '/6', sub: 'all real-run confirmed'},
+    {label: 'Gate 3 Open Anomalies', value: (gov.n_gate3_near_random_anomalies + gov.n_gate3_high_variance_anomalies), sub: gov.n_gate3_near_random_anomalies + ' near-random, ' + gov.n_gate3_high_variance_anomalies + ' high-variance'},
+  ];
+  kpiDefs.forEach((k, i) => {
+    const card = document.createElement('div');
+    const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+    card.className = 'kpi-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.style.setProperty('--accent-color', accentColor);
+    const isLongText = typeof k.value === 'string' && /[a-zA-Z]{4,}/.test(k.value) && k.value.replace(/[^a-zA-Z]/g, '').length > 8;
+    const valueClass = 'kpi-value' + (isLongText ? ' kpi-value--text' : '');
+    card.innerHTML =
+      '<div class="kpi-top"><span class="kpi-dot"></span><span class="kpi-label">' + k.label + '</span></div>' +
+      '<div class="' + valueClass + '" data-final="' + k.value + '"></div>' +
+      '<div class="kpi-sub">' + k.sub + '</div>';
+    kpiGrid.appendChild(card);
+  });
+  document.querySelectorAll('.kpi-value').forEach(el => animateValue(el, el.dataset.final, 900));
+
+  // ---------- bucket filter options ----------
+  const bucketFilter = document.getElementById('bucket-filter');
+  DATA.taxonomy.forEach(row => {
+    const opt = document.createElement('option');
+    opt.value = row.bucket; opt.textContent = row.bucket;
+    bucketFilter.appendChild(opt);
+  });
+
+  // ---------- Model benchmark chart ----------
+  function renderModelBenchmark() {
+    const rows = DATA.model_benchmark;
+    Plotly.newPlot('chart-model-benchmark', [{
+      type: 'bar', orientation: 'h',
+      y: rows.map(r => r.model), x: rows.map(r => r.mean_f1_macro),
+      error_x: {type: 'data', array: rows.map(r => r.std_f1_macro), color: PALETTE.neutral_gray},
+      marker: {color: rows.map(r => r.is_champion ? PALETTE.primary_navy : PALETTE.neutral_gray)},
+      text: rows.map(r => r.mean_f1_macro.toFixed(3)), textposition: 'outside',
+      hovertemplate: '%{y}<br>Mean F1-macro: %{x:.4f}<extra></extra>',
+    }], {
+      title: {text: 'Gate 3 — Real 5-Fold CV Model Benchmark', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 150, t: 50, r: 30, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean F1-macro', gridcolor: '#EEF0F6'}, plot_bgcolor: 'white', paper_bgcolor: 'white',
+    }, {responsive: true, displaylogo: false});
+  }
+
+  // ---------- SHAP chart ----------
+  function renderShap() {
+    const rows = DATA.shap_top10.slice().reverse();
+    Plotly.newPlot('chart-shap', [{
+      type: 'bar', orientation: 'h', y: rows.map(r => r.feature), x: rows.map(r => r.mean_abs_shap),
+      marker: {color: PALETTE.accent_blue},
+      hovertemplate: '%{y}<br>Mean |SHAP|: %{x:.5f}<extra></extra>',
+    }], {
+      title: {text: 'Gate 4 — Top Globally Important Terms (real SHAP)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 110, t: 50, r: 30, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean |SHAP value|', gridcolor: '#EEF0F6'}, plot_bgcolor: 'white', paper_bgcolor: 'white',
+    }, {responsive: true, displaylogo: false});
+  }
+
+  // ---------- Taxonomy chart (filterable) ----------
+  function renderTaxonomy() {
+    const rows = DATA.taxonomy.filter(r => r.cfpb_count > 0);
+    Plotly.react('chart-taxonomy', [{
+      type: 'pie', labels: rows.map(r => r.bucket), values: rows.map(r => r.cfpb_count), hole: 0.45,
+      marker: {colors: CAT_SEQ, line: {color: '#ffffff', width: 1.5}}, textinfo: 'percent', hovertemplate: '%{label}<br>%{value:,} real CFPB rows (%{percent})<extra></extra>',
+    }], {
+      title: {text: 'Real CFPB Volume by Common-Taxonomy Bucket', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {t: 50, b: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+    }, {responsive: true, displaylogo: false});
+  }
+
+  // ---------- Confusion heatmap ----------
+  function renderConfusionHeatmap() {
+    const cm = DATA.confusion_matrix;
+    Plotly.newPlot('chart-confusion-heatmap', [{
+      type: 'heatmap', z: cm.matrix, x: cm.labels, y: cm.labels, colorscale: 'Blues',
+      hovertemplate: 'True: %{y}<br>Predicted: %{x}<br>Real count: %{z}<extra></extra>',
+    }], {
+      title: {text: 'Full Real 77×77 Confusion Matrix (zoom / pan / hover to explore)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 140, t: 50, r: 30, b: 140}, xaxis: {tickfont: {size: 8}}, yaxis: {tickfont: {size: 8}},
+      font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+    }, {responsive: true, displaylogo: false});
+  }
+
+  // ---------- confused pairs table (searchable) ----------
+  function renderConfusedPairsTable(filterText) {
+    const tbody = document.querySelector('#confused-pairs-table tbody');
+    tbody.innerHTML = '';
+    const ft = (filterText || '').toLowerCase();
+    DATA.confused_pairs.filter(p => !ft || p.true_intent.toLowerCase().includes(ft) || p.predicted_intent.toLowerCase().includes(ft))
+      .forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + p.true_intent + '</td><td>' + p.predicted_intent + '</td><td>' + p.count + '</td>';
+        tbody.appendChild(tr);
+      });
+  }
+
+  // ---------- best/worst intents tables ----------
+  function fillIntentTable(id, rows) {
+    const tbody = document.querySelector('#' + id + ' tbody');
+    tbody.innerHTML = '';
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + r.intent + '</td><td>' + r.precision.toFixed(3) + '</td><td>' + r.recall.toFixed(3) + '</td><td><strong>' + r['f1-score'].toFixed(3) + '</strong></td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- confidence-filtered decision layer ----------
+  function renderConfidenceView(threshold) {
+    const recs = DATA.decision_records;
+    const above = recs.filter(r => r.confidence_top1 >= threshold);
+    const correctAbove = above.filter(r => r.correct).length;
+    const accAtThreshold = above.length ? (correctAbove / above.length) : 0;
+    const coverage = recs.length ? (above.length / recs.length) : 0;
+    document.getElementById('decision-summary').innerHTML =
+      'At confidence &ge; <strong>' + threshold.toFixed(2) + '</strong>: <strong>' + above.length.toLocaleString() +
+      '</strong> of ' + recs.length.toLocaleString() + ' real decisions (' + (coverage * 100).toFixed(1) +
+      '% coverage) with <strong>' + (accAtThreshold * 100).toFixed(2) + '%</strong> real accuracy among them.';
+
+    const correct = above.filter(r => r.correct).map(r => r.confidence_top1);
+    const incorrect = above.filter(r => !r.correct).map(r => r.confidence_top1);
+    Plotly.react('chart-confidence-dist', [
+      {type: 'histogram', x: correct, name: 'Correct', marker: {color: PALETTE.success_green}, opacity: 0.78, nbinsx: 25},
+      {type: 'histogram', x: incorrect, name: 'Incorrect', marker: {color: PALETTE.danger_red}, opacity: 0.78, nbinsx: 25},
+    ], {
+      title: {text: 'Confidence Distribution (filtered live)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      barmode: 'overlay', margin: {t: 50, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+      xaxis: {title: 'Top-1 confidence'}, yaxis: {title: 'Count'}, plot_bgcolor: 'white', paper_bgcolor: 'white',
+      transition: {duration: 400, easing: 'cubic-in-out'},
+    }, {responsive: true, displaylogo: false});
+  }
+
+  // ---------- Gate 1 detail (real, from policy.json) ----------
+  function renderGate1() {
+    const g1 = DATA.gate1;
+    const el = document.getElementById('gate1-detail');
+    const ci77 = g1.class_imbalance_77_class, ci9 = g1.class_imbalance_9_bucket;
+    const rows = [
+      ['Primary target', g1.primary_target + ' — ' + g1.primary_target_description],
+      ['Secondary target', g1.secondary_target + ' — ' + g1.secondary_target_description],
+      ['Feature variable', g1.feature_variable],
+      ['Train/test split source', g1.train_test_split_source],
+      ['Compliance (' + g1.compliance_requirement + ')', g1.compliance_statement],
+      ['Shared CFPB/BANKING77 columns', String(g1.shared_columns_cfpb_banking77.length)],
+      ['Train/test exact-text overlap rows', String(g1.train_test_exact_text_overlap_rows)],
+      ['77-class imbalance (min/max/ratio)', ci77.min_class_count + ' / ' + ci77.max_class_count + ' / ' + ci77.imbalance_ratio_max_over_min + 'x'],
+      ['9-bucket imbalance (min/max/ratio)', ci9.min_bucket_count + ' / ' + ci9.max_bucket_count + ' / ' + ci9.imbalance_ratio_max_over_min + 'x'],
+    ];
+    let html = '';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label"><strong>' + label + ':</strong> ' + val + '</span></div>';
+    });
+    html += '<div style="margin-top:12px;font-weight:700;color:var(--navy);font-size:13px;">Leakage rules (real, enforced live every Gate 1 run)</div>';
+    g1.leakage_rules.forEach(rule => {
+      html += '<div class="assumption-row"><span class="a-label">' + rule + '</span></div>';
+    });
+    html += '<div style="margin-top:12px;font-weight:700;color:var(--navy);font-size:13px;">Scope assumptions documented at Gate 1 (real)</div>';
+    g1.assumptions.forEach(a => {
+      html += '<div class="assumption-row"><span class="a-label">' + a + '</span></div>';
+    });
+    el.innerHTML = html;
+  }
+
+  // ---------- Gate 6 detail (real governance status) ----------
+  function renderGate6() {
+    const g6 = DATA.gate6_detail;
+    const el = document.getElementById('gate6-detail');
+    const rows = [
+      ['pytest suite', g6.pytest_counts.passed + ' passed / ' + g6.pytest_counts.failed + ' failed'],
+      ['Notebook syntax audit', g6.notebook_syntax_check_n_passed + '/' + (g6.notebook_syntax_check_n_passed + g6.notebook_syntax_check_n_failed) + ' passed'],
+      ['Open item — Gate 3 near-random anomalies', String(g6.n_gate3_near_random_anomalies_detected)],
+      ['Open item — Gate 3 high-variance anomalies', String(g6.n_gate3_high_variance_anomalies_detected)],
+      ['Model card', g6.model_card_path],
+      ['Changelog', g6.changelog_path],
+      ['Gate 3 candidates evaluated', g6.candidates_evaluated.join(', ')],
+      ['Gate 3 candidates failed', g6.candidates_failed.length ? g6.candidates_failed.join(', ') : 'none'],
+    ];
+    let html = '';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + label + '</span><span class="a-value">' + val + '</span></div>';
+    });
+    if (g6.model_inventory_compliance_touchpoint) {
+      html += '<div class="assumption-row"><span class="a-label"><strong>Model inventory compliance touchpoint:</strong> ' + g6.model_inventory_compliance_touchpoint + '</span></div>';
+    }
+    el.innerHTML = html;
+  }
+
+  // ---------- SMART suggestions ----------
+  function renderSuggestions() {
+    const grid = document.getElementById('suggestion-grid');
+    DATA.suggestions.forEach((s, i) => {
+      const card = document.createElement('div');
+      const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+      card.className = 'suggestion-card';
+      card.style.setProperty('--accent-color', accentColor);
+      card.innerHTML =
+        '<h3><span class="panel-dot" style="background:' + accentColor + '"></span>' + s.title + '</h3>' +
+        '<div class="smart-row"><span class="smart-tag">Specific:</span>' + s.specific + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Measurable:</span>' + s.measurable + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Time-bound:</span>' + s.timebound + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Owner:</span>' + s.owner_placeholder + '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- section panel accent dots (reuses the same real fixed categorical palette as the charts) ----------
+  function applyPanelDots() {
+    document.querySelectorAll('section.panel h2').forEach((h2, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'panel-dot';
+      dot.style.background = CAT_SEQ[i % CAT_SEQ.length];
+      h2.prepend(dot);
+    });
+  }
+
+  // ---------- wire up filters ----------
+  document.getElementById('confidence-filter').addEventListener('input', function (e) {
+    const v = parseFloat(e.target.value);
+    document.getElementById('confidence-value').textContent = v.toFixed(2);
+    renderConfidenceView(v);
+  });
+  document.getElementById('search-filter').addEventListener('input', function (e) {
+    renderConfusedPairsTable(e.target.value);
+  });
+  document.getElementById('bucket-filter').addEventListener('change', function (e) {
+    const val = e.target.value;
+    const rows = val === '__ALL__' ? DATA.taxonomy : DATA.taxonomy.filter(r => r.bucket === val);
+    Plotly.react('chart-taxonomy', [{
+      type: 'pie', labels: rows.map(r => r.bucket), values: rows.map(r => r.cfpb_count), hole: 0.45,
+      marker: {colors: CAT_SEQ, line: {color: '#ffffff', width: 1.5}}, textinfo: 'percent',
+    }], {
+      title: {text: 'Real CFPB Volume by Common-Taxonomy Bucket', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {t: 50, b: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+    }, {responsive: true, displaylogo: false});
+  });
+
+  // ---------- initial render ----------
+  applyPanelDots();
+  renderModelBenchmark();
+  renderShap();
+  renderTaxonomy();
+  renderConfusionHeatmap();
+  renderConfusedPairsTable('');
+  fillIntentTable('best-intents-table', DATA.best_intents);
+  fillIntentTable('worst-intents-table', DATA.worst_intents);
+  renderConfidenceView(0);
+  renderGate1();
+  renderGate6();
+  renderSuggestions();
+
+  // fade-in panels on scroll
+  const panels = document.querySelectorAll('section.panel');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = (idx * 0.05) + 's';
+        entry.target.style.opacity = 1;
+        io.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.08});
+  panels.forEach(p => io.observe(p));
+})();
+</script>
+</body>
+</html>

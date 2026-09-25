@@ -1,0 +1,6 @@
+candidate,available,status,correctness_note,mean_seconds,min_seconds,std_seconds,mean_mem_delta_mb,n_timing_repeats,is_champion
+pandas_groupby,True,CORRECT,OK,3.362423,3.067079,0.334053,23.13,5,False
+polars_eager,True,CORRECT,OK,0.123225,0.108452,0.013145,-61.796,5,False
+polars_lazy,True,CORRECT,OK,0.118765,0.110692,0.005532,-0.258,5,False
+polars_lazy_streaming,True,CORRECT,OK,0.10541,0.103927,0.001283,15.166,5,True
+duckdb_sql,True,CORRECT,OK,0.256269,0.240335,0.008522,29.23,5,False

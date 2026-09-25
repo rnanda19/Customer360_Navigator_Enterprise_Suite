@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{SUITE_TITLE}}</title>
+<style>
+  :root {
+    --primary-navy: {{PALETTE_PRIMARY_NAVY}};
+    --accent-blue: {{PALETTE_ACCENT_BLUE}};
+    --surface-light: #E7E9F0;
+    --card-bg: #EAF1FF;
+    --card-bg-hover: #DCE9FF;
+    --ink: {{PALETTE_INK}};
+    --ink-muted: {{PALETTE_INK_MUTED}};
+    --good: {{PALETTE_SUCCESS_GREEN}};
+    --warn: {{PALETTE_WARNING_AMBER}};
+    --bad: {{PALETTE_DANGER_RED}};
+    --neutral: {{PALETTE_NEUTRAL_GRAY}};
+    --hero-1: {{HERO_GRADIENT_1}};
+    --hero-2: {{HERO_GRADIENT_2}};
+    --hero-3: {{HERO_GRADIENT_3}};
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--surface-light);
+    color: var(--ink);
+  }
+
+  /* ---------- Hero ---------- */
+  header.hero {
+    background: linear-gradient(120deg, var(--hero-1) 0%, var(--hero-2) 45%, var(--hero-3) 100%);
+    background-size: 200% 200%;
+    animation: heroShift 14s ease-in-out infinite;
+    color: white;
+    padding: 44px 40px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  @keyframes heroShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  header.hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 85% 10%, rgba(255,255,255,0.14), transparent 45%);
+    pointer-events: none;
+  }
+  header.hero h1 {
+    margin: 0 0 8px 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em;
+    opacity: 0; animation: fadeSlideUp 0.7s ease-out 0.05s forwards;
+  }
+  header.hero p.subtitle {
+    margin: 0; color: #D9E3FF; font-size: 14px; max-width: 760px; line-height: 1.5;
+    opacity: 0; animation: fadeSlideUp 0.7s ease-out 0.18s forwards;
+  }
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  main { max-width: 1240px; margin: 0 auto; padding: 0 32px 70px; }
+
+  /* ---------- Sections ---------- */
+  section { margin: 40px 0; }
+  h2 {
+    font-size: 18px; font-weight: 700;
+    color: var(--primary-navy);
+    margin: 0 0 14px 0;
+  }
+  .story {
+    white-space: pre-line;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    margin: 4px 0 16px 0;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent-blue);
+    padding-left: 10px;
+  }
+
+  .disclosure {
+    background: var(--card-bg);
+    border: 1px solid var(--accent-blue);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    margin-top: -28px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 8px 24px rgba(30,39,97,0.14);
+  }
+  .disclosure strong { color: var(--ink); }
+
+  /* ---------- KPI band ---------- */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .kpi-card {
+    background: var(--card-bg);
+    border: 1px solid #D3E0FA;
+    border-left: 5px solid var(--accent-blue);
+    border-radius: 12px;
+    padding: 18px 20px;
+    opacity: 0;
+    animation: fadeSlideUp 0.5s ease-out forwards;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.15s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(30,39,97,0.14); background: var(--card-bg-hover); }
+  .kpi-card.active-filter-source { outline: 2px solid var(--primary-navy); }
+  .kpi-card .click-hint { position: absolute; top: 12px; right: 14px; font-size: 9.5px; color: var(--accent-blue); font-weight: 700; opacity: 0; transition: opacity 0.15s ease; }
+  .kpi-card:hover .click-hint { opacity: 1; }
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.12s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.19s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.26s; }
+  .kpi-card:nth-child(5) { animation-delay: 0.33s; }
+  .kpi-card .value { font-size: 30px; font-weight: 800; color: var(--primary-navy); font-variant-numeric: tabular-nums; }
+  .kpi-card .label { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  .kpi-card .footnote { font-size: 10.5px; color: var(--ink-muted); margin-top: 6px; }
+
+  /* ---------- Filter bar ---------- */
+  .filter-bar {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: var(--card-bg); border: 1px solid #D3E0FA; border-radius: 12px;
+    padding: 12px 16px; margin: 24px 0;
+    position: sticky; top: 0; z-index: 5;
+    box-shadow: 0 2px 10px rgba(16,24,40,0.08);
+  }
+  .filter-bar .filter-label { font-size: 11.5px; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-right: 4px; }
+  .chip {
+    border: 1px solid #C7D6F5; background: white; color: var(--ink);
+    border-radius: 999px; padding: 6px 13px; font-size: 12px; cursor: pointer;
+    transition: all 0.15s ease; user-select: none;
+  }
+  .chip:hover { border-color: var(--accent-blue); background: var(--card-bg-hover); }
+  .chip.active { background: var(--primary-navy); color: white; border-color: var(--primary-navy); }
+  .chip.reset { margin-left: auto; color: var(--accent-blue); border-color: var(--accent-blue); background: white; }
+  .search-box {
+    border: 1px solid #C7D6F5; background: white; border-radius: 999px;
+    padding: 6px 14px; font-size: 12px; color: var(--ink); min-width: 170px;
+    margin-left: 8px; outline: none; transition: border-color 0.15s ease;
+  }
+  .search-box:focus { border-color: var(--accent-blue); }
+  .result-count { font-size: 11px; color: var(--ink-muted); margin-left: 6px; }
+
+  /* ---------- Chart grid ---------- */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 20px;
+  }
+  .chart-card {
+    background: var(--card-bg); border: 1px solid #D3E0FA; border-radius: 14px;
+    padding: 18px 20px 14px;
+    opacity: 0; animation: fadeSlideUp 0.5s ease-out forwards;
+    transition: box-shadow 0.18s ease;
+  }
+  .chart-card:hover { box-shadow: 0 10px 26px rgba(30,39,97,0.12); }
+  .chart-card:nth-of-type(1) { animation-delay: 0.05s; }
+  .chart-card:nth-of-type(2) { animation-delay: 0.11s; }
+  .chart-card:nth-of-type(3) { animation-delay: 0.17s; }
+  .chart-card:nth-of-type(4) { animation-delay: 0.23s; }
+  .chart-card:nth-of-type(5) { animation-delay: 0.29s; }
+  .chart-card:nth-of-type(6) { animation-delay: 0.35s; }
+  .donut-seg { transition: stroke-dasharray 0.9s cubic-bezier(.2,.8,.2,1), opacity 0.15s ease; }
+  .legend .legend-item { cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: background 0.15s ease; }
+  .legend .legend-item:hover { background: var(--card-bg-hover); }
+  .legend .legend-item.dimmed { opacity: 0.35; }
+  .chart-card h3 { margin: 0 0 2px; font-size: 13.5px; font-weight: 700; color: var(--primary-navy); }
+  .chart-card svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 11px; color: var(--ink-muted); }
+  .legend .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .bar-mark { transition: opacity 0.15s ease; cursor: pointer; }
+  .bar-mark:hover { opacity: 0.72; }
+  .donut-seg { transition: opacity 0.15s ease; cursor: pointer; }
+  .donut-seg:hover { opacity: 0.78; }
+
+  /* ---------- Tooltip ---------- */
+  #chart-tooltip {
+    position: fixed; pointer-events: none; z-index: 50;
+    background: var(--ink); color: white; font-size: 11.5px;
+    padding: 6px 10px; border-radius: 6px; opacity: 0; transform: translate(-50%, -110%);
+    transition: opacity 0.1s ease; white-space: nowrap;
+  }
+  #chart-tooltip.show { opacity: 0.96; }
+
+  /* ---------- BP card grid ---------- */
+  .bp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .bp-card {
+    background: var(--card-bg); border: 1px solid #D3E0FA; border-radius: 14px;
+    padding: 18px 20px; border-left-width: 6px; border-left-style: solid;
+    opacity: 0; animation: fadeSlideUp 0.5s ease-out forwards;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.15s ease;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .bp-card:hover { transform: translateY(-4px) scale(1.015); box-shadow: 0 14px 30px rgba(30,39,97,0.16); background: var(--card-bg-hover); }
+  @keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(193,41,46,0.45); }
+    50% { box-shadow: 0 0 0 5px rgba(193,41,46,0); }
+  }
+  .badge.pulse { animation: badgePulse 1.8s ease-out infinite; }
+  .bp-card .bp-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .bp-card .bp-key { font-size: 12px; font-weight: 800; color: var(--accent-blue); letter-spacing: 0.03em; }
+  .bp-card .bp-name { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 2px 0 6px; }
+  .badge {
+    display: inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 9px;
+    border-radius: 999px; color: white; width: fit-content;
+  }
+  .bp-card .field { font-size: 12px; color: var(--ink-muted); }
+  .bp-card .field b { color: var(--ink); font-weight: 600; }
+  .bp-card .suggestion {
+    font-size: 11.5px; color: var(--ink); background: var(--surface-light);
+    border-radius: 8px; padding: 8px 10px; margin-top: 4px; line-height: 1.4;
+  }
+  .bp-card .suggestion b { color: var(--primary-navy); }
+  .bp-card a.open-link {
+    margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--accent-blue);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .bp-card a.open-link:hover { text-decoration: underline; }
+  .bp-card.hidden-by-filter { display: none; }
+
+  /* ---------- Tables ---------- */
+  table { width: 100%; border-collapse: collapse; background: var(--card-bg); font-size: 12.5px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid #D3E0FA; }
+  th { background: #D9E6FC; color: var(--primary-navy); font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; }
+  th.sortable { cursor: pointer; user-select: none; transition: background 0.15s ease; }
+  th.sortable:hover { background: var(--card-bg-hover); }
+  th.sortable::after { content: "\2195"; margin-left: 5px; opacity: 0.4; font-size: 10px; }
+  th.sortable.sorted-asc::after { content: "\2191"; opacity: 1; color: var(--accent-blue); }
+  th.sortable.sorted-desc::after { content: "\2193"; opacity: 1; color: var(--accent-blue); }
+  tbody tr { transition: background 0.12s ease; }
+  tbody tr:hover { background: var(--card-bg-hover); }
+  .table-wrap { border: 1px solid #D3E0FA; border-radius: 12px; overflow: hidden; }
+
+  /* ---------- Timeline ---------- */
+  .timeline { display: flex; align-items: flex-end; gap: 2px; overflow-x: auto; padding: 12px 4px 4px; }
+  .timeline .tl-item { flex: 1 1 40px; min-width: 40px; text-align: center; opacity: 0; animation: fadeSlideUp 0.4s ease-out forwards; }
+  .timeline .tl-dot {
+    width: 12px; height: 12px; border-radius: 50%; background: var(--accent-blue);
+    margin: 0 auto 6px; cursor: pointer; transition: transform 0.15s ease;
+  }
+  .timeline .tl-dot:hover { transform: scale(1.35); }
+  .timeline .tl-label { font-size: 10px; font-weight: 700; color: var(--ink); }
+  .timeline .tl-line { height: 2px; background: #D8DCE8; margin: 6px -20px 0; }
+
+  /* ---------- Suggestions panel ---------- */
+  .suggestion-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .suggestion-item {
+    background: var(--card-bg); border: 1px solid #D3E0FA; border-radius: 10px; padding: 12px 14px;
+    border-left: 4px solid var(--accent-blue); font-size: 12.5px; line-height: 1.45;
+    opacity: 0; animation: fadeSlideUp 0.4s ease-out forwards;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .suggestion-item:hover { transform: translateX(3px); background: var(--card-bg-hover); }
+  .suggestion-item b { color: var(--primary-navy); }
+
+  /* ---------- Static fallback ---------- */
+  details.static-fallback { background: var(--card-bg); border: 1px solid #D3E0FA; border-radius: 12px; padding: 12px 18px; }
+  details.static-fallback summary { cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--primary-navy); }
+  .charts-static { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  .charts-static img { width: 100%; border: 1px solid #E4E7EE; border-radius: 8px; background: white; }
+
+  footer { font-size: 11px; color: var(--ink-muted); margin-top: 44px; text-align: center; }
+
+  @media (max-width: 760px) {
+    .charts-static { grid-template-columns: 1fr; }
+    header.hero { padding: 32px 20px 44px; }
+    main { padding: 0 16px 50px; }
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <h1>{{SUITE_TITLE}}</h1>
+  <p class="subtitle">New, additive suite-wide capstone rollup &mdash; not a Master-Plan-defined gate &mdash; read-only over BP1-BP8's own artifacts. Every number below is read live from each BP's own already-real Gate&nbsp;7 rollup (or BP8's own Gate&nbsp;1/2/3 status).</p>
+</header>
+<main>
+
+  <section class="disclosure">
+    <strong>Scope note.</strong> This dashboard aggregates BP1-BP7's own already-produced
+    Gate&nbsp;7 executive rollups and BP8's own Gate&nbsp;1/2/3 status. It contains no
+    dollar-impact figure, illustrative number, or assumption-based claim, and it never
+    re-derives a metric any BP's own Gate 7 (or BP8's own Gate 1/2/3) already computed.
+    The one disclosed exception is BP1's/BP2's production-recommendation tier, which is
+    derived from those two BPs' own real Gate&nbsp;6 governance flags because their
+    manifest schema predates that field. Smart Suggestions further below are a fixed,
+    deterministic rule table over these same real fields &mdash; never AI-generated free
+    text &mdash; see the suite manifest for the exact rules.
+  </section>
+
+  <section>
+    <h2>Suite KPI Summary</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card" id="kpi-total">
+        <div class="value" data-count="{{N_BPS_TOTAL}}">0</div>
+        <div class="label">Business problems in the suite</div>
+      </div>
+      <div class="kpi-card" id="kpi-complete">
+        <div class="value"><span data-count="{{N_BPS_FULLY_COMPLETE_GATE7}}">0</span> / 7</div>
+        <div class="label">BP1&ndash;BP7 with a completed Gate 7 rollup</div>
+      </div>
+      <div class="kpi-card" id="kpi-recommended" style="border-left-color: var(--good);">
+        <span class="click-hint">CLICK TO FILTER</span>
+        <div class="value" data-count="{{N_BPS_RECOMMENDED_FOR_PRODUCTION}}">0</div>
+        <div class="label">BPs recommended for production</div>
+      </div>
+      <div class="kpi-card" id="kpi-flagged" style="border-left-color: var(--warn);">
+        <span class="click-hint">CLICK TO FILTER</span>
+        <div class="value" data-count="{{N_BPS_DISPARATE_IMPACT_FLAGGED}}">0</div>
+        <div class="label">BPs flagged for disparate impact</div>
+      </div>
+      <div class="kpi-card" id="kpi-pytest">
+        <div class="value" data-count="{{TOTAL_PYTEST_PASSED}}">0</div>
+        <div class="label">Total pytest passed across suite</div>
+        <div class="footnote">summed over {{N_PYTEST_CONTRIBUTING_BPS}} BP(s) with a readable Gate 6 block</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="filter-bar" id="filter-bar">
+      <span class="filter-label">Filter by tier</span>
+      <span id="tier-chips"></span>
+      <span class="filter-label" style="margin-left:14px;">Disparate impact</span>
+      <span id="di-chips"></span>
+      <input type="text" class="search-box" id="bp-search" placeholder="Search BP, champion...">
+      <span class="result-count" id="result-count"></span>
+      <span class="chip reset" id="reset-filters">Reset filters</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Per-BP Status &mdash; Production Recommendation &amp; Smart Suggestions</h2>
+    <div class="bp-grid" id="bp-card-grid"></div>
+  </section>
+
+  <section>
+    <h2>Charts</h2>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Production-Recommendation Tier Distribution</h3>
+        <div class="story">{{STORY_TIER}}</div>
+        <svg id="chart-tier" viewBox="0 0 320 220"></svg>
+        <div class="legend" id="legend-tier"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Disparate-Impact Status (BP1&ndash;BP7)</h3>
+        <div class="story">{{STORY_DISPARATE_IMPACT}}</div>
+        <svg id="chart-di" viewBox="0 0 320 220"></svg>
+        <div class="legend" id="legend-di"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Decision/Gold Records per BP</h3>
+        <div class="story">{{STORY_RECORDS}}</div>
+        <svg id="chart-records" viewBox="0 0 320 200"></svg>
+      </div>
+      <div class="chart-card">
+        <h3>Gate 6 Pytest Passed per BP</h3>
+        <div class="story">{{STORY_PYTEST}}</div>
+        <svg id="chart-pytest" viewBox="0 0 320 200"></svg>
+      </div>
+      <div class="chart-card">
+        <h3>BP8 Gold Table Row Counts</h3>
+        <div class="story">{{STORY_BP8}}</div>
+        <svg id="chart-bp8gold" viewBox="0 0 320 200"></svg>
+      </div>
+      <div class="chart-card">
+        <h3>Gate 7 Completion Timeline</h3>
+        <div class="story">{{STORY_TIMELINE}}</div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Smart Suggestions (Rule-Based, Not AI-Generated Free Text)</h2>
+    <p style="font-size:12px;color:var(--ink-muted);margin-top:-6px;">
+      Each item is the fixed output of a deterministic rule table over that BP's own already-real
+      tier / disparate-impact / gate-status fields &mdash; never a forecast, dollar figure, or
+      speculative claim.
+    </p>
+    <div class="suggestion-list" id="suggestion-list"></div>
+  </section>
+
+  <section>
+    <h2>Per-BP Status &mdash; Full Detail Table</h2>
+    <div class="table-wrap">
+      <table id="bp-detail-table">
+        <thead>
+          <tr>
+            <th class="sortable" data-col="0">BP</th><th class="sortable" data-col="1">Name</th>
+            <th class="sortable" data-col="2">Champion</th><th class="sortable" data-col="3">Tier</th>
+            <th class="sortable" data-col="4">Tier Source</th><th class="sortable" data-col="5">Disparate Impact</th>
+            <th class="sortable" data-col="6">Records</th>
+            <th class="sortable" data-col="7">Gate 7 Generated (UTC)</th><th>Smart Suggestion</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{BP_TABLE_ROWS}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tier Distribution &mdash; Table View</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tier (literal string, as read/derived per-BP)</th><th># BPs</th></tr></thead>
+        <tbody>
+          {{TIER_COUNTS_ROWS}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>BP8 &mdash; Executive Product Analytics</h2>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><th>Gate 1 (aggregation scope)</th><td>{{BP8_GATE1_STATUS}} &mdash; generated {{BP8_GATE1_GENERATED_AT}}</td></tr>
+          <tr><th>Gate 2 (gold table build)</th><td>{{BP8_GATE2_STATUS}} &mdash; {{BP8_KPI_CATEGORIES_READY}} KPI categories ready, {{BP8_KPI_CATEGORIES_DEFERRED}} deferred, {{BP8_GOLD_TABLES_WRITTEN}} Gold tables written</td></tr>
+          <tr><th>Gate 3 (decision-engine KPI layer)</th><td>{{BP8_GATE3_STATUS}}</td></tr>
+          <tr><th>Smart Suggestion</th><td>{{BP8_SMART_SUGGESTION}}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 style="font-size:13px;color:var(--primary-navy);margin-top:20px;">BP8 Gold Tables (Gate 2 + Gate 3)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>Filename</th><th>Rows</th><th>Gate</th></tr></thead>
+        <tbody>
+          {{BP8_GOLD_TABLE_ROWS}}
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-muted);margin-top:12px;">
+      The suite's own final decision layer is a human-built Power BI Desktop (.pbix) file,
+      per the project's own Master Plan Section 19 &mdash; explicitly out of scope for any
+      notebook, including this one, to build.
+    </p>
+  </section>
+
+  <section>
+    <details class="static-fallback">
+      <summary>Static / print-friendly chart view (accessibility fallback)</summary>
+      <div class="charts-static">
+        <div><img src="data:image/png;base64,{{TIER_CHART_B64}}" alt="Tier distribution chart (static)"></div>
+        <div><img src="data:image/png;base64,{{PYTEST_CHART_B64}}" alt="Pytest passed per BP chart (static)"></div>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    Customer360 Navigator Enterprise Suite &mdash; 00 Suite Executive Rollup &mdash;
+    generated read-only from BP1-BP8's own artifacts.
+  </footer>
+</main>
+<div id="chart-tooltip"></div>
+
+<script>
+(function () {
+  "use strict";
+  var DATA = {{SUITE_DATA_JSON}};
+  var PALETTE_SEQ = DATA.categorical_sequence;
+
+  /* ---------------- Animated KPI counters ---------------- */
+  function animateCount(el) {
+    var target = parseFloat(el.getAttribute("data-count")) || 0;
+    var start = 0;
+    var duration = 900;
+    var startTime = null;
+    function step(ts) {
+      if (!startTime) startTime = ts;
+      var progress = Math.min((ts - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var value = Math.round(start + (target - start) * eased);
+      el.textContent = value.toLocaleString();
+      if (progress < 1) requestAnimationFrame(step);
+      else el.textContent = target.toLocaleString();
+    }
+    requestAnimationFrame(step);
+  }
+  document.querySelectorAll("[data-count]").forEach(animateCount);
+
+  /* ---------------- Tooltip ---------------- */
+  var tooltip = document.getElementById("chart-tooltip");
+  function showTooltip(evt, text) {
+    tooltip.textContent = text;
+    tooltip.style.left = evt.clientX + "px";
+    tooltip.style.top = evt.clientY + "px";
+    tooltip.classList.add("show");
+  }
+  function moveTooltip(evt) {
+    tooltip.style.left = evt.clientX + "px";
+    tooltip.style.top = evt.clientY + "px";
+  }
+  function hideTooltip() { tooltip.classList.remove("show"); }
+
+  var NS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs) {
+    var el = document.createElementNS(NS, tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  /* ---------------- Donut chart ---------------- */
+  function drawDonut(svgId, legendId, series, colorFor) {
+    var svg = document.getElementById(svgId);
+    if (!svg) return;
+    var total = series.reduce(function (s, d) { return s + (d.value || 0); }, 0);
+    var cx = 110, cy = 110, r = 78, stroke = 30;
+    var legend = document.getElementById(legendId);
+    if (total === 0) {
+      svg.appendChild(svgEl("text", { x: cx, y: cy, "text-anchor": "middle", fill: "#8A93A6", "font-size": 12 })).textContent = "No data";
+      return;
+    }
+    var circumference = 2 * Math.PI * r;
+    var offsetAcc = 0;
+    series.forEach(function (d, i) {
+      if (!d.value) return;
+      var frac = d.value / total;
+      var dash = frac * circumference;
+      var seg = svgEl("circle", {
+        cx: cx, cy: cy, r: r, fill: "none",
+        stroke: colorFor(d, i), "stroke-width": stroke,
+        "stroke-dasharray": "0 " + circumference.toFixed(2),
+        "stroke-dashoffset": (-offsetAcc).toFixed(2),
+        transform: "rotate(-90 " + cx + " " + cy + ")",
+        class: "donut-seg",
+        "data-key": d.key || d.label
+      });
+      seg.addEventListener("mousemove", function (e) { showTooltip(e, d.label + ": " + d.value + " (" + Math.round(frac * 100) + "%)"); });
+      seg.addEventListener("mouseleave", hideTooltip);
+      svg.appendChild(seg);
+      var finalDash = dash.toFixed(2) + " " + (circumference - dash).toFixed(2);
+      setTimeout(function () { seg.setAttribute("stroke-dasharray", finalDash); }, 60);
+      offsetAcc += dash;
+    });
+    var centerText = svgEl("text", { x: cx, y: cy - 4, "text-anchor": "middle", "font-size": 20, "font-weight": 800, fill: "#101828" });
+    centerText.textContent = total;
+    svg.appendChild(centerText);
+    var centerLabel = svgEl("text", { x: cx, y: cy + 14, "text-anchor": "middle", "font-size": 10, fill: "#4B5468" });
+    centerLabel.textContent = "total";
+    svg.appendChild(centerLabel);
+
+    if (legend) {
+      series.forEach(function (d, i) {
+        var item = document.createElement("span");
+        item.className = "legend-item";
+        item.setAttribute("data-key", d.key || d.label);
+        var sw = document.createElement("span");
+        sw.className = "swatch";
+        sw.style.background = colorFor(d, i);
+        item.appendChild(sw);
+        item.appendChild(document.createTextNode(d.label + " (" + d.value + ")"));
+        item.addEventListener("mouseenter", function () {
+          svg.querySelectorAll(".donut-seg").forEach(function (s) {
+            s.classList.toggle("dimmed", s.getAttribute("data-key") !== (d.key || d.label));
+            s.style.opacity = s.getAttribute("data-key") === (d.key || d.label) ? 1 : 0.25;
+          });
+        });
+        item.addEventListener("mouseleave", function () {
+          svg.querySelectorAll(".donut-seg").forEach(function (s) { s.style.opacity = 1; });
+        });
+        item.addEventListener("click", function () {
+          if (legendId === "legend-di") clickDiFilter(d.key);
+          if (legendId === "legend-tier") clickTierFilter(d.label);
+        });
+        legend.appendChild(item);
+      });
+    }
+  }
+
+  /* ---------------- Bar chart ---------------- */
+  function drawBarChart(svgId, series, colorFor, opts) {
+    opts = opts || {};
+    var svg = document.getElementById(svgId);
+    if (!svg) return;
+    if (!series.length) {
+      svg.appendChild(svgEl("text", { x: 160, y: 100, "text-anchor": "middle", fill: "#8A93A6", "font-size": 12 })).textContent = "No data available for this BP set";
+      return;
+    }
+    var width = 320, height = 200, padLeft = 34, padBottom = 34, padTop = 14, padRight = 10;
+    var plotW = width - padLeft - padRight, plotH = height - padTop - padBottom;
+    var maxVal = Math.max.apply(null, series.map(function (d) { return d.value || 0; })) || 1;
+    var barW = plotW / series.length * 0.62;
+    var gap = plotW / series.length;
+
+    svg.appendChild(svgEl("line", { x1: padLeft, y1: padTop + plotH, x2: padLeft + plotW, y2: padTop + plotH, stroke: "#D8DCE8", "stroke-width": 1 }));
+
+    series.forEach(function (d, i) {
+      var v = d.value || 0;
+      var barH = maxVal ? (v / maxVal) * plotH : 0;
+      var x = padLeft + gap * i + (gap - barW) / 2;
+      var y = padTop + plotH - barH;
+      var rect = svgEl("rect", {
+        x: x, y: padTop + plotH, width: barW, height: 0, rx: 4,
+        fill: colorFor(d, i), class: "bar-mark"
+      });
+      rect.addEventListener("mousemove", function (e) { showTooltip(e, d.label + ": " + v.toLocaleString()); });
+      rect.addEventListener("mouseleave", hideTooltip);
+      svg.appendChild(rect);
+      requestAnimationFrame(function () {
+        rect.style.transition = "y 0.6s cubic-bezier(.2,.8,.2,1), height 0.6s cubic-bezier(.2,.8,.2,1)";
+        rect.setAttribute("y", y);
+        rect.setAttribute("height", Math.max(barH, 0));
+      });
+      var maxChars = Math.max(3, Math.floor(gap / 5.6));
+      var labelText = String(d.label);
+      if (labelText.length > maxChars) labelText = labelText.slice(0, maxChars - 1) + "…";
+      var label = svgEl("text", { x: x + barW / 2, y: padTop + plotH + 16, "text-anchor": "middle", "font-size": 9.5, fill: "#4B5468" });
+      label.textContent = labelText;
+      var titleEl = svgEl("title", {});
+      titleEl.textContent = d.label;
+      label.appendChild(titleEl);
+      svg.appendChild(label);
+    });
+  }
+
+  /* ---------------- Timeline ---------------- */
+  function drawTimeline(series) {
+    var el = document.getElementById("timeline");
+    if (!el) return;
+    if (!series.length) { el.textContent = "No Gate 7 timestamps available."; return; }
+    var sorted = series.slice().sort(function (a, b) { return (a.value || "").localeCompare(b.value || ""); });
+    sorted.forEach(function (d, i) {
+      var item = document.createElement("div");
+      item.className = "tl-item";
+      item.style.animationDelay = (0.05 * i) + "s";
+      var line = document.createElement("div");
+      line.className = "tl-line";
+      if (i === 0) line.style.visibility = "hidden";
+      var dot = document.createElement("div");
+      dot.className = "tl-dot";
+      dot.style.background = PALETTE_SEQ[i % PALETTE_SEQ.length];
+      dot.addEventListener("mousemove", function (e) { showTooltip(e, d.label + ": " + d.value); });
+      dot.addEventListener("mouseleave", hideTooltip);
+      var label = document.createElement("div");
+      label.className = "tl-label";
+      label.textContent = d.label;
+      item.appendChild(line);
+      item.appendChild(dot);
+      item.appendChild(label);
+      el.appendChild(item);
+    });
+  }
+
+  /* ---------------- Colors ---------------- */
+  function tierColor(d) {
+    var t = (d.label || "").toUpperCase();
+    if (t.indexOf("NOT RECOMMENDED") !== -1) return "{{PALETTE_DANGER_RED}}";
+    if (t.indexOf("CONDITIONAL") !== -1) return "{{PALETTE_WARNING_AMBER}}";
+    if (t === "RECOMMENDED FOR PRODUCTION") return "{{PALETTE_SUCCESS_GREEN}}";
+    if (t.indexOf("RECOMMENDED") !== -1) return "{{PALETTE_WARNING_AMBER}}";
+    return "{{PALETTE_NEUTRAL_GRAY}}";
+  }
+  var DI_COLORS = {
+    "Flagged": "{{PALETTE_DANGER_RED}}",
+    "Checked, Not Flagged": "{{PALETTE_SUCCESS_GREEN}}",
+    "Not Applicable": "{{PALETTE_NEUTRAL_GRAY}}",
+    "Pre-dates the Check": "{{PALETTE_INK_MUTED}}"
+  };
+  function diColor(d) { return DI_COLORS[d.label] || "{{PALETTE_NEUTRAL_GRAY}}"; }
+  function sequential(d, i) { return PALETTE_SEQ[i % PALETTE_SEQ.length]; }
+
+  drawDonut("chart-tier", "legend-tier", DATA.tier_series, tierColor);
+  drawDonut("chart-di", "legend-di", DATA.disparate_impact_series, diColor);
+  drawBarChart("chart-records", DATA.records_series, sequential);
+  drawBarChart("chart-pytest", DATA.pytest_series, sequential);
+  drawBarChart("chart-bp8gold", DATA.bp8_gold_series, sequential);
+  drawTimeline(DATA.timeline_series);
+
+  /* ---------------- BP card grid ---------------- */
+  var grid = document.getElementById("bp-card-grid");
+  DATA.cards.forEach(function (c, i) {
+    var card = document.createElement("div");
+    card.className = "bp-card";
+    card.style.borderLeftColor = c.status_color;
+    card.style.animationDelay = (0.04 * i) + "s";
+    card.setAttribute("data-tier", c.tier || "");
+    card.setAttribute("data-di", c.disparate_impact_status || "");
+
+    var head = document.createElement("div");
+    head.className = "bp-head";
+    var key = document.createElement("span"); key.className = "bp-key"; key.textContent = c.bp_key;
+    head.appendChild(key);
+    card.appendChild(head);
+
+    var name = document.createElement("div"); name.className = "bp-name"; name.textContent = c.bp_name;
+    card.appendChild(name);
+
+    var tierBadge = document.createElement("span");
+    tierBadge.className = "badge" + ((c.tier || "").indexOf("NOT RECOMMENDED") !== -1 ? " pulse" : "");
+    tierBadge.style.background = c.status_color;
+    tierBadge.textContent = c.tier || "Unknown tier";
+    card.appendChild(tierBadge);
+
+    var champ = document.createElement("div"); champ.className = "field";
+    champ.innerHTML = "Champion: <b>" + (c.champion || "&mdash;") + "</b>";
+    card.appendChild(champ);
+
+    var diBadge = document.createElement("span");
+    diBadge.className = "badge" + (c.disparate_impact_status === "flagged" ? " pulse" : "");
+    diBadge.style.background = c.di_color;
+    diBadge.textContent = c.disparate_impact_label;
+    card.appendChild(diBadge);
+
+    if (c.record_count !== null && c.record_count !== undefined) {
+      var rec = document.createElement("div"); rec.className = "field";
+      rec.innerHTML = "Records: <b>" + Number(c.record_count).toLocaleString() + "</b>";
+      card.appendChild(rec);
+    }
+
+    var gen = document.createElement("div"); gen.className = "field";
+    gen.innerHTML = "Gate 7 generated: <b>" + (c.generated_at_utc || "&mdash;") + "</b>";
+    card.appendChild(gen);
+
+    var sugg = document.createElement("div"); sugg.className = "suggestion";
+    sugg.innerHTML = "<b>Smart Suggestion:</b> " + c.smart_suggestion;
+    card.appendChild(sugg);
+
+    if (c.dashboard_relative_link) {
+      var link = document.createElement("a");
+      link.className = "open-link";
+      link.href = c.dashboard_relative_link;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = "View " + c.bp_key + "'s full dashboard →";
+      card.appendChild(link);
+    }
+
+    grid.appendChild(card);
+  });
+
+  /* ---------------- Suggestions panel ---------------- */
+  var suggList = document.getElementById("suggestion-list");
+  DATA.cards.forEach(function (c) {
+    var item = document.createElement("div");
+    item.className = "suggestion-item";
+    item.innerHTML = "<b>" + c.bp_key + "</b> &mdash; " + c.smart_suggestion;
+    suggList.appendChild(item);
+  });
+  var bp8Item = document.createElement("div");
+  bp8Item.className = "suggestion-item";
+  bp8Item.style.borderLeftColor = "{{PALETTE_ACCENT_BLUE}}";
+  bp8Item.innerHTML = "<b>BP8</b> &mdash; " + (DATA.bp8.smart_suggestion || "");
+  suggList.appendChild(bp8Item);
+
+  /* ---------------- Filter chips, search, KPI-card slicers ---------------- */
+  var tierSet = Array.from(new Set(DATA.cards.map(function (c) { return c.tier; }).filter(Boolean)));
+  var diSet = Array.from(new Set(DATA.cards.map(function (c) { return c.disparate_impact_status; })));
+  var diLabels = { flagged: "Flagged", not_flagged: "Checked, Not Flagged", not_applicable: "Not Applicable", structurally_no_check: "Pre-dates the Check" };
+  var activeTier = null, activeDi = null, searchTerm = "";
+
+  function renderChips(containerId, values, labelFor, keyFor) {
+    var container = document.getElementById(containerId);
+    values.forEach(function (v) {
+      var chip = document.createElement("span");
+      chip.className = "chip";
+      chip.textContent = labelFor(v);
+      chip.setAttribute("data-key", keyFor(v));
+      chip.addEventListener("click", function () {
+        if (containerId === "tier-chips") clickTierFilter(v); else clickDiFilter(v);
+      });
+      container.appendChild(chip);
+    });
+  }
+
+  function syncChipActiveState() {
+    document.querySelectorAll("#tier-chips .chip").forEach(function (c) {
+      c.classList.toggle("active", c.getAttribute("data-key") === activeTier);
+    });
+    document.querySelectorAll("#di-chips .chip").forEach(function (c) {
+      c.classList.toggle("active", c.getAttribute("data-key") === activeDi);
+    });
+    document.getElementById("kpi-recommended").classList.toggle("active-filter-source", activeTier === "RECOMMENDED FOR PRODUCTION");
+    document.getElementById("kpi-flagged").classList.toggle("active-filter-source", activeDi === "flagged");
+  }
+
+  window.clickTierFilter = function (v) {
+    activeTier = (activeTier === v) ? null : v;
+    syncChipActiveState();
+    applyFilters();
+  };
+  window.clickDiFilter = function (v) {
+    activeDi = (activeDi === v) ? null : v;
+    syncChipActiveState();
+    applyFilters();
+  };
+
+  function applyFilters() {
+    var visibleCount = 0;
+    var term = searchTerm.trim().toLowerCase();
+    document.querySelectorAll(".bp-card").forEach(function (card) {
+      var tierOk = !activeTier || card.getAttribute("data-tier") === activeTier;
+      var diOk = !activeDi || card.getAttribute("data-di") === activeDi;
+      var haystack = card.textContent.toLowerCase();
+      var searchOk = !term || haystack.indexOf(term) !== -1;
+      var show = tierOk && diOk && searchOk;
+      card.classList.toggle("hidden-by-filter", !show);
+      if (show) visibleCount++;
+    });
+    var rc = document.getElementById("result-count");
+    if (rc) rc.textContent = (activeTier || activeDi || term) ? (visibleCount + " of " + DATA.cards.length + " BPs shown") : "";
+  }
+
+  renderChips("tier-chips", tierSet, function (v) { return v; }, function (v) { return v; });
+  renderChips("di-chips", diSet, function (v) { return diLabels[v] || v; }, function (v) { return v; });
+
+  document.getElementById("reset-filters").addEventListener("click", function () {
+    activeTier = null; activeDi = null; searchTerm = "";
+    document.getElementById("bp-search").value = "";
+    syncChipActiveState();
+    applyFilters();
+  });
+  document.getElementById("bp-search").addEventListener("input", function (e) {
+    searchTerm = e.target.value;
+    applyFilters();
+  });
+  document.getElementById("kpi-recommended").addEventListener("click", function () { clickTierFilter("RECOMMENDED FOR PRODUCTION"); });
+  document.getElementById("kpi-flagged").addEventListener("click", function () { clickDiFilter("flagged"); });
+
+  /* ---------------- Sortable detail table ---------------- */
+  (function () {
+    var table = document.getElementById("bp-detail-table");
+    if (!table) return;
+    var tbody = table.querySelector("tbody");
+    var headers = table.querySelectorAll("th.sortable");
+    var sortState = { col: null, dir: 1 };
+    headers.forEach(function (th) {
+      th.addEventListener("click", function () {
+        var col = parseInt(th.getAttribute("data-col"), 10);
+        sortState.dir = (sortState.col === col) ? -sortState.dir : 1;
+        sortState.col = col;
+        headers.forEach(function (h) { h.classList.remove("sorted-asc", "sorted-desc"); });
+        th.classList.add(sortState.dir === 1 ? "sorted-asc" : "sorted-desc");
+        var rows = Array.from(tbody.querySelectorAll("tr"));
+        rows.sort(function (a, b) {
+          var av = a.children[col].textContent.trim();
+          var bv = b.children[col].textContent.trim();
+          var an = parseFloat(av.replace(/,/g, "")), bn = parseFloat(bv.replace(/,/g, ""));
+          var cmp = (!isNaN(an) && !isNaN(bn)) ? (an - bn) : av.localeCompare(bv);
+          return cmp * sortState.dir;
+        });
+        rows.forEach(function (r) { tbody.appendChild(r); });
+      });
+    });
+  })();
+})();
+</script>
+</body>
+</html>

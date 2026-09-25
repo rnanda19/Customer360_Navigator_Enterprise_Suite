@@ -1,0 +1,57 @@
+# Per-BP config - filled in at Gate 1 (Business Understanding & Policy)
+# Gate 1 owns bp_id through random_state below via write_front_matter() (src/utils/bp1_config_sync.py,
+# reused as-is from BP1/BP2/BP3/BP4 - fully generic, parameterized by config_path); Gates 2-6 each
+# own exactly one marker-delimited block appended after it via write_gate_block() - do not
+# hand-edit either section, re-run the owning notebook instead.
+bp_id: "bp8"
+bp_name: "bp8_executive_product_analytics"
+status: "gate1_confirmed_gate2_confirmed_gate3_confirmed"   # not_started|gate1|gate2|gate3|gate4|gate5|gate6_complete
+aggregation_scope_definition:
+  no_predictive_target: true
+  naming_commitment: "Cross-BP Gold-layer aggregation and Power BI reporting layer, never a ninth
+    modeling problem - no target, no classifier, no GenAI call (Master Plan Section 5.1/6/17.5)."
+  power_bi_layer_scope:
+    claude_authored_deliverable: "Gold/semantic tables written in Python to powerbi/gold_tables/
+      (Parquet/CSV or SQL-ready form), per Master Plan Section 19."
+    not_claude_authored: "The interactive .pbix file - built by the user in Power BI Desktop, per
+      Section 19's own words. Never a BP8 notebook deliverable."
+  bp1_4_rollup_vs_bp8_distinction:
+    bp1_4_own_gate7_rollups: "Already real, already built per-BP (Section 20's OPTIONAL per-BP
+      reporting layer) - NOT BP8's job."
+    bp8_power_bi_layer: "New, cross-BP, not yet started - Section 5/6/8/17.5/19's REQUIRED
+      executive/product Power BI decision layer. This IS BP8's actual, sole job."
+scope_boundaries:
+  - "BP8 reads only already-aggregated Gold-layer columns upstream BPs' own gates already computed
+     and governed - never raw CFPB/BANKING77 rows directly."
+  - "BP8 never recomputes an upstream BP's own classification, severity mapping, or tier logic - it
+     aggregates and rolls up what that BP's own gates already produced."
+  - "No KPI category is defined for BP5/6/7 until that BP's own Gold-layer output live-verifies as
+     present - no placeholder or illustrative KPI field is created now."
+  - "BP8 authors Gold/semantic Python-built tables only (powerbi/gold_tables/); it never authors a
+     .pbix file - that is a Power BI Desktop, human step (Section 19)."
+assumptions:
+  - "BP1's Gold-layer output is attributed to BP1's Gate 2 (shared taxonomy/intent layer, Section
+     6) as an ASSUMPTION - BP1's own config carries no Gate 2 marker block of its own."
+  - "This Gate 1 snapshot of upstream readiness must be re-checked live by BP8's own future Gate 2 -
+     never trusted as still current by then."
+  - "src/utils/bp1_config_sync.py reused unmodified for BP8's own config file."
+random_state: 42
+
+# --- Gate 2 (Data Verification & Gold-Table Aggregation) results (appended, idempotent overwrite) ---
+bp_id: bp8
+gate: 2
+generated_at_utc: 2026-09-25T09:38:15.512377+00:00
+n_kpi_categories_ready: 5
+n_kpi_categories_deferred: 2
+gold_tables_written_count: 7
+manifest_path: notebooks\bp8_executive_product_analytics\artifacts\gate2_gold_table_manifest.json
+corrections_applied: true
+
+# --- Gate 3 (Decision-Engine KPI Extension) results (appended, idempotent overwrite) ---
+bp_id: bp8
+gate: 3
+generated_at_utc: "2026-09-25T09:38:29.044184+00:00"
+source_bp: bp7
+gold_tables_written_count: 4
+manifest_path: notebooks/bp8_executive_product_analytics/artifacts/gate3_decision_engine_kpi_manifest.json
+genai_resolution_kpis_deferred_permanently: true

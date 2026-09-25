@@ -1,0 +1,27 @@
+{
+  "bp_id": "bp2",
+  "gate": 6,
+  "champion_model": "xgboost",
+  "pytest_summary_line": "\u001b[32m======================= \u001b[32m\u001b[1m105 passed\u001b[0m, \u001b[33m1 skipped\u001b[0m\u001b[32m in 2.99s\u001b[0m\u001b[32m ========================\u001b[0m",
+  "pytest_counts": {
+    "passed": 105,
+    "failed": 0,
+    "skipped": 1,
+    "errors": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "pytest_returncode": 0,
+  "pytest_all_passed": true,
+  "notebook_syntax_check_n_passed": 19,
+  "notebook_syntax_check_n_failed": 0,
+  "notebook_syntax_check_returncode": 0,
+  "notebook_syntax_all_passed": true,
+  "n_gate3_near_random_anomalies_detected": 0,
+  "n_gate3_high_variance_anomalies_detected": 0,
+  "n_gate3_failed_candidates_detected": 0,
+  "gate3_failed_candidates": [],
+  "model_card_path": "reports\\bp2_customer_friction_classification\\MODEL_CARD.md",
+  "changelog_path": "reports\\bp2_customer_friction_classification\\CHANGELOG.md",
+  "generated_at_utc": "2026-09-22T15:38:48.420509+00:00"
+}

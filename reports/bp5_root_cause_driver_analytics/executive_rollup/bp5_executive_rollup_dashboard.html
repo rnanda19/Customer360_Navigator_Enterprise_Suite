@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BP5 Root-Cause &amp; Driver Analytics — Executive Dashboard</title>
+<!-- defer: an unreachable/slow CDN must never block the page from painting at all (real failure
+     mode seen on a real machine: a plain, non-deferred <script src> in <head> blocks HTML parsing
+     - and therefore the whole page's first paint - until the network request resolves, which can
+     hang indefinitely on a restrictive network and make the page look completely blank). -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer id="plotly-cdn"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root {
+    --navy: #1E2761;
+    --navy-deep: #12173f;
+    --accent: #4C6EF5;
+    --ice: #CADCFC;
+    --success: #1B998B;
+    --warning: #E8A33D;
+    --danger: #C1292E;
+    --gray: #6B7280;
+    --surface: #AFBEE6;
+    --card: #D2DBF6;
+    --card-border: #9FADDB;
+    --ink: #101828;
+    --ink-muted: #40495F;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(16, 24, 40, 0.14);
+    --shadow-hover: 0 10px 32px rgba(16, 24, 40, 0.20);
+    --font-display: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); line-height: 1.5;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(76,110,245,0.24) 0%, rgba(76,110,245,0) 46%),
+      radial-gradient(circle at 100% 18%, rgba(27,153,139,0.18) 0%, rgba(27,153,139,0) 40%),
+      linear-gradient(180deg, #B4C2E8 0%, #A7B7E3 45%, #98AADC 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  header.hero {
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 55%, #2c3a8c 100%);
+    color: #fff; padding: 48px 32px 64px; position: relative; overflow: hidden;
+  }
+  header.hero::after {
+    content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(76,110,245,0.35) 0%, rgba(76,110,245,0) 70%);
+    animation: auroraPulse 6.5s ease-in-out infinite;
+  }
+  header.hero::before {
+    content: ""; position: absolute; left: -70px; bottom: -110px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(27,153,139,0.28) 0%, rgba(27,153,139,0) 70%);
+    animation: auroraPulse 7.5s ease-in-out infinite reverse;
+  }
+  @keyframes auroraPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.65; transform: scale(1.1); } }
+  .hero-inner { max-width: 1320px; margin: 0 auto; position: relative; z-index: 1; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--ice); font-weight: 600; }
+  h1.title { font-size: clamp(26px, 3.6vw, 38px); margin: 10px 0 8px; font-weight: 700; font-family: var(--font-display); }
+  .title-accent { color: var(--ice); }
+  .subtitle { color: rgba(255,255,255,0.82); font-size: 15px; max-width: 800px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22); padding: 7px 14px; border-radius: 999px; font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .badge.warn .dot { background: var(--warning); }
+  .badge.fail .dot { background: var(--danger); animation: pulseDot 1.8s ease-in-out infinite; }
+  @keyframes pulseDot { 0%, 100% { box-shadow: 0 0 0 0 rgba(193,41,46,0.45); } 50% { box-shadow: 0 0 0 5px rgba(193,41,46,0); } }
+
+  .prod-banner {
+    margin-top: 22px; padding: 16px 20px; border-radius: var(--radius); font-size: 14.5px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; backdrop-filter: blur(4px);
+  }
+  .prod-banner .tier-label { font-weight: 800; font-size: 17px; font-family: var(--font-display); }
+  .prod-banner.tier-1 { background: rgba(27,153,139,0.22); border: 1px solid rgba(27,153,139,0.55); }
+  .prod-banner.tier-2 { background: rgba(232,163,61,0.22); border: 1px solid rgba(232,163,61,0.6); }
+  .prod-banner.tier-3 { background: rgba(193,41,46,0.22); border: 1px solid rgba(193,41,46,0.6); }
+  .prod-banner .tier-2-note { font-size: 12px; opacity: 0.85; width: 100%; margin-top: 2px; }
+
+  main { max-width: 1320px; margin: -40px auto 0; padding: 0 24px 64px; position: relative; z-index: 2; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 20px 18px; box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; opacity: 0; transform: translateY(14px);
+    animation: rise 0.6s ease forwards; position: relative; overflow: hidden; border: 1px solid transparent;
+  }
+  .kpi-card::before {
+    content: ""; position: absolute; top: -34px; right: -34px; width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-color, var(--accent)) 0%, transparent 72%); opacity: 0.16; pointer-events: none;
+  }
+  .kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--accent-color, var(--accent)); }
+  .kpi-top { display: flex; align-items: center; gap: 8px; }
+  .kpi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-color, var(--accent)); flex: none; }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 600; }
+  .kpi-value {
+    font-size: 28px; font-weight: 800; color: var(--navy); margin-top: 6px; font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word; word-break: break-word; line-height: 1.18; font-family: var(--font-display);
+  }
+  .kpi-value--text { font-size: clamp(15px, 2.1vw, 20px); line-height: 1.3; }
+  .kpi-sub { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  section.panel {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 26px 22px;
+    margin-bottom: 24px; opacity: 0; animation: rise 0.6s ease forwards;
+  }
+  section.panel h2 { font-size: 18px; margin: 0 0 4px; color: var(--navy); display: flex; align-items: center; gap: 9px; font-family: var(--font-display); }
+  section.panel .panel-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+  .panel-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  .outcome-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 20px; }
+  .outcome-col-heading { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+
+  .filters-bar { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 14px; }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+  .filter-group label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  select, input[type="search"] {
+    font-family: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--card-border);
+    background: #fff; color: var(--ink); min-width: 190px;
+  }
+  select:focus, input[type="search"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .outcome-pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .outcome-pill {
+    cursor: pointer; user-select: none; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    border: 1.5px solid var(--card-border); background: #fff; color: var(--ink-muted); transition: all 0.15s ease;
+  }
+  .outcome-pill.active { color: #fff; border-color: transparent; background: var(--navy); }
+  .outcome-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(16,24,40,0.14); }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 20px; }
+  .chart-box { min-height: 340px; }
+  .chart-box.wide { min-height: 300px; }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data-table th {
+    text-align: left; padding: 10px 12px; background: var(--surface); color: var(--ink-muted);
+    text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; position: sticky; top: 0; cursor: pointer;
+    user-select: none; white-space: nowrap;
+  }
+  table.data-table th.sortable:hover { color: var(--navy); }
+  table.data-table th .sort-arrow { font-size: 10px; margin-left: 4px; opacity: 0.6; }
+  table.data-table td { padding: 9px 12px; border-top: 1px solid var(--card-border); }
+  table.data-table tr:hover td { background: #BECBF0; }
+  .table-scroll { max-height: 440px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 10px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .pill.outcome-O1 { background: rgba(76,110,245,0.16); color: var(--accent); }
+  .pill.outcome-O2 { background: rgba(232,163,61,0.18); color: #8a5b17; }
+  .table-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .table-toolbar .count-label { font-size: 12.5px; color: var(--ink-muted); }
+
+  .assumption-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed var(--card-border); font-size: 13px; }
+  .assumption-row .a-label { color: var(--ink-muted); max-width: 70%; }
+  .assumption-row .a-value { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 28px; margin-bottom: 4px; }
+  .detail-heading { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 13px; }
+
+  .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .suggestion-card {
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 16px 18px; background: var(--card);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .suggestion-card:hover { box-shadow: var(--shadow); border-color: var(--accent-color, var(--accent)); transform: translateY(-2px); }
+  .suggestion-card h3 { font-size: 14.5px; margin: 0 0 8px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .suggestion-card .smart-row { font-size: 12.5px; margin-bottom: 5px; }
+  .smart-tag { font-weight: 700; color: var(--accent); margin-right: 4px; }
+
+  footer { max-width: 1320px; margin: 0 auto; padding: 8px 24px 40px; font-size: 12px; color: var(--ink-muted); text-align: center; }
+
+  @media (max-width: 640px) {
+    .chart-grid, .outcome-grid { grid-template-columns: 1fr; }
+    header.hero { padding: 36px 18px 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Customer360 Navigator &middot; BP5 Executive Rollup</div>
+    <h1 class="title">Root-Cause &amp; Driver Analytics <span class="title-accent">— Executive Dashboard</span></h1>
+    <p class="subtitle">Real results from BP5 Gates 1&ndash;6, generated 2026-09-24T11:23:27.353785+00:00, built on top of
+      Gate 5's own synthesized, citation-backed prioritized root-cause report per outcome — never a second
+      re-derivation of Gate 3's/Gate 4's raw artifacts. BP5 tests TWO real outcomes
+      (<strong>outcome_1_intervention_required</strong>, <strong>outcome_2_timely_response_failure</strong>)
+      and has no single deployed "champion" model: each outcome's champion exists purely to generate
+      SHAP-based association evidence, never a deployment artifact. Every finding is a statistical
+      ASSOCIATION, never a causal claim.</p>
+    <div class="badge-row" id="governance-badges"></div>
+    <div class="prod-banner" id="prod-banner"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <section class="panel">
+    <h2>Field-Level Root-Cause Ranking — Gate 3 / Gate 5</h2>
+    <div class="panel-desc">Real Cramer's V ranking of BP5's 5 non-control candidate driver fields against
+      each real outcome, read from Gate 5's own synthesized report. Fields shown in amber are real,
+      live-flagged "negligible" association strength (Gate 6's own open-item detection).</div>
+    <div class="outcome-grid">
+      <div>
+        <div class="outcome-col-heading">Outcome 1 — Intervention Required</div>
+        <div class="chart-box" id="chart-cramers-o1"></div>
+      </div>
+      <div>
+        <div class="outcome-col-heading">Outcome 2 — Timely-Response Failure</div>
+        <div class="chart-box" id="chart-cramers-o2"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Champion SHAP Feature Importance — Gate 3 / Gate 5</h2>
+    <div class="panel-desc">Real top-10 mean |SHAP value| features per outcome's champion, mapped back to
+      their originating real field/category. "Company_freq_zscored" ranks #1 for BOTH outcomes.</div>
+    <div class="outcome-grid">
+      <div>
+        <div class="outcome-col-heading">Outcome 1 — Intervention Required</div>
+        <div class="chart-box" id="chart-shap-o1"></div>
+      </div>
+      <div>
+        <div class="outcome-col-heading">Outcome 2 — Timely-Response Failure</div>
+        <div class="chart-box" id="chart-shap-o2"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Category-Level Findings — Gate 3 / Gate 5</h2>
+    <div class="panel-desc">Real per-category log-odds-ratio findings vs. each field's real reference
+      category, restricted to categories with at least 30 real rows. Filter by outcome and/or search by
+      field or category.</div>
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label>Outcome filter</label>
+        <div class="outcome-pill-group" id="outcome-pill-group">
+          <span class="outcome-pill active" data-outcome="ALL">Both outcomes</span>
+          <span class="outcome-pill" data-outcome="O1">Outcome 1</span>
+          <span class="outcome-pill" data-outcome="O2">Outcome 2</span>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label for="category-search">Search field / category</label>
+        <input type="search" id="category-search" placeholder="e.g. Sub-issue, Fees, Referral…">
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" id="category-table">
+        <thead>
+          <tr>
+            <th data-key="outcome_short">Outcome</th>
+            <th data-key="driver_field">Field</th>
+            <th data-key="category">Category</th>
+            <th data-key="n_rows" class="sortable">n_rows<span class="sort-arrow"></span></th>
+            <th data-key="odds_ratio_vs_reference" class="sortable">Odds Ratio vs. Ref.<span class="sort-arrow"></span></th>
+            <th data-key="log_odds_ratio" class="sortable">Log-Odds Ratio<span class="sort-arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="table-toolbar">
+      <span class="count-label" id="category-count-label"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Statistical Validation — Gate 4</h2>
+    <div class="panel-desc">Real calibration curve and confusion-derived rates at the default 0.5 threshold
+      per outcome, plus real bootstrap 95% CI for held-out ROC-AUC — Gate 6 live-reconfirmed these against
+      Gate 3's own recorded point estimate within a disclosed 0.01 tolerance, for both outcomes.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-calibration-o1"></div>
+      <div class="chart-box" id="chart-calibration-o2"></div>
+      <div class="chart-box" id="chart-ci-roc-o1"></div>
+      <div class="chart-box" id="chart-ci-roc-o2"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 1 — Business Understanding &amp; Policy</h2>
+    <div class="panel-desc">Real target definitions, leakage rules, assumptions, and compliance touchpoint
+      recorded at Gate 1.</div>
+    <div id="gate1-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 6 — Governance &amp; Known Limitations</h2>
+    <div class="panel-desc">Real governance status from this run, plus open items carried forward honestly
+      rather than hidden.</div>
+    <div id="gate6-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>SMART Suggestions</h2>
+    <div class="panel-desc">Specific, Measurable, Achievable, Relevant, Time-bound recommendations — each
+      grounded in a real number from Gates 1&ndash;6, not freeform text.</div>
+    <div class="suggestion-grid" id="suggestion-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Generated by <code>bp5_root_cause_driver_analytics_g7_executive_rollup_report.ipynb</code> &middot;
+  Governance: ================ 325 passed, 3 skipped, 182 warnings in 9.51s ================= &middot; Notebook syntax audit: 51 passed / 0 failed &middot;
+  Customer360 Navigator Enterprise Suite &mdash; BP5 Root-Cause &amp; Driver Analytics
+</footer>
+
+<script id="rollup-data" type="application/json">{"palette": {"primary_navy": "#1E2761", "accent_blue": "#4C6EF5", "ice_blue": "#CADCFC", "success_green": "#1B998B", "warning_amber": "#E8A33D", "danger_red": "#C1292E", "neutral_gray": "#6B7280", "surface_light": "#F7F8FC", "ink": "#101828", "ink_muted": "#4B5468"}, "categorical_sequence": ["#1E2761", "#4C6EF5", "#1B998B", "#E8A33D", "#C1292E", "#6B7280"], "kpis": {"n_outcome_1_field_findings": 5, "n_outcome_2_field_findings": 5, "top_field_outcome_1": "Sub-issue", "top_field_outcome_1_cramers_v": 0.4156422831612538, "top_field_outcome_2": "Sub-product", "top_field_outcome_2_cramers_v": 0.1645378912420309, "top_shap_feature_outcome_1": "Company_freq_zscored", "top_shap_feature_outcome_1_value": 1.6236153841018677, "top_shap_feature_outcome_2": "Company_freq_zscored", "top_shap_feature_outcome_2_value": 2.0925633907318115, "held_out_roc_auc_outcome_1": 0.9705232858366627, "held_out_pr_auc_outcome_1": 0.2532549265056703, "held_out_roc_auc_outcome_2": 0.9525777650228792, "held_out_pr_auc_outcome_2": 0.07031748355716386, "bootstrap_roc_auc_ci_95_outcome_1": [0.9690502151226196, 0.9719741813515705], "bootstrap_roc_auc_ci_95_outcome_2": [0.9473764730738571, 0.9571796344226857], "brier_score_outcome_1": 0.07267583780063618, "brier_score_outcome_2": 0.09922606008769999, "recall_at_0_5_outcome_1": 0.9486203615604186, "precision_at_0_5_outcome_1": 0.11531343974092066, "recall_at_0_5_outcome_2": 0.9751937984496124, "precision_at_0_5_outcome_2": 0.01913540811049253, "udaap_language_check_passed": true, "n_narrative_sentences_scanned": 76, "barred_fields_bar_relaxed": false, "gate6_pytest_passed": 325, "gate6_pytest_failed": 0, "gate6_notebook_syntax_all_passed": true, "n_negligible_strength_fields_detected": 2, "n_near_zero_precision_outcomes_detected": 1, "ecoa_reg_b_disparate_impact_applicability": "NOT_APPLICABLE", "production_recommendation": {"tier": "Recommended for Decision-Support Use, With Monitoring", "tier_code": 2, "reason": "All structural checks passed. 3 real open item(s) were live-detected by Gate 6 (2 negligible-association candidate field(s), 0 near-random PR-AUC outcome(s), 1 near-zero-precision-at-0.5 outcome(s)) - none of these block use, but each is a real, disclosed monitoring item a human reviewer should be aware of before acting on this report's findings. This is a monitoring signal, never a legal or compliance determination.", "structural_checks": {"gate6_pytest_all_passed": true, "gate6_notebook_syntax_all_passed": true, "gate4_reconfirms_gate3_outcome_1": true, "gate4_reconfirms_gate3_outcome_2": true, "barred_fields_bar_not_relaxed": true, "udaap_language_check_passed": true}, "all_structural_checks_passed": true, "n_open_items_detected": 3, "n_negligible_strength_fields_detected": 2, "n_near_random_pr_auc_outcomes_detected": 0, "n_near_zero_precision_outcomes_detected": 1, "ecoa_reg_b_disparate_impact_applicability": "NOT_APPLICABLE", "tier_2_trigger_mechanism": "Gate 6's own live open-item detection (negligible-association fields / near-random PR-AUC / near-zero precision) - NOT disparate impact, which is NOT_APPLICABLE to BP5."}, "generated_at_utc": "2026-09-24T11:23:26.431529+00:00", "bootstrap_roc_auc_ci_95_outcome_1_obj": {"point_estimate": 0.9705232858366627, "ci_95_low": 0.9690502151226196, "ci_95_high": 0.9719741813515705}, "bootstrap_roc_auc_ci_95_outcome_2_obj": {"point_estimate": 0.9525777650228792, "ci_95_low": 0.9473764730738571, "ci_95_high": 0.9571796344226857}}, "field_ranking": {"outcome_1": [{"rank": 1, "driver_field": "Sub-issue", "cramers_v": 0.4156422831612538, "association_strength": "moderate", "n_rows_tested": 815453, "n_distinct_levels": 222}, {"rank": 2, "driver_field": "Issue", "cramers_v": 0.4037299250313842, "association_strength": "moderate", "n_rows_tested": 815453, "n_distinct_levels": 96}, {"rank": 3, "driver_field": "Sub-product", "cramers_v": 0.3522929150589172, "association_strength": "moderate", "n_rows_tested": 815453, "n_distinct_levels": 61}, {"rank": 4, "driver_field": "Product", "cramers_v": 0.3441502537759628, "association_strength": "moderate", "n_rows_tested": 815453, "n_distinct_levels": 15}, {"rank": 5, "driver_field": "Submitted via", "cramers_v": 0.0910814439964457, "association_strength": "negligible", "n_rows_tested": 815453, "n_distinct_levels": 4}], "outcome_2": [{"rank": 1, "driver_field": "Sub-product", "cramers_v": 0.1645378912420309, "association_strength": "weak", "n_rows_tested": 1048575, "n_distinct_levels": 61}, {"rank": 2, "driver_field": "Sub-issue", "cramers_v": 0.1513899116680109, "association_strength": "weak", "n_rows_tested": 1048575, "n_distinct_levels": 222}, {"rank": 3, "driver_field": "Issue", "cramers_v": 0.1488857975003348, "association_strength": "weak", "n_rows_tested": 1048575, "n_distinct_levels": 96}, {"rank": 4, "driver_field": "Product", "cramers_v": 0.1386521479424964, "association_strength": "weak", "n_rows_tested": 1048575, "n_distinct_levels": 15}, {"rank": 5, "driver_field": "Submitted via", "cramers_v": 0.0126740196215194, "association_strength": "negligible", "n_rows_tested": 1048575, "n_distinct_levels": 4}]}, "shap_findings": {"outcome_1": [{"rank": 1, "feature": "Company_freq_zscored", "driver_field": "Company", "mean_abs_shap": 1.6236153841018677}, {"rank": 2, "feature": "Issue_Incorrect information on your report", "driver_field": "Issue", "mean_abs_shap": 0.649043083190918}, {"rank": 3, "feature": "Issue_Improper use of your report", "driver_field": "Issue", "mean_abs_shap": 0.5993242859840393}, {"rank": 4, "feature": "Product_Credit reporting, credit repair services, or other personal consumer reports", "driver_field": "Product", "mean_abs_shap": 0.284232884645462}, {"rank": 5, "feature": "Product_Debt collection", "driver_field": "Product", "mean_abs_shap": 0.2534340023994446}, {"rank": 6, "feature": "Sub-product_Credit reporting", "driver_field": "Sub-product", "mean_abs_shap": 0.1916773468255996}, {"rank": 7, "feature": "Sub-issue_Investigation took more than 30 days", "driver_field": "Sub-issue", "mean_abs_shap": 0.1534231007099151}, {"rank": 8, "feature": "Sub-issue_Their investigation did not fix an error on your report", "driver_field": "Sub-issue", "mean_abs_shap": 0.1337267905473709}, {"rank": 9, "feature": "Sub-issue_Credit inquiries on your report that you don't recognize", "driver_field": "Sub-issue", "mean_abs_shap": 0.1254985481500625}, {"rank": 10, "feature": "Sub-issue_Personal information incorrect", "driver_field": "Sub-issue", "mean_abs_shap": 0.1029120758175849}], "outcome_2": [{"rank": 1, "feature": "Company_freq_zscored", "driver_field": "Company", "mean_abs_shap": 2.0925633907318115}, {"rank": 2, "feature": "Product_Credit reporting, credit repair services, or other personal consumer reports", "driver_field": "Product", "mean_abs_shap": 0.3488057851791382}, {"rank": 3, "feature": "Issue_Incorrect information on your report", "driver_field": "Issue", "mean_abs_shap": 0.2618179023265838}, {"rank": 4, "feature": "Product_Credit reporting or other personal consumer reports", "driver_field": "Product", "mean_abs_shap": 0.1213573068380355}, {"rank": 5, "feature": "Product_Credit card or prepaid card", "driver_field": "Product", "mean_abs_shap": 0.1097091510891914}, {"rank": 6, "feature": "Issue_Problem with a credit reporting company's investigation into an existing problem", "driver_field": "Issue", "mean_abs_shap": 0.106532298028469}, {"rank": 7, "feature": "Sub-issue_Information belongs to someone else", "driver_field": "Sub-issue", "mean_abs_shap": 0.0943185165524482}, {"rank": 8, "feature": "Sub-issue_Personal information incorrect", "driver_field": "Sub-issue", "mean_abs_shap": 0.0707356482744216}, {"rank": 9, "feature": "Product_Checking or savings account", "driver_field": "Product", "mean_abs_shap": 0.0663548707962036}, {"rank": 10, "feature": "Issue_Problem with a purchase shown on your statement", "driver_field": "Issue", "mean_abs_shap": 0.064236856997013}]}, "calibration": {"outcome_1": [{"mean_predicted_probability": 0.0006003867570625256, "fraction_of_positives": 0.0, "n_rows": 22229}, {"mean_predicted_probability": 0.0010720638246384537, "fraction_of_positives": 0.0, "n_rows": 11401}, {"mean_predicted_probability": 0.001280367987376458, "fraction_of_positives": 0.0, "n_rows": 19355}, {"mean_predicted_probability": 0.0014862915929817703, "fraction_of_positives": 0.0, "n_rows": 12355}, {"mean_predicted_probability": 0.0019690124754023876, "fraction_of_positives": 0.0, "n_rows": 16252}, {"mean_predicted_probability": 0.0029967696041746637, "fraction_of_positives": 5.825808330905913e-05, "n_rows": 17165}, {"mean_predicted_probability": 0.004254222665749222, "fraction_of_positives": 5.5349532296452096e-05, "n_rows": 18067}, {"mean_predicted_probability": 0.01686757522604741, "fraction_of_positives": 0.0002197158341877838, "n_rows": 13654}, {"mean_predicted_probability": 0.2912255032491782, "fraction_of_positives": 0.007297927143382804, "n_rows": 16306}, {"mean_predicted_probability": 0.8423289761066934, "fraction_of_positives": 0.12129760225669958, "n_rows": 16307}], "outcome_2": [{"mean_predicted_probability": 0.0007609692034544371, "fraction_of_positives": 0.0, "n_rows": 21229}, {"mean_predicted_probability": 0.001057817591440949, "fraction_of_positives": 0.0, "n_rows": 21538}, {"mean_predicted_probability": 0.0013283394008198799, "fraction_of_positives": 0.0, "n_rows": 20219}, {"mean_predicted_probability": 0.0027652940238553176, "fraction_of_positives": 0.00011726078799249531, "n_rows": 25584}, {"mean_predicted_probability": 0.003991124020348998, "fraction_of_positives": 0.0, "n_rows": 25706}, {"mean_predicted_probability": 0.0053244026656957015, "fraction_of_positives": 0.0, "n_rows": 15333}, {"mean_predicted_probability": 0.00610143778977965, "fraction_of_positives": 0.0, "n_rows": 17233}, {"mean_predicted_probability": 0.008958402641003258, "fraction_of_positives": 4.5126353790613716e-05, "n_rows": 22160}, {"mean_predicted_probability": 0.44850818991191826, "fraction_of_positives": 0.004659643435980551, "n_rows": 19744}, {"mean_predicted_probability": 0.8600109077766562, "fraction_of_positives": 0.02618150603271496, "n_rows": 20969}]}, "category_findings": [{"driver_field": "Sub-issue", "rank": 1, "category": "Problem with fees", "reference_category": "Information belongs to someone else", "n_rows": 1656, "odds_ratio_vs_reference": 2038.030888030888, "log_odds_ratio": 7.619739369718303, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-issue", "rank": 2, "category": "Add-on products and services", "reference_category": "Information belongs to someone else", "n_rows": 88, "odds_ratio_vs_reference": 1475.8154706430569, "log_odds_ratio": 7.296965977455252, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-issue", "rank": 3, "category": "Charged too much interest", "reference_category": "Information belongs to someone else", "n_rows": 657, "odds_ratio_vs_reference": 1257.679587482219, "log_odds_ratio": 7.137023704884205, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-issue", "rank": 4, "category": "Didn't receive terms that were advertised", "reference_category": "Information belongs to someone else", "n_rows": 639, "odds_ratio_vs_reference": 1234.6994303720762, "log_odds_ratio": 7.118582843224337, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-issue", "rank": 5, "category": "Credit card company isn't resolving a dispute about a purchase on your statement", "reference_category": "Information belongs to someone else", "n_rows": 4886, "odds_ratio_vs_reference": 1166.637519872814, "log_odds_ratio": 7.061880975531157, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Issue", "rank": 1, "category": "Fees or interest", "reference_category": "Incorrect information on your report", "n_rows": 2555, "odds_ratio_vs_reference": 740.6135624770594, "log_odds_ratio": 6.607478981135301, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Issue", "rank": 2, "category": "Problem with a purchase shown on your statement", "reference_category": "Incorrect information on your report", "n_rows": 7090, "odds_ratio_vs_reference": 526.8383606868066, "log_odds_ratio": 6.266893785530087, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Issue", "rank": 3, "category": "Problem caused by your funds being low", "reference_category": "Incorrect information on your report", "n_rows": 1325, "odds_ratio_vs_reference": 338.6760139416984, "log_odds_ratio": 5.825043939310989, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Issue", "rank": 4, "category": "Problem with a purchase or transfer", "reference_category": "Incorrect information on your report", "n_rows": 810, "odds_ratio_vs_reference": 301.47772322240405, "log_odds_ratio": 5.708696126944643, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Issue", "rank": 5, "category": "Problem with a lender or other company charging your account", "reference_category": "Incorrect information on your report", "n_rows": 3284, "odds_ratio_vs_reference": 289.96407679902285, "log_odds_ratio": 5.669757042200795, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-product", "rank": 1, "category": "Government benefit card", "reference_category": "Credit reporting", "n_rows": 725, "odds_ratio_vs_reference": 784.3112950073985, "log_odds_ratio": 6.664806001501379, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-product", "rank": 2, "category": "Store credit card", "reference_category": "Credit reporting", "n_rows": 2920, "odds_ratio_vs_reference": 650.9013360234871, "log_odds_ratio": 6.478358073154952, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-product", "rank": 3, "category": "Savings account", "reference_category": "Credit reporting", "n_rows": 2484, "odds_ratio_vs_reference": 356.92474849094566, "log_odds_ratio": 5.877524971019843, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-product", "rank": 4, "category": "Checking account", "reference_category": "Credit reporting", "n_rows": 21211, "odds_ratio_vs_reference": 327.5249161284602, "log_odds_ratio": 5.791564131962945, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-product", "rank": 5, "category": "General-purpose credit card or charge card", "reference_category": "Credit reporting", "n_rows": 25581, "odds_ratio_vs_reference": 323.1773388778742, "log_odds_ratio": 5.7782012093307165, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Product", "rank": 1, "category": "Credit card", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 5011, "odds_ratio_vs_reference": 258.5821959903725, "log_odds_ratio": 5.555213616289273, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Product", "rank": 2, "category": "Credit card or prepaid card", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 25476, "odds_ratio_vs_reference": 256.4165393289952, "log_odds_ratio": 5.546803228929415, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Product", "rank": 3, "category": "Checking or savings account", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 26423, "odds_ratio_vs_reference": 230.71656201313704, "log_odds_ratio": 5.441189952863582, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Product", "rank": 4, "category": "Prepaid card", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 347, "odds_ratio_vs_reference": 190.2551104775481, "log_odds_ratio": 5.248365858286661, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Product", "rank": 5, "category": "Money transfer, virtual currency, or money service", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 7750, "odds_ratio_vs_reference": 119.71925918700774, "log_odds_ratio": 4.785149495085364, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Submitted via", "rank": 1, "category": "Referral", "reference_category": "Web", "n_rows": 3651, "odds_ratio_vs_reference": 12.441598002707734, "log_odds_ratio": 2.521045535870467, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Submitted via", "rank": 2, "category": "Phone", "reference_category": "Web", "n_rows": 12201, "odds_ratio_vs_reference": 6.202141998058093, "log_odds_ratio": 1.8248947159431004, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Submitted via", "rank": 3, "category": "Postal mail", "reference_category": "Web", "n_rows": 2577, "odds_ratio_vs_reference": 3.629563177596828, "log_odds_ratio": 1.2891123042855266, "p_value": 0.0, "outcome_short": "O1"}, {"driver_field": "Sub-product", "rank": 1, "category": "Title loan", "reference_category": "Credit reporting", "n_rows": 421, "odds_ratio_vs_reference": 296.9185042248944, "log_odds_ratio": 5.6934577045999015, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Sub-product", "rank": 2, "category": "Government benefit card", "reference_category": "Credit reporting", "n_rows": 767, "odds_ratio_vs_reference": 137.07766788464153, "log_odds_ratio": 4.920547684056331, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Sub-product", "rank": 3, "category": "Debt settlement", "reference_category": "Credit reporting", "n_rows": 260, "odds_ratio_vs_reference": 115.20647430242816, "log_odds_ratio": 4.746725947224511, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Sub-product", "rank": 4, "category": "Federal student loan servicing", "reference_category": "Credit reporting", "n_rows": 2957, "odds_ratio_vs_reference": 109.09350915086998, "log_odds_ratio": 4.692205396576673, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Sub-product", "rank": 5, "category": "Payday loan debt", "reference_category": "Credit reporting", "n_rows": 824, "odds_ratio_vs_reference": 99.64062873362636, "log_odds_ratio": 4.601570000426523, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Sub-issue", "rank": 1, "category": "Problem with forgiveness, cancellation, or discharge", "reference_category": "Information belongs to someone else", "n_rows": 116, "odds_ratio_vs_reference": 924.3114971050456, "log_odds_ratio": 6.829049132909206, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Sub-issue", "rank": 2, "category": "Changes in loan terms during or after closing", "reference_category": "Information belongs to someone else", "n_rows": 38, "odds_ratio_vs_reference": 287.4652981427175, "log_odds_ratio": 5.661102150840032, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Sub-issue", "rank": 3, "category": "Problem with your payment plan", "reference_category": "Information belongs to someone else", "n_rows": 40, "odds_ratio_vs_reference": 210.8078853046595, "log_odds_ratio": 5.350947222536193, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Sub-issue", "rank": 4, "category": "Trouble with how payments are being handled", "reference_category": "Information belongs to someone else", "n_rows": 796, "odds_ratio_vs_reference": 185.8017085650723, "log_odds_ratio": 5.224680022059053, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Sub-issue", "rank": 5, "category": "Paying off the loan", "reference_category": "Information belongs to someone else", "n_rows": 58, "odds_ratio_vs_reference": 140.53859020310634, "log_odds_ratio": 4.945482114428028, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Issue", "rank": 1, "category": "Vehicle was repossessed or sold the vehicle", "reference_category": "Incorrect information on your report", "n_rows": 68, "odds_ratio_vs_reference": 365.9842061512885, "log_odds_ratio": 5.902590179878159, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Issue", "rank": 2, "category": "Didn't provide services promised", "reference_category": "Incorrect information on your report", "n_rows": 83, "odds_ratio_vs_reference": 348.5563868107509, "log_odds_ratio": 5.853800015708726, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Issue", "rank": 3, "category": "Charged upfront or unexpected fees", "reference_category": "Incorrect information on your report", "n_rows": 42, "odds_ratio_vs_reference": 219.59052369077307, "log_odds_ratio": 5.391764556112167, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Issue", "rank": 4, "category": "Was approved for a loan, but didn't receive the money", "reference_category": "Incorrect information on your report", "n_rows": 42, "odds_ratio_vs_reference": 115.57395983724898, "log_odds_ratio": 4.749910669939773, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Issue", "rank": 5, "category": "Struggling to repay your loan", "reference_category": "Incorrect information on your report", "n_rows": 590, "odds_ratio_vs_reference": 108.3640386928396, "log_odds_ratio": 4.685496287589525, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Product", "rank": 1, "category": "Debt or credit management", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 259, "odds_ratio_vs_reference": 151.0534989858012, "log_odds_ratio": 5.017634071985451, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Product", "rank": 2, "category": "Prepaid card", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 434, "odds_ratio_vs_reference": 109.0683726010298, "log_odds_ratio": 4.6919749571456455, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Product", "rank": 3, "category": "Student loan", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 3948, "odds_ratio_vs_reference": 65.63493123364648, "log_odds_ratio": 4.184108042546229, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Product", "rank": 4, "category": "Payday loan, title loan, personal loan, or advance loan", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 1187, "odds_ratio_vs_reference": 56.00557538154484, "log_odds_ratio": 4.025451246164073, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Product", "rank": 5, "category": "Payday loan, title loan, or personal loan", "reference_category": "Credit reporting, credit repair services, or other personal consumer reports", "n_rows": 3308, "odds_ratio_vs_reference": 42.72220173335792, "log_odds_ratio": 3.7547187320260647, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Submitted via", "rank": 1, "category": "Phone", "reference_category": "Web", "n_rows": 12523, "odds_ratio_vs_reference": 3.118791039654169, "log_odds_ratio": 1.1374454394384617, "p_value": 0.0, "outcome_short": "O2"}, {"driver_field": "Submitted via", "rank": 2, "category": "Referral", "reference_category": "Web", "n_rows": 3884, "odds_ratio_vs_reference": 1.8133834901603516, "log_odds_ratio": 0.5951944318321101, "p_value": 0.0067095347369958, "outcome_short": "O2"}, {"driver_field": "Submitted via", "rank": 3, "category": "Postal mail", "reference_category": "Web", "n_rows": 2677, "odds_ratio_vs_reference": 1.6278118384878215, "log_odds_ratio": 0.4872366825762254, "p_value": 0.0803251419713804, "outcome_short": "O2"}], "gate1": {"target_definition": {"no_single_supervised_target_two_real_outcome_fields": true, "scoping_note": "Master Plan Section 6 (Integration Architecture) names 'CFPB outcome fields' (plural) feeding BP3/BP5 - BP5 draws on that same real CFPB outcome-field family BP3's Gate 1 already defined and used, not a different data source. BP5 tests real product/issue/process fields for statistical association against TWO real, distinct outcome fields (below), not one - grounded live in Section 6's outcome-field overlap check, not assumed redundant or assumed independent.", "outcome_1_intervention_required": {"description": "Reused verbatim from BP3 Gate 1's own real target definition on the identical 'Company response to consumer' field (HYPER: not reinvented). Binary: 1 if 'Closed with monetary relief'; 0 if 'Closed with explanation' or 'Closed with non-monetary relief'. 'In progress', 'Untimely response', and null-response rows excluded from the trainable set - identical exclusion reasoning to BP3 Gate 1 (see this notebook's markdown cell).", "source_field": "Company response to consumer", "reused_from": "bp3_complaint_escalation_prediction Gate 1 (identical definition, independently re-verified live in Section 6 below, never copied from BP3's own already-real-run artifact)."}, "outcome_2_timely_response_failure": {"description": "New to BP5 - the second real CFPB outcome field the Master Plan's own plural 'CFPB outcome fields' wording anticipates. Binary: 1 if the real 'Timely response?' value is 'No' (CFPB's own timeliness judgment); 0 if 'Yes'. Computed over the full real population (independent of 'Company response to consumer''s value); null 'Timely response?' rows excluded from the trainable set.", "source_field": "Timely response?", "distinct_from_outcome_1_by_construction": "'Timely response?' is CFPB's own independent timeliness assessment, not a value of 'Company response to consumer' - the real overlap between this outcome and 'Company response to consumer' == 'Untimely response' is live-verified in Section 6 (outcome_field_overlap_live_check below) rather than assumed to be either identical or unrelated."}, "candidate_driver_fields": {"product_issue_fields": ["Product", "Sub-product", "Issue", "Sub-issue"], "process_fields": ["Submitted via", "Company"], "secondary_control_field": "State - kept only as a geographic control dimension, never presented as a named 'product/issue/process' driver per the Master Plan's own BP5 wording.", "company_encoding_note": "'Company' is real high-cardinality and will be frequency-encoded at Gate 2/3 (HYPER-reusing BP2/BP3's own pattern in src/features/) - not one-hot encoded.", "excluded_from_candidate_set": {"Company public response": "Excluded at Gate 1 - real null rate live-verified in Section 6 (BP2 Gate 1's own prior finding was ~54% null; re-verified live and independently here, not carried over), and its content is the company's own public statement ABOUT the complaint's outcome, an outcome-adjacent field BP2 Gate 3 already flagged for an explicit leakage test before use. Deferred to a later gate, same posture as BP3 Gate 1's own omission of this field from its candidate feature list.", "Date received / Date sent to company": "Barred as a conservative default - see leakage_rules.", "Tags": "Barred - demographic-adjacent, re-verified live in Section 5. See leakage_rules and compliance_touchpoint.", "Complaint ID / ZIP code": "Barred as a pure identifier and a fine-grained quasi-identifier respectively - matches BP2/BP3/BP4's own BARRED_COLUMNS precedent (HYPER-consistent)."}}, "methodology_policy": {"note": "Policy-level only - defines WHAT Gate 3/4 will test, not HOW. No hypothesis test, regression, or SHAP run in this Gate 1 notebook.", "hypothesis_testing": "Chi-square test of independence (categorical driver x binary outcome) with Cramer's V effect size, per Master Plan Section 14's own named-metric rule (no self-invented scoring rubric).", "regression": "Logistic regression (statsmodels/scikit-learn) per real candidate driver field, coefficients reported with confidence intervals, per Master Plan Section 10.2's own BP4-BP5 SMART objective wording.", "explainability_shap": "SHAP applied to the Gate 3 champion model on a representative sample only, never the full corpus, per Master Plan Section 14.", "two_outcomes_tested_separately": "Both outcome_1 and outcome_2 are tested against the same real candidate driver fields as two separate association analyses, never combined into a single joint target."}, "association_not_causation_disclaimer": "Every BP5 finding, at every later gate, is reported as a statistical ASSOCIATION between a real candidate driver field and a real outcome field - never as a causal claim. This is a structural policy field, not only a markdown comment, per Master Plan Section 5.1/7's own explicit BP5 methodology rule ('every finding labeled as association, with a reminder that association is not causation') and Section 9's UDAAP mapping for BP5 ('root-cause findings framed as potential risk indicators only when statistically supported'). No BP5 deliverable at any gate may claim or imply that a driver field CAUSES an outcome."}, "leakage_rules": ["'Company response to consumer' defines outcome_1 (intervention_required) and must never also be used as a candidate driver field for outcome_1 - it is the outcome itself, not traditional train/test leakage.", "'Timely response?' defines outcome_2 (timely_response_failure) and must never also be used as a candidate driver field for outcome_2, for the same reason.", "'Company response to consumer' (and outcome_1 itself) is barred as a candidate driver field for outcome_2 (timely_response_failure) - an outcome-echo risk, not classic leakage: Section 6's live overlap check quantifies how much 'Untimely response' (one of 'Company response to consumer''s own values) coincides with 'Timely response?' == 'No' on the real data, and treating one real outcome field as a 'driver' of a second, overlapping real outcome field would not be a genuine product/issue/process association finding.", "'Timely response?' (and outcome_2 itself) is barred as a candidate driver field for outcome_1 (intervention_required), symmetrically, and as a conservative default consistent with BP3 Gate 1's own bar on this same field for the same target - BP2 Gate 2 already found 1,963 real rows where 'Timely response?' disagrees with 'Company response to consumer', so its true association-vs-leakage risk for outcome_1 is unverified. Deferred to Gate 3 for an explicit test before any relaxation.", "'Date received' and 'Date sent to company' are barred from the candidate driver set for BOTH outcomes as a conservative default - a computed response-time duration was found to leak the timeliness-derived half of BP2's own target on this identical data (BP2 Gate 3 finding), and 'Timely response?' (outcome_2 here) is itself a timeliness judgment on the same two dates. Deferred to Gate 3 for an explicit test, the same posture BP3 Gate 1 took on these identical fields.", "'Tags' is barred from the candidate driver set for both outcomes - live-re-checked in Section 5 rather than trusting any prior Gate 1's now-superseded 'no protected-class field' claim, and found (or re-confirmed found, matching BP2 Gate 3's and BP3 Gate 1's real findings) to contain demographic-adjacent values.", "'Company public response' is excluded from BP5's Gate 1 candidate driver set - see target_definition.candidate_driver_fields.excluded_from_candidate_set for the real, live-verified null-rate and outcome-adjacency reasoning.", "'Complaint ID' and 'ZIP code' are barred as a pure identifier and a fine-grained quasi-identifier respectively - matches BP2/BP3/BP4's own BARRED_COLUMNS precedent (HYPER-consistent).", "No BANKING77 data is used for BP5 at all (Master Plan BP table: Integrates BANKING77? = NO) - not loaded in this notebook; the Gold-layer common_taxonomy_bucket column is not read here.", "Every BP5 finding at every later gate is reported as an ASSOCIATION, never a causal claim - see target_definition.association_not_causation_disclaimer."], "assumptions": ["BP5 tests statistical association against two real, distinct CFPB outcome fields (intervention_required, reused from BP3 Gate 1's own definition, and timely_response_failure, newly defined here) rather than a single target - an explicit, disclosed design choice grounded in Master Plan Section 6's own plural 'CFPB outcome fields' wording and in Section 6's live overlap check below, open to Gate 3 review if the real class balance or overlap makes either outcome untenable.", "'Company public response' is excluded from BP5's Gate 1 candidate driver set given its real, live-verified null rate and its outcome-adjacent content (the company's own public statement about the complaint) - not proven necessary, open to Gate 2/3 review.", "'Timely response?', 'Date received', and 'Date sent to company' are barred from the candidate driver set for BOTH outcomes at Gate 1 as a conservative default, not yet proven necessary - deferred to Gate 3 for an explicit association/leakage test before any relaxation, the same practice BP3 Gate 1 established for these same fields.", "'State' is kept only as a secondary geographic control field, never presented as a primary named 'product/issue/process' driver per the Master Plan's own BP5 wording - an explicit scoping choice, not a claim that geography has no real association.", "No CFPB field in this real 15-column extract is treated as demographic/protected-class by name; 'Tags' is barred anyway as a conservative default given its live-verified demographic-adjacent values, consistent with BP3/BP4 Gate 1's own precedent, even though ECOA/Reg B does not map to BP5 per Master Plan Section 9's own mapping (BP1, BP2, BP3, BP7 only - re-verified against the full Master Plan document, not the excerpt alone).", "src/utils/bp1_config_sync.py is reused unmodified for BP5's own config file - already fully generic, parameterized by config_path, no BP1-specific logic (already reused unmodified by BP2, BP3, and BP4)."], "compliance_touchpoint": {"requirement": "UDAAP - Unfair, Deceptive, or Abusive Acts or Practices (Master Plan Section 9; BP5 is one of the three BPs this section explicitly maps to UDAAP, alongside BP2 and BP6)", "statement": "Per Master Plan Section 9's own UDAAP row, BP5's root-cause/driver findings are framed as potential risk indicators only when statistically supported - operationalized here as the structural association_not_causation_disclaimer field above, carried into every later BP5 gate's reporting, never softened to a causal claim at any point.", "ecoa_reg_b_not_applicable": "Master Plan Section 9's Regulatory Frameworks table maps ECOA / Regulation B to BP1, BP2, BP3, and BP7 only - BP5 is explicitly NOT listed (re-verified against the full Master Plan document text, not the excerpt alone). Stated honestly as Not Applicable for BP5's own compliance touchpoint, rather than silently reusing BP3's ECOA/Reg B statement. 'Tags' is still barred from BP5's candidate driver set anyway, as a conservative scope decision (see leakage_rules), HYPER-consistent with BP3/BP4 Gate 1's own precedent of barring 'Tags' even where ECOA/Reg B does not map to the BP in question (BP4).", "data_minimization_purpose_limitation": "Gate 1's own Section 8 compliance touchpoint (GLBA/GDPR-aligned) for every BP: BP5 reads only the real CFPB structured fields already in scope for BP1-BP4 (no new external data source), uses each field only for the specific association-testing purpose defined above, and does not re-identify or attempt to recover any consumer identity (none exists in this real extract, re-confirmed live in Section 4)."}, "live_checks": {"cfpb_row_count": 1048575, "cfpb_columns": ["Date received", "Product", "Sub-product", "Issue", "Sub-issue", "Company public response", "Company", "State", "ZIP code", "Tags", "Submitted via", "Date sent to company", "Company response to consumer", "Timely response?", "Complaint ID"], "cfpb_columns_match_manifest": true, "suspected_customer_id_columns": [], "company_response_to_consumer_distribution": [{"Company response to consumer": "Closed with explanation", "n": 492340}, {"Company response to consumer": "Closed with non-monetary relief", "n": 312602}, {"Company response to consumer": "In progress", "n": 231856}, {"Company response to consumer": "Closed with monetary relief", "n": 10511}, {"Company response to consumer": "Untimely response", "n": 1264}, {"Company response to consumer": null, "n": 2}], "timely_response_distribution": [{"Timely response?": "Yes", "n": 1045348}, {"Timely response?": "No", "n": 3227}], "tags_distribution": [{"Tags": null, "n": 995094}, {"Tags": "Servicemember", "n": 36094}, {"Tags": "Older American", "n": 13713}, {"Tags": "Older American, Servicemember", "n": 3674}], "demographic_adjacent_tags_found": ["Servicemember", "Older American", "Older American, Servicemember"], "outcome_1_intervention_required_class_balance": {"n_intervention_required": 10511, "n_no_intervention_required": 804942, "n_trainable_total": 815453, "n_excluded_in_progress": 231856, "n_excluded_untimely_response": 1264, "n_excluded_null_response": 2, "n_excluded_total": 233122, "positive_class_ratio_of_trainable": 0.0129}, "outcome_2_timely_response_failure_class_balance": {"n_timely_response_failure": 3227, "n_timely_response_ok": 1045348, "n_trainable_total": 1048575, "n_excluded_null_timely_response": 0, "positive_class_ratio_of_trainable": 0.0031}, "outcome_field_overlap_live_check": {"n_untimely_response_rows": 1264, "n_untimely_response_and_timely_no": 1264, "n_untimely_response_and_timely_yes": 0, "pct_untimely_response_rows_also_timely_no": 1.0, "n_timely_no_rows": 3227, "pct_timely_no_rows_also_untimely_response": 0.3917, "n_intervention_required_and_timely_no": 84, "pct_intervention_required_rows_also_timely_no": 0.008}, "candidate_driver_field_profile": {"Product": {"n_unique": 15, "n_null": 0, "pct_null": 0.0}, "Sub-product": {"n_unique": 61, "n_null": 21, "pct_null": 0.0}, "Issue": {"n_unique": 96, "n_null": 0, "pct_null": 0.0}, "Sub-issue": {"n_unique": 222, "n_null": 25808, "pct_null": 0.0246}, "Company": {"n_unique": 2970, "n_null": 0, "pct_null": 0.0}, "Submitted via": {"n_unique": 4, "n_null": 0, "pct_null": 0.0}, "State": {"n_unique": 62, "n_null": 2193, "pct_null": 0.0021}}, "company_public_response_null_profile": {"n_null": 570861, "pct_null": 0.5444}}, "generated_at_utc": "2026-09-24T07:16:13.829757+00:00"}, "gate6_detail": {"bp_id": "bp5", "gate": 6, "pytest_summary_line": "\u001b[33m================ \u001b[32m325 passed\u001b[0m, \u001b[33m\u001b[1m3 skipped\u001b[0m, \u001b[33m\u001b[1m182 warnings\u001b[0m\u001b[33m in 9.51s\u001b[0m\u001b[33m =================\u001b[0m", "pytest_counts": {"passed": 325, "failed": 0, "skipped": 3, "errors": 0, "xfailed": 0, "xpassed": 0}, "pytest_returncode": 0, "pytest_all_passed": true, "notebook_syntax_check_n_passed": 51, "notebook_syntax_check_n_failed": 0, "notebook_syntax_check_returncode": 0, "notebook_syntax_all_passed": true, "gate4_reconfirms_gate3_per_outcome": {"outcome_1_intervention_required": true, "outcome_2_timely_response_failure": true}, "n_negligible_strength_fields_detected": 2, "n_near_random_pr_auc_outcomes_detected": 0, "n_near_zero_precision_outcomes_detected": 1, "near_zero_precision_outcomes": ["outcome_2_timely_response_failure"], "barred_fields_bar_relaxed": false, "model_card_path": "reports\\bp5_root_cause_driver_analytics\\MODEL_CARD.md", "changelog_path": "reports\\bp5_root_cause_driver_analytics\\CHANGELOG.md", "generated_at_utc": "2026-09-24T11:15:03.634508+00:00", "model_card_exists_on_this_machine": true, "changelog_exists_on_this_machine": true}, "suggestions": [{"title": "Review the two real negligible-association candidate fields", "specific": "'Submitted via' shows negligible Cramer's V association with BOTH real outcomes (outcome_1: 0.091, outcome_2: 0.013, per Gate 3's own chi_square_cramers_v.csv) - the weakest of the 5 non-control candidate fields for both outcomes.", "measurable": "2 real negligible-strength field/outcome combinations, as live-detected by Gate 6 (n_negligible_strength_fields_detected=2).", "timebound": "Before the next scheduled Gate 3 re-run.", "owner_placeholder": "BP5 analytics lead (name TBD by the user's team)"}, {"title": "Review outcome_2's near-zero precision at the default 0.5 threshold", "specific": "outcome_2_timely_response_failure's champion shows real precision=0.0191 at threshold 0.5 (real recall=0.9752) - high recall / very low precision, consistent with class_weight='balanced' under outcome_2's own extreme real class imbalance.", "measurable": "1 outcome(s) live-flagged by Gate 6's own PRECISION_ANOMALY_THRESHOLD=0.05 check.", "timebound": "Before this report's findings are used to prioritize any real review queue.", "owner_placeholder": "BP5 analytics lead (name TBD by the user's team)"}, {"title": "Maintain the mechanical UDAAP language review cadence", "specific": "Gate 5's own real UDAAP check scanned 76 narrative sentences and found 0 unquoted banned-pattern matches on this real run.", "measurable": "0 of 0 narrative sentences failing, maintained on every future real re-run.", "timebound": "Every time Gate 5 or Gate 7 is re-run.", "owner_placeholder": "BP5 compliance reviewer (name TBD by the user's team)"}, {"title": "Formal governance review of the 3 barred candidate fields' real diagnostics", "specific": "Gate 3's own barred-field diagnostics show real, non-trivial associations for all 3 barred fields ('Timely response?' log-odds-ratio=1.24 vs outcome_1; '_response_duration_days' odds-ratio-per-1sd\u22481.13-1.17 vs both outcomes; 'Company response to consumer' Cramer's V=0.63 (strong) vs outcome_2) - Gate 1's conservative bar was never relaxed automatically.", "measurable": "3 real barred-field diagnostic findings, all disclosure-only per Gate 3's own design.", "timebound": "As a standing governance agenda item, no fixed deadline.", "owner_placeholder": "BP5 governance owner (name TBD by the user's team)"}, {"title": "Deep-dive the Company (frequency-encoded) driver - the strongest SHAP feature for both outcomes", "specific": "'Company_freq_zscored' ranks #1 by real mean |SHAP| for BOTH outcomes (outcome_1: 1.6236, outcome_2: 2.0926).", "measurable": "1 real, consistently top-ranked driver across both outcomes.", "timebound": "As input to the next Gate 3 re-run's candidate-field review.", "owner_placeholder": "BP5 analytics lead (name TBD by the user's team)"}]}</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('rollup-data').textContent);
+  const PALETTE = DATA.palette;
+  const CAT_SEQ = DATA.categorical_sequence;
+  const CHART_FONT = {family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", color: PALETTE.ink};
+  const CHART_HOVERLABEL = {bgcolor: PALETTE.primary_navy, bordercolor: PALETTE.primary_navy, font: {color: '#ffffff', size: 12, family: CHART_FONT.family}};
+
+  // ---------- resilient chart loading ----------
+  function markChartUnavailable(boxId) {
+    const box = document.getElementById(boxId);
+    if (box && !box.dataset.filled) {
+      box.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:300px;padding:20px;text-align:center;font-size:13px;color:var(--ink-muted);">Chart library (Plotly) could not be reached at cdn.plot.ly. The real underlying numbers for this chart are still available in the tables on this page.</div>';
+    }
+  }
+  function safePlot(boxId, drawFn) {
+    const run = () => {
+      try { drawFn(); const box = document.getElementById(boxId); if (box) box.dataset.filled = '1'; }
+      catch (e) { markChartUnavailable(boxId); }
+    };
+    if (window.Plotly) { run(); return; }
+    const cdnScript = document.getElementById('plotly-cdn');
+    if (!cdnScript) { markChartUnavailable(boxId); return; }
+    cdnScript.addEventListener('load', run, {once: false});
+    cdnScript.addEventListener('error', () => markChartUnavailable(boxId), {once: true});
+  }
+  setTimeout(() => {
+    if (!window.Plotly) {
+      document.querySelectorAll('.chart-box').forEach(box => markChartUnavailable(box.id));
+    }
+  }, 15000);
+
+  // ---------- animated count-up ----------
+  function groupThousands(numStr) {
+    const parts = numStr.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+  function animateValue(el, endText, duration) {
+    const numMatch = endText.match(/-?[\d.]+/);
+    if (!numMatch) { el.textContent = endText; return; }
+    const end = parseFloat(numMatch[0]);
+    const prefix = endText.slice(0, numMatch.index);
+    const suffix = endText.slice(numMatch.index + numMatch[0].length);
+    const decimals = (numMatch[0].split('.')[1] || '').length;
+    const start = 0;
+    const startTime = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = start + (end - start) * eased;
+      el.textContent = prefix + groupThousands(val.toFixed(decimals)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- Recommendation banner ----------
+  const prod = DATA.kpis.production_recommendation;
+  const banner = document.getElementById('prod-banner');
+  banner.className = 'prod-banner tier-' + prod.tier_code;
+  banner.innerHTML = '<span class="tier-label">' + prod.tier + '</span><span>' + prod.reason + '</span>' +
+    '<span class="tier-2-note">Note: ECOA/Reg B disparate-impact applicability is NOT_APPLICABLE to BP5 - a disparate-impact finding can never trigger this tier. Tier 2 here is triggered only by Gate 6\'s own live open-item detection (negligible-association fields / near-random PR-AUC / near-zero precision).</span>';
+
+  // ---------- governance badges ----------
+  const badgeRow = document.getElementById('governance-badges');
+  const gov = DATA.kpis;
+  const badges = [
+    {label: 'pytest: ' + gov.gate6_pytest_passed + ' passed / ' + gov.gate6_pytest_failed + ' failed', ok: gov.gate6_pytest_failed === 0},
+    {label: 'Notebook syntax audit: ' + (gov.gate6_notebook_syntax_all_passed ? 'all passed' : 'issues found'), ok: gov.gate6_notebook_syntax_all_passed},
+    {label: 'UDAAP language check: ' + (gov.udaap_language_check_passed ? 'passed' : 'failed') + ' (' + gov.n_narrative_sentences_scanned + ' sentences)', ok: gov.udaap_language_check_passed},
+    {label: 'Barred-fields bar relaxed: ' + gov.barred_fields_bar_relaxed, ok: gov.barred_fields_bar_relaxed === false},
+    {label: 'Open item: ' + gov.n_negligible_strength_fields_detected + ' negligible-association field(s)', ok: gov.n_negligible_strength_fields_detected === 0},
+    {label: 'Open item: ' + gov.n_near_zero_precision_outcomes_detected + ' near-zero-precision outcome(s)', ok: gov.n_near_zero_precision_outcomes_detected === 0},
+    {label: 'ECOA/Reg B disparate-impact: ' + gov.ecoa_reg_b_disparate_impact_applicability, ok: true},
+  ];
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'badge' + (b.ok ? '' : ' warn');
+    el.innerHTML = '<span class="dot"></span>' + b.label;
+    badgeRow.appendChild(el);
+  });
+
+  // ---------- KPI cards ----------
+  const kpiGrid = document.getElementById('kpi-grid');
+  const kpiDefs = [
+    {label: 'Top Field — Outcome 1', value: gov.top_field_outcome_1, sub: "Cramer's V=" + gov.top_field_outcome_1_cramers_v.toFixed(4)},
+    {label: 'Top Field — Outcome 2', value: gov.top_field_outcome_2, sub: "Cramer's V=" + gov.top_field_outcome_2_cramers_v.toFixed(4)},
+    {label: 'Held-out ROC-AUC — Outcome 1', value: gov.held_out_roc_auc_outcome_1.toFixed(4), sub: 'PR-AUC=' + gov.held_out_pr_auc_outcome_1.toFixed(4)},
+    {label: 'Held-out ROC-AUC — Outcome 2', value: gov.held_out_roc_auc_outcome_2.toFixed(4), sub: 'PR-AUC=' + gov.held_out_pr_auc_outcome_2.toFixed(4)},
+    {label: 'Brier Score — Outcome 1', value: gov.brier_score_outcome_1.toFixed(4), sub: 'real, held-out'},
+    {label: 'Brier Score — Outcome 2', value: gov.brier_score_outcome_2.toFixed(4), sub: 'real, held-out'},
+    {label: 'Precision @0.5 — Outcome 2', value: (gov.precision_at_0_5_outcome_2 * 100).toFixed(2) + '%', sub: 'recall=' + (gov.recall_at_0_5_outcome_2 * 100).toFixed(2) + '%'},
+    {label: 'UDAAP Sentences Scanned', value: String(gov.n_narrative_sentences_scanned), sub: gov.udaap_language_check_passed ? '0 failing' : 'failures found'},
+  ];
+  kpiDefs.forEach((k, i) => {
+    const card = document.createElement('div');
+    const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+    card.className = 'kpi-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.style.setProperty('--accent-color', accentColor);
+    const isLongText = typeof k.value === 'string' && /[a-zA-Z]{4,}/.test(k.value) && k.value.replace(/[^a-zA-Z]/g, '').length > 8;
+    const valueClass = 'kpi-value' + (isLongText ? ' kpi-value--text' : '');
+    card.innerHTML =
+      '<div class="kpi-top"><span class="kpi-dot"></span><span class="kpi-label">' + k.label + '</span></div>' +
+      '<div class="' + valueClass + '" data-final="' + k.value + '"></div>' +
+      '<div class="kpi-sub">' + k.sub + '</div>';
+    kpiGrid.appendChild(card);
+  });
+  document.querySelectorAll('.kpi-value').forEach(el => animateValue(el, el.dataset.final, 900));
+
+  // ---------- Cramer's V bar charts ----------
+  function renderCramersV(boxId, rows) {
+    const sorted = rows.slice().sort((a, b) => a.cramers_v - b.cramers_v);
+    const colors = sorted.map(r => r.association_strength === 'negligible' ? PALETTE.warning_amber : PALETTE.accent_blue);
+    safePlot(boxId, () => Plotly.newPlot(boxId, [{
+      type: 'bar', orientation: 'h',
+      y: sorted.map(r => r.driver_field), x: sorted.map(r => r.cramers_v),
+      marker: {color: colors},
+      text: sorted.map(r => r.cramers_v.toFixed(4) + ' (' + r.association_strength + ')'), textposition: 'outside',
+      hovertemplate: "%{y}<br>Real Cramer's V: %{x:.4f}<extra></extra>",
+    }], {
+      margin: {l: 110, t: 20, r: 60, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: "Cramer's V", gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- SHAP bar charts ----------
+  function renderShap(boxId, rows) {
+    const sorted = rows.slice().sort((a, b) => a.mean_abs_shap - b.mean_abs_shap);
+    safePlot(boxId, () => Plotly.newPlot(boxId, [{
+      type: 'bar', orientation: 'h',
+      y: sorted.map(r => r.feature), x: sorted.map(r => r.mean_abs_shap),
+      marker: {color: PALETTE.success_green},
+      hovertemplate: '%{y}<br>Real mean |SHAP|: %{x:.4f}<extra></extra>',
+    }], {
+      margin: {l: 190, t: 20, r: 40, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean |SHAP value|', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- calibration curve charts ----------
+  function renderCalibration(boxId, points, titleText) {
+    safePlot(boxId, () => Plotly.newPlot(boxId, [
+      {type: 'scatter', mode: 'lines+markers', name: 'Champion (real, held-out)',
+       x: points.map(p => p.mean_predicted_probability), y: points.map(p => p.fraction_of_positives),
+       line: {color: PALETTE.accent_blue}, marker: {size: 7},
+       hovertemplate: 'Predicted: %{x:.4f}<br>Observed: %{y:.4f}<extra></extra>'},
+      {type: 'scatter', mode: 'lines', name: 'Perfect calibration', x: [0, 1], y: [0, 1],
+       line: {color: PALETTE.neutral_gray, dash: 'dash'}},
+    ], {
+      title: {text: titleText, font: {size: 14, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {t: 45, b: 45, l: 55, r: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean predicted probability', gridcolor: '#9FADDB'},
+      yaxis: {title: 'Fraction of positives', gridcolor: '#9FADDB'},
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', legend: {font: {size: 10}},
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- bootstrap-CI charts ----------
+  function renderCiChart(boxId, stat, titleText) {
+    safePlot(boxId, () => Plotly.newPlot(boxId, [{
+      type: 'bar', x: [stat.point_estimate], y: [titleText], orientation: 'h',
+      marker: {color: PALETTE.accent_blue},
+      error_x: {type: 'data', symmetric: false, array: [stat.ci_95_high - stat.point_estimate], arrayminus: [stat.point_estimate - stat.ci_95_low], color: PALETTE.primary_navy, thickness: 2.5, width: 8},
+      text: [stat.point_estimate.toFixed(4)], textposition: 'outside',
+      hovertemplate: 'Point estimate: %{x:.4f}<br>95% CI: [' + stat.ci_95_low.toFixed(4) + ', ' + stat.ci_95_high.toFixed(4) + ']<extra></extra>',
+    }], {
+      title: {text: 'Held-Out ROC-AUC — ' + titleText, font: {size: 14, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 20, t: 45, r: 40, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, showlegend: false,
+      xaxis: {title: 'Real point estimate + 95% bootstrap CI', gridcolor: '#9FADDB'}, yaxis: {showticklabels: false},
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- Category-level findings table ----------
+  const categoryState = {outcome: 'ALL', search: ''};
+  function applyCategoryFilters() {
+    let rows = DATA.category_findings;
+    if (categoryState.outcome !== 'ALL') {
+      rows = rows.filter(r => r.outcome_short === categoryState.outcome);
+    }
+    if (categoryState.search) {
+      const q = categoryState.search.toLowerCase();
+      rows = rows.filter(r => String(r.driver_field).toLowerCase().includes(q) || String(r.category).toLowerCase().includes(q));
+    }
+    return rows;
+  }
+  function renderCategoryTable() {
+    const filtered = applyCategoryFilters();
+    const tbody = document.querySelector('#category-table tbody');
+    tbody.innerHTML = '';
+    filtered.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><span class="pill outcome-' + r.outcome_short + '">' + r.outcome_short + '</span></td>' +
+        '<td>' + r.driver_field + '</td>' +
+        '<td>' + r.category + '</td>' +
+        '<td>' + r.n_rows.toLocaleString() + '</td>' +
+        '<td>' + Number(r.odds_ratio_vs_reference).toFixed(2) + '</td>' +
+        '<td>' + Number(r.log_odds_ratio).toFixed(3) + '</td>';
+      tbody.appendChild(tr);
+    });
+    document.getElementById('category-count-label').textContent =
+      filtered.length.toLocaleString() + ' real category-level finding(s) match this filter (of ' + DATA.category_findings.length.toLocaleString() + ' total)';
+  }
+  document.querySelectorAll('.outcome-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.outcome-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      categoryState.outcome = pill.dataset.outcome;
+      renderCategoryTable();
+    });
+  });
+  document.getElementById('category-search').addEventListener('input', (e) => {
+    categoryState.search = e.target.value.trim();
+    renderCategoryTable();
+  });
+  document.querySelectorAll('#category-table th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      const rows = Array.from(document.querySelectorAll('#category-table tbody tr'));
+      // simple re-sort of the currently filtered dataset
+      const filtered = applyCategoryFilters().slice().sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0));
+      const tbody = document.querySelector('#category-table tbody');
+      tbody.innerHTML = '';
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><span class="pill outcome-' + r.outcome_short + '">' + r.outcome_short + '</span></td>' +
+          '<td>' + r.driver_field + '</td>' +
+          '<td>' + r.category + '</td>' +
+          '<td>' + r.n_rows.toLocaleString() + '</td>' +
+          '<td>' + Number(r.odds_ratio_vs_reference).toFixed(2) + '</td>' +
+          '<td>' + Number(r.log_odds_ratio).toFixed(3) + '</td>';
+        tbody.appendChild(tr);
+      });
+    });
+  });
+
+  // ---------- Gate 1 detail (real, from policy.json) ----------
+  function renderGate1() {
+    const g1 = DATA.gate1;
+    const el = document.getElementById('gate1-detail');
+    let html = '<div class="detail-grid">';
+    html += '<div class="assumption-row"><span class="a-label">' + (g1.target_definition && g1.target_definition.scoping_note ? g1.target_definition.scoping_note : '') + '</span></div>';
+    html += '</div>';
+    html += '<div class="detail-heading">Leakage rules (real)</div><div class="detail-grid">';
+    (g1.leakage_rules || []).forEach(r => { html += '<div class="assumption-row"><span class="a-label">' + r + '</span></div>'; });
+    html += '</div>';
+    html += '<div class="detail-heading">Assumptions documented at Gate 1 (real)</div><div class="detail-grid">';
+    (g1.assumptions || []).forEach(a => { html += '<div class="assumption-row"><span class="a-label">' + a + '</span></div>'; });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- Gate 6 detail (real governance status) ----------
+  function renderGate6() {
+    const g6 = DATA.gate6_detail;
+    const el = document.getElementById('gate6-detail');
+    const rows = [
+      ['pytest suite', g6.pytest_summary_line],
+      ['Notebook syntax audit', g6.notebook_syntax_check_n_passed + '/' + (g6.notebook_syntax_check_n_passed + g6.notebook_syntax_check_n_failed) + ' passed'],
+      ['Gate 4 reconfirms Gate 3 — Outcome 1', String(g6.gate4_reconfirms_gate3_per_outcome.outcome_1_intervention_required)],
+      ['Gate 4 reconfirms Gate 3 — Outcome 2', String(g6.gate4_reconfirms_gate3_per_outcome.outcome_2_timely_response_failure)],
+      ['Open item — negligible-strength fields', String(g6.n_negligible_strength_fields_detected)],
+      ['Open item — near-zero-precision outcomes', String(g6.n_near_zero_precision_outcomes_detected) + (g6.near_zero_precision_outcomes && g6.near_zero_precision_outcomes.length ? ' (' + g6.near_zero_precision_outcomes.join(', ') + ')' : '')],
+      ['Barred-fields bar relaxed', String(g6.barred_fields_bar_relaxed)],
+      ['Model card', g6.model_card_path],
+      ['Changelog', g6.changelog_path],
+    ];
+    let html = '<div class="detail-grid">';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + label + '</span><span class="a-value">' + val + '</span></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- SMART suggestions ----------
+  function renderSuggestions() {
+    const grid = document.getElementById('suggestion-grid');
+    DATA.suggestions.forEach((s, i) => {
+      const card = document.createElement('div');
+      const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+      card.className = 'suggestion-card';
+      card.style.setProperty('--accent-color', accentColor);
+      card.innerHTML =
+        '<h3><span class="panel-dot" style="background:' + accentColor + '"></span>' + s.title + '</h3>' +
+        '<div class="smart-row"><span class="smart-tag">Specific:</span>' + s.specific + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Measurable:</span>' + s.measurable + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Time-bound:</span>' + s.timebound + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Owner:</span>' + s.owner_placeholder + '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- section panel accent dots ----------
+  function applyPanelDots() {
+    document.querySelectorAll('section.panel h2').forEach((h2, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'panel-dot';
+      dot.style.background = CAT_SEQ[i % CAT_SEQ.length];
+      h2.prepend(dot);
+    });
+  }
+
+  // ---------- initial render ----------
+  applyPanelDots();
+  renderCramersV('chart-cramers-o1', DATA.field_ranking.outcome_1);
+  renderCramersV('chart-cramers-o2', DATA.field_ranking.outcome_2);
+  renderShap('chart-shap-o1', DATA.shap_findings.outcome_1);
+  renderShap('chart-shap-o2', DATA.shap_findings.outcome_2);
+  renderCalibration('chart-calibration-o1', DATA.calibration.outcome_1, 'Calibration — Outcome 1');
+  renderCalibration('chart-calibration-o2', DATA.calibration.outcome_2, 'Calibration — Outcome 2');
+  renderCiChart('chart-ci-roc-o1', DATA.kpis.bootstrap_roc_auc_ci_95_outcome_1_obj, 'Outcome 1');
+  renderCiChart('chart-ci-roc-o2', DATA.kpis.bootstrap_roc_auc_ci_95_outcome_2_obj, 'Outcome 2');
+  renderCategoryTable();
+  renderGate1();
+  renderGate6();
+  renderSuggestions();
+
+  // fade-in panels on scroll
+  const panels = document.querySelectorAll('section.panel');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = (idx * 0.05) + 's';
+        entry.target.style.opacity = 1;
+        io.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.08});
+  panels.forEach(p => io.observe(p));
+})();
+</script>
+</body>
+</html>

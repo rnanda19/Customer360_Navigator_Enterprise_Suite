@@ -1,0 +1,98 @@
+{
+  "notebook": "00_hardware_benchmark.ipynb",
+  "generated_by": "user real run (execution-boundary rule - Claude never executes this itself)",
+  "hardware_detected": {
+    "timestamp_utc": "2026-09-22T04:52:20.597866+00:00",
+    "os": "Windows",
+    "os_release": "11",
+    "python_version": "3.13.14",
+    "cpu_physical_cores": 8,
+    "cpu_logical_threads": 16,
+    "cpu_freq_current_mhz": 2000.0,
+    "cpu_freq_max_mhz": 2000.0,
+    "cpu_freq_windows_wmi_limitation": true,
+    "ram_total_gb": 31.29,
+    "ram_available_gb": 12.39,
+    "disk_free_gb_at_project_root": 443.7,
+    "disk_total_gb_at_project_root": 933.69,
+    "cpu_temperature_available": false,
+    "gpu_detection": {
+      "method": null,
+      "gpu_name": null,
+      "cuda_available_via_torch": null,
+      "notes": [
+        "wmic GPU detection failed: [WinError 2] The system cannot find the file specified",
+        "torch not installed - CUDA availability not checked",
+        "Master Execution Plan Section 17.1/17.6: no discrete/NVIDIA GPU expected on this hardware (integrated AMD Radeon 8xx, no CUDA path). Informational only - GPU is not used as a training accelerator by this notebook."
+      ]
+    },
+    "npu_detection": {
+      "onnxruntime_providers": null,
+      "npu_provider_detected": null,
+      "notes": [
+        "onnxruntime not installed - NPU execution-provider availability not checked",
+        "Master Execution Plan Section 17.6: the NPU has no code path for XGBoost/LightGBM/CatBoost/scikit-learn/spaCy. Only relevant to a future ONNX-exported model - not benchmarked here."
+      ]
+    },
+    "library_versions": {
+      "polars": "1.43.2",
+      "duckdb": "NOT INSTALLED",
+      "numpy": "2.5.3",
+      "pandas": "3.0.6",
+      "sklearn": "1.9.0",
+      "xgboost": "3.3.0",
+      "catboost": "1.2.10",
+      "lightgbm": "4.7.0",
+      "spacy": "NOT INSTALLED",
+      "sentence_transformers": "NOT INSTALLED",
+      "transformers": "NOT INSTALLED",
+      "numba": "0.67.0",
+      "shap": "0.52.0"
+    }
+  },
+  "thread_benchmark_results": [
+    {
+      "n_jobs_model": 4,
+      "sequential_cv_seconds": 0.614,
+      "parallel_cv_seconds": 0.28,
+      "mean_roc_auc_sequential": 0.8546,
+      "mean_roc_auc_parallel": 0.8546,
+      "ram_percent_at_measurement": 60.2
+    },
+    {
+      "n_jobs_model": 8,
+      "sequential_cv_seconds": 0.431,
+      "parallel_cv_seconds": 0.261,
+      "mean_roc_auc_sequential": 0.8546,
+      "mean_roc_auc_parallel": 0.8546,
+      "ram_percent_at_measurement": 60.2
+    },
+    {
+      "n_jobs_model": 12,
+      "sequential_cv_seconds": 0.422,
+      "parallel_cv_seconds": 0.26,
+      "mean_roc_auc_sequential": 0.8546,
+      "mean_roc_auc_parallel": 0.8546,
+      "ram_percent_at_measurement": 60.2
+    },
+    {
+      "n_jobs_model": 16,
+      "sequential_cv_seconds": 0.404,
+      "parallel_cv_seconds": 0.245,
+      "mean_roc_auc_sequential": 0.8546,
+      "mean_roc_auc_parallel": 0.8546,
+      "ram_percent_at_measurement": 60.2
+    }
+  ],
+  "recommended_configuration": {
+    "recommended_n_jobs": 16,
+    "recommended_cv_mode": "parallel",
+    "ram_ceiling_gb": 28.79,
+    "cpu_thread_ceiling": 15,
+    "gpu_recommended": false,
+    "gpu_reason": "No CUDA path detected on this hardware; not benchmarked as a training accelerator (Section 17.6).",
+    "npu_recommended": false,
+    "npu_reason": "No NPU code path exists for the classical 6-model benchmark set (Section 17.6)."
+  },
+  "warning": "SYNTHETIC benchmark data only - these are TIMING measurements, not any Customer360 result."
+}

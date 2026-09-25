@@ -1,0 +1,21 @@
+# Customer360 Navigator - BP4 Customer Journey Analytics decision-records lookup/query service
+# Run from the project ROOT (this file's build context matches the Dockerfile's - see its header):
+#   docker compose -f src/services/docker/bp4_decision_service/docker-compose.yml up --build
+# Then: curl http://localhost:8004/health
+
+services:
+  bp4-decision-service:
+    build:
+      context: ../../../..
+      dockerfile: src/services/docker/bp4_decision_service/Dockerfile
+    image: c360-bp4-decision-service:latest
+    container_name: c360-bp4-decision-service
+    ports:
+      - "8004:8004"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8004/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

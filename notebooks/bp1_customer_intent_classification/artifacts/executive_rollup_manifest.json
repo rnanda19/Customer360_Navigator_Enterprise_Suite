@@ -1,0 +1,36 @@
+{
+  "report": "bp1_customer_intent_classification_executive_rollup",
+  "champion_model": "logistic_regression",
+  "source_artifacts_dir": "notebooks\\bp1_customer_intent_classification\\artifacts",
+  "source_artifact_files": [
+    "executive_rollup_manifest.json",
+    "gate3_champion_test_classification_report.json",
+    "gate3_champion_test_confusion_matrix.csv",
+    "gate3_cv_benchmark_results.csv",
+    "gate4_shap_top_features.csv",
+    "gate4_statistical_validation.json",
+    "gate5_decision_layer_summary.json",
+    "gate5_decision_records.csv",
+    "gate6_governance_summary.json",
+    "gate6_notebook_syntax_check_output.log",
+    "gate6_pytest_output.log",
+    "model_inventory_entry.json",
+    "policy.json",
+    "taxonomy_mapping_coverage_report.csv"
+  ],
+  "outputs": {
+    "dashboard_html": "reports\\bp1_customer_intent_classification\\executive_rollup\\bp1_executive_rollup_dashboard.html",
+    "report_docx": "reports\\bp1_customer_intent_classification\\executive_rollup\\bp1_executive_rollup_report.docx",
+    "workbook_xlsx": "reports\\bp1_customer_intent_classification\\executive_rollup\\bp1_executive_rollup_workbook.xlsx",
+    "deck_pptx": "reports\\bp1_customer_intent_classification\\executive_rollup\\bp1_executive_rollup_deck.pptx"
+  },
+  "output_sizes_bytes": {
+    "dashboard_html": 214018,
+    "report_docx": 288727,
+    "workbook_xlsx": 120924,
+    "deck_pptx": 287493
+  },
+  "contains_financial_impact_section": false,
+  "contains_assumption_based_content": false,
+  "generated_at_utc": "2026-09-24T04:02:03.194928+00:00"
+}

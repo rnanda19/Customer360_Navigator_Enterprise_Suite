@@ -1,0 +1,78 @@
+{
+  "gold_tables_written": [
+    {
+      "category": "decision_engine_kpis__action_breakdown",
+      "filename": "bp8_gold_decision_engine_action_breakdown.parquet",
+      "relative_path": "powerbi/gold_tables/bp8_gold_decision_engine_action_breakdown.parquet",
+      "n_rows": 3,
+      "columns": [
+        "recommended_action",
+        "n_rows",
+        "mean_priority_score",
+        "intervention_flag_rate",
+        "pct_of_population"
+      ]
+    },
+    {
+      "category": "decision_engine_kpis__tier_crosstab",
+      "filename": "bp8_gold_decision_engine_tier_crosstab.parquet",
+      "relative_path": "powerbi/gold_tables/bp8_gold_decision_engine_tier_crosstab.parquet",
+      "n_rows": 8,
+      "columns": [
+        "bp4_review_priority_tier",
+        "intervention_flag",
+        "n_rows"
+      ]
+    },
+    {
+      "category": "decision_engine_kpis__disparate_impact",
+      "filename": "bp8_gold_decision_engine_disparate_impact.parquet",
+      "relative_path": "powerbi/gold_tables/bp8_gold_decision_engine_disparate_impact.parquet",
+      "n_rows": 4,
+      "columns": [
+        "tags_group",
+        "n_rows",
+        "n_intervention_flagged",
+        "selection_rate"
+      ]
+    },
+    {
+      "category": "decision_engine_kpis__summary",
+      "filename": "bp8_gold_decision_engine_summary.parquet",
+      "relative_path": "powerbi/gold_tables/bp8_gold_decision_engine_summary.parquet",
+      "n_rows": 1,
+      "columns": [
+        "bp_id",
+        "gate",
+        "generated_at_utc",
+        "live_row_count",
+        "champion_rule_scheme",
+        "champion_weight_bp2",
+        "champion_weight_bp3",
+        "champion_weight_bp4",
+        "intervention_threshold",
+        "coverage_pct",
+        "intervention_flag_rate",
+        "bp3_agreement_rate",
+        "avg_reason_codes_per_row",
+        "mean_contribution_bp2",
+        "mean_contribution_bp3",
+        "mean_contribution_bp4",
+        "max_abs_reconstruction_error",
+        "adverse_impact_ratio",
+        "flagged_four_fifths_rule",
+        "lowest_selection_rate_group",
+        "highest_selection_rate_group"
+      ]
+    }
+  ],
+  "n_gold_tables_written": 4,
+  "bp_id": "bp8",
+  "bp_name": "bp8_executive_product_analytics",
+  "gate": 3,
+  "generated_at_utc": "2026-09-25T09:38:29.044184+00:00",
+  "source_bp": "bp7",
+  "source_gate": 5,
+  "genai_resolution_kpis_out_of_scope_reason": "BP6's real Gate 5 output is a single generated recommendation (n=1), not a scored population; there is no real trend or volume to aggregate, so no genai_resolution_kpis Gold table is built by this or any gate.",
+  "gate1_gate2_files_verified_untouched": true
+}

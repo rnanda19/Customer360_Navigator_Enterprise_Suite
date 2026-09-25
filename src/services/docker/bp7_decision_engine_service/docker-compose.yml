@@ -1,0 +1,23 @@
+# Customer360 Navigator - BP7 Customer Navigator Decision Engine service
+# Run from the project ROOT (this file's build context matches the Dockerfile's - see its header):
+#   docker compose -f src/services/docker/bp7_decision_engine_service/docker-compose.yml up --build
+# Then: curl http://localhost:8007/health
+#
+# No API key or other secret is required - BP7 makes no external network call anywhere.
+
+services:
+  bp7-decision-engine-service:
+    build:
+      context: ../../../..
+      dockerfile: src/services/docker/bp7_decision_engine_service/Dockerfile
+    image: c360-bp7-decision-engine-service:latest
+    container_name: c360-bp7-decision-engine-service
+    ports:
+      - "8007:8007"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8007/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

@@ -1,0 +1,30 @@
+[PASS] notebooks\00_hardware_benchmark\00_hardware_benchmark.ipynb
+[PASS] notebooks\01_data_acquisition_profiling\01_data_acquisition_profiling.ipynb
+[PASS] notebooks\bp1_customer_intent_classification\bp1_customer_intent_classification_g1_business_understanding.ipynb
+[PASS] notebooks\bp1_customer_intent_classification\bp1_customer_intent_classification_g2_data_integration_taxonomy_mapping.ipynb
+[PASS] notebooks\bp1_customer_intent_classification\bp1_customer_intent_classification_g3_model_benchmark.ipynb
+[PASS] notebooks\bp1_customer_intent_classification\bp1_customer_intent_classification_g4_statistical_validation_explainability.ipynb
+[PASS] notebooks\bp1_customer_intent_classification\bp1_customer_intent_classification_g5_decision_layer_reporting.ipynb
+[PASS] notebooks\bp1_customer_intent_classification\bp1_customer_intent_classification_g6_productization_monitoring_governance.ipynb
+
+[RESULT] All 8 notebook(s) passed nbformat + ast + pyflakes checks.
+
+--- STDERR ---
+Exception in thread Thread-24 (_writerthread):
+Traceback (most recent call last):
+  File [35m"C:\Anaconda3\envs\home_credit_env\Lib\threading.py"[0m, line [35m1044[0m, in [35m_bootstrap_inner[0m
+    [31mself.run[0m[1;31m()[0m
+    [31m~~~~~~~~[0m[1;31m^^[0m
+  File [35m"C:\Anaconda3\envs\home_credit_env\Lib\threading.py"[0m, line [35m995[0m, in [35mrun[0m
+    [31mself._target[0m[1;31m(*self._args, **self._kwargs)[0m
+    [31m~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"C:\Anaconda3\envs\home_credit_env\Lib\subprocess.py"[0m, line [35m1620[0m, in [35m_writerthread[0m
+    [31mself._stdin_write[0m[1;31m(input)[0m
+    [31m~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^[0m
+  File [35m"C:\Anaconda3\envs\home_credit_env\Lib\subprocess.py"[0m, line [35m1156[0m, in [35m_stdin_write[0m
+    [31mself.stdin.write[0m[1;31m(input)[0m
+    [31m~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^[0m
+  File [35m"C:\Anaconda3\envs\home_credit_env\Lib\encodings\cp1252.py"[0m, line [35m19[0m, in [35mencode[0m
+    return [31mcodecs.charmap_encode[0m[1;31m(input,self.errors,encoding_table)[0m[0]
+           [31m~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1;35mUnicodeEncodeError[0m: [35m'charmap' codec can't encode character '\u2192' in position 22036: character maps to <undefined>[0m

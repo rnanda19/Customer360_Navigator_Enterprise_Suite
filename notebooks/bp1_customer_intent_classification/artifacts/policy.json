@@ -1,0 +1,46 @@
+{
+  "bp_id": "bp1",
+  "bp_name": "bp1_customer_intent_classification",
+  "gate": 1,
+  "generated_at_utc": "2026-09-22T04:53:54.488546+00:00",
+  "target_definition": {
+    "primary_target": "category",
+    "primary_target_description": "BANKING77's real 77-class fine-grained customer intent label, attached to the `text` field it was collected with.",
+    "secondary_target": "common_taxonomy_bucket",
+    "secondary_target_description": "The 9-bucket common taxonomy from Gate 2 (configs/taxonomy_mapping.yaml), used only for coarser reporting and for cross-dataset comparability with CFPB's bucket-tagged rows in BP8 - never trained on directly in place of the real 77-class label.",
+    "feature_variable": "text",
+    "train_test_split_source": "BANKING77's own provided train/test split (banking77_train.csv / banking77_test.csv) - used as-is, never re-randomized or re-merged."
+  },
+  "leakage_rules": [
+    "No CFPB row-level data is ever joined into BANKING77 training or evaluation data - verified live in Section 4: the two real schemas share zero column names, so no identifier-based join is even possible by construction.",
+    "The BANKING77 train/test split is used exactly as provided by the source dataset and is never re-randomized, re-merged, or re-split - verified live in Section 5 (exact-text overlap check).",
+    "Live exact-text overlap between train and test at Gate 1 time: 0 row(s) - must be 0 for this policy to be considered valid; see the structural check below.",
+    "CFPB's Gate-2 bucket-tagged rows are descriptive/reporting inputs only (BP8) and are never used as training or evaluation data for BP1's classifier."
+  ],
+  "assumptions": [
+    "CFPB<->BANKING77 integration is a taxonomy/semantic crosswalk (configs/taxonomy_mapping.yaml), not a row-level join - see docs/data_dictionary/CFPB_BANKING77_TAXONOMY_MAPPING.md.",
+    "Only ~6.55% of the real CFPB extract (Checking/savings, Credit card/prepaid card, Money transfer products) has any plausible overlap with BANKING77's 77 intents; the rest is out of scope for this integration.",
+    "BP1's trainable text classifier is built and evaluated on BANKING77 alone, because the CFPB extract used in this project has no narrative/complaint-text column (docs/data_dictionary/RAW_DATA_MANIFEST.md Finding 2)."
+  ],
+  "compliance_touchpoint": {
+    "requirement": "Data-minimization & purpose-limitation statement (GLBA/GDPR-aligned)",
+    "statement": "BP1 processes only the `text` and `category` fields of the publicly released BANKING77 dataset (anonymized customer-service intent utterances, no real-customer PII) for the stated purpose of intent classification. CFPB fields used elsewhere in this suite are limited to structured Product/Sub-product/Issue categories already published by CFPB - no narrative text, no demographic or protected-class field, and no CFPB data is used as training or evaluation data for this classifier. No data is collected, retained, or processed beyond what is documented here."
+  },
+  "live_checks": {
+    "shared_columns_cfpb_banking77": [],
+    "train_test_exact_text_overlap_rows": 0,
+    "class_imbalance_77_class": {
+      "n_classes": 77,
+      "n_classes_in_train": 77,
+      "min_class_count": 35,
+      "max_class_count": 187,
+      "imbalance_ratio_max_over_min": 5.34
+    },
+    "class_imbalance_9_bucket": {
+      "n_buckets_in_train": 9,
+      "min_bucket_count": 460,
+      "max_bucket_count": 1770,
+      "imbalance_ratio_max_over_min": 3.85
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "bp_id": "bp7",
+  "gate": 6,
+  "compliance_touchpoint": "Master Plan paragraph 205 - runnable FastAPI service with a live self-test proving API output matches direct computation, adapted for BP7's no-external-API nature (see src/services/bp7_decision_engine_service.py's own module docstring for the full rationale).",
+  "health_check_status": "ok",
+  "sample_decide_complaint_id_checked": 8654084,
+  "self_test_all_checks_passed": true,
+  "self_test_n_rows_checked": 100,
+  "real_external_api_call_made": false,
+  "note": "This self-test artifact is a Gate 6 governance/testing record, NOT a customer-facing decision - it is separate from, and never overwrites, Gate 5's own gate5_full_population_decision_records.csv or gate5_decision_layer_summary.json.",
+  "generated_at_utc": "2026-09-25T06:49:02.757155+00:00"
+}

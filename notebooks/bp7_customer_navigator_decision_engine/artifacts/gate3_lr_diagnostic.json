@@ -1,0 +1,19 @@
+{
+  "n_rows_fit_sample": 200000,
+  "n_train": 150000,
+  "n_test": 50000,
+  "features": [
+    "bp2_confidence",
+    "bp4_review_priority_score",
+    "bp1_context_available"
+  ],
+  "coefficients": {
+    "bp2_confidence": 2.250656,
+    "bp4_review_priority_score": -0.651774,
+    "bp1_context_available": 5.840533
+  },
+  "intercept": -2.068482,
+  "held_out_roc_auc": 0.895153,
+  "held_out_accuracy": 0.95998,
+  "disclosure": "Diagnostic only - predicts BP3's own already-computed bp3_predicted_label from BP2/BP4/BP1's OTHER real fields (never a raw CFPB column, never a barred field), surfacing which of those fields correlate with BP3's own assessment. Reported as one additional disclosed reason-coded input per BP7 Gate 1's policy.json (target_definition.combining_methodology), never substituted for priority_score/intervention_flag/recommended_action, which stay this gate's deterministic weighted rule regardless."
+}

@@ -1,0 +1,179 @@
+# Per-BP config - filled in at Gate 1 (Business Understanding & Policy)
+# Gate 1 owns bp_id through random_state below via write_front_matter() (src/utils/bp1_config_sync.py,
+# reused as-is from BP1/BP2/BP3/BP4 - fully generic, parameterized by config_path); Gates 2-5 each own
+# exactly one marker-delimited block appended after it via write_gate_block() - do not hand-edit
+# either section, re-run the owning notebook instead.
+bp_id: "bp5"
+bp_name: "bp5_root_cause_driver_analytics"
+status: "gate1_confirmed"   # not_started|gate1|gate2|gate3|gate4|gate5|gate6_complete
+target_definition:
+  no_single_supervised_target_two_real_outcome_fields: true
+  scoping_note: "Master Plan Section 6 names 'CFPB outcome fields' (plural) feeding BP3/BP5 -
+    BP5 draws on that same real outcome-field family BP3 Gate 1 already defined, not a
+    different data source. Tests real product/issue/process fields for association against TWO
+    real outcome fields, not one."
+  outcome_1_intervention_required: "Reused verbatim from BP3 Gate 1's own real definition on
+    'Company response to consumer'. Binary: 1 if 'Closed with monetary relief'; 0 if 'Closed
+    with explanation' or 'Closed with non-monetary relief'. 'In progress', 'Untimely response',
+    and null-response rows excluded from the trainable set."
+  outcome_2_timely_response_failure: "New to BP5. Binary: 1 if real 'Timely response?' == 'No';
+    0 if 'Yes'. Computed over the full real population, independent of 'Company response to
+    consumer'. Null 'Timely response?' rows excluded from the trainable set."
+  candidate_driver_fields:
+    product_issue_fields: ["Product", "Sub-product", "Issue", "Sub-issue"]
+    process_fields: ["Submitted via", "Company"]
+    secondary_control_field: "State - geographic control only, never a named primary driver."
+  association_not_causation_disclaimer: "Every BP5 finding at every later gate is reported as a
+    statistical ASSOCIATION between a real candidate driver field and a real outcome field -
+    never a causal claim (Master Plan Section 5.1/7 and Section 9 UDAAP mapping for BP5)."
+leakage_rules:
+  - "'Company response to consumer' defines outcome_1 and must never be a candidate driver for
+     outcome_1; 'Timely response?' defines outcome_2 and must never be a candidate driver for
+     outcome_2."
+  - "'Company response to consumer' (outcome_1) barred as a candidate driver for outcome_2, and
+     'Timely response?' (outcome_2) barred as a candidate driver for outcome_1 - an outcome-echo
+     risk, live-quantified in Section 6's overlap check, not classic leakage."
+  - "'Date received' and 'Date sent to company' barred from the candidate driver set for BOTH
+     outcomes as a conservative default - a computed response-time duration leaked BP2's own
+     target on this identical data (BP2 Gate 3 finding), and outcome_2 is itself a timeliness
+     judgment on these same two dates. Deferred to Gate 3 for an explicit test."
+  - "'Tags' barred for both outcomes - live-re-checked (not assumed) and found to contain
+     demographic-adjacent values, matching BP2/BP3/BP4's own real findings."
+  - "'Company public response' excluded from the candidate driver set - real, live-verified
+     null rate and outcome-adjacent content (see policy.json for the exact figures)."
+  - "'Complaint ID' and 'ZIP code' barred as identifier / quasi-identifier, matching
+     BP2/BP3/BP4's own BARRED_COLUMNS precedent."
+  - "No BANKING77 data used at all for BP5 (Master Plan BP table: Integrates BANKING77? = NO)."
+  - "Every BP5 finding at every later gate is reported as an ASSOCIATION, never a causal claim."
+assumptions:
+  - "BP5 tests association against two real, distinct CFPB outcome fields (intervention_required,
+     reused from BP3 Gate 1, and timely_response_failure, new here) rather than a single target -
+     grounded in Master Plan Section 6's plural 'CFPB outcome fields' wording and in Section 6's
+     live overlap check, open to Gate 3 review."
+  - "'Company public response' excluded from BP5's Gate 1 candidate driver set given its real,
+     live-verified null rate and outcome-adjacent content - not proven necessary, open to
+     Gate 2/3 review."
+  - "'Timely response?', 'Date received', and 'Date sent to company' barred from the candidate
+     driver set for BOTH outcomes at Gate 1 as a conservative default, deferred to Gate 3 for an
+     explicit association/leakage test."
+  - "'State' kept only as a secondary geographic control field, never a primary named driver."
+  - "ECOA/Reg B does not map to BP5 per Master Plan Section 9's own mapping (BP1, BP2, BP3, BP7
+     only, re-verified against the full document) - 'Tags' still barred anyway as a conservative
+     default given its live-verified demographic-adjacent values."
+  - "src/utils/bp1_config_sync.py reused unmodified for BP5's own config file - already fully
+     generic, no BP1-specific logic."
+random_state: 42
+
+# --- Gate 2 (Data Verification & Feature Engineering) results (appended, idempotent overwrite) ---
+drift_vs_gate1_company_response_live_check: none
+drift_vs_gate1_timely_response_live_check: none
+null_count_drift_vs_gate1_policy_json: none
+narrative_text_column_found: False
+candidate_driver_null_counts:
+  Product: 0
+  Sub-product: 21
+  Issue: 0
+  Sub-issue: 25808
+  Submitted via: 0
+  Company: 0
+  State: 2193
+n_outcome_1_positive: 10511
+n_outcome_1_negative: 804942
+n_outcome_1_trainable: 815453
+n_outcome_1_excluded_total: 233122
+outcome_1_matches_gate1_policy_json: True
+n_outcome_2_positive: 3227
+n_outcome_2_negative: 1045348
+n_outcome_2_trainable: 1048575
+n_outcome_2_excluded_null: 0
+outcome_2_matches_gate1_policy_json: True
+outcome_overlap_matches_gate1_policy_json: True
+driver_field_lineage_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate2_driver_field_lineage.csv"
+no_barred_column_used_as_driver: True
+cfpb_driver_gold_path: "data/processed/cfpb_root_cause_driver_gold.parquet"
+cfpb_driver_gold_rows_written: 1048575
+
+# --- Gate 3 (Hypothesis Testing / Regression / SHAP Association Benchmark) results (appended, idempotent overwrite) ---
+drift_vs_gate1_row_count_live_check: none
+drift_vs_gate1_outcome_1_counts_live_check: none
+drift_vs_gate1_outcome_2_counts_live_check: none
+n_chi_square_tests_run: 12
+n_log_odds_ratio_field_outcome_combos: 10
+n_categories_with_continuity_correction_applied: 192
+chi_square_cramers_v_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_chi_square_cramers_v.csv"
+log_odds_ratio_by_category_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv"
+company_freq_univariate_logistic_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_company_freq_univariate_logistic.json"
+barred_field_diagnostics_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_barred_field_diagnostics.json"
+barred_fields_bar_relaxed: False
+champion_outcome_1_held_out_roc_auc: 0.970523
+champion_outcome_1_held_out_pr_auc: 0.253255
+champion_outcome_2_held_out_roc_auc: 0.952578
+champion_outcome_2_held_out_pr_auc: 0.070317
+champion_held_out_performance_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_champion_held_out_performance.json"
+shap_sample_size: 300
+shap_background_size: 100
+association_not_causation_disclaimer_carried_forward: True
+
+# --- Gate 4 (Statistical Validation - Bootstrap CI / Calibration / Confusion Matrix) results (appended, idempotent overwrite) ---
+consistent_with_gate3_recorded_champion_aucs: True
+champion_outcome_1_bootstrap_roc_auc_ci_low: 0.969050
+champion_outcome_1_bootstrap_roc_auc_ci_high: 0.971974
+champion_outcome_1_bootstrap_pr_auc_ci_low: 0.237620
+champion_outcome_1_bootstrap_pr_auc_ci_high: 0.270185
+champion_outcome_2_bootstrap_roc_auc_ci_low: 0.947376
+champion_outcome_2_bootstrap_roc_auc_ci_high: 0.957180
+champion_outcome_2_bootstrap_pr_auc_ci_low: 0.057848
+champion_outcome_2_bootstrap_pr_auc_ci_high: 0.088012
+champion_outcome_1_brier_score: 0.072676
+champion_outcome_2_brier_score: 0.099226
+confusion_matrix_threshold: 0.5
+champion_outcome_1_recall_at_0.5: 0.948620
+champion_outcome_1_precision_at_0.5: 0.115313
+champion_outcome_2_recall_at_0.5: 0.975194
+champion_outcome_2_precision_at_0.5: 0.019135
+ecoa_reg_b_disparate_impact_check: NOT_APPLICABLE
+bootstrap_ci_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate4_bootstrap_ci.json"
+calibration_curve_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate4_calibration_curve.json"
+confusion_matrix_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate4_confusion_matrix.json"
+association_not_causation_disclaimer_carried_forward: True
+
+# --- Gate 5 (Decision Layer & Reporting - Prioritized Root-Cause Report) results (appended, idempotent overwrite) ---
+min_n_per_category_threshold_used: 30
+top_k_fields_per_outcome: 5
+top_k_categories_per_field: 5
+top_k_shap_features_per_outcome: 10
+n_field_level_findings_outcome_1: 5
+n_field_level_findings_outcome_2: 5
+n_category_level_findings_outcome_1: 23
+n_category_level_findings_outcome_2: 23
+n_shap_findings_outcome_1: 10
+n_shap_findings_outcome_2: 10
+top_field_by_cramers_v_outcome_1: "Sub-issue"
+top_field_by_cramers_v_outcome_2: "Sub-product"
+top_shap_feature_outcome_1: "Company_freq_zscored"
+top_shap_feature_outcome_2: "Company_freq_zscored"
+udaap_language_check_passed: True
+n_narrative_sentences_scanned: 76
+barred_fields_bar_relaxed: False
+prioritized_root_cause_report_outcome_1_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate5_prioritized_root_cause_report_outcome_1_intervention_required.json"
+prioritized_root_cause_report_outcome_2_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate5_prioritized_root_cause_report_outcome_2_timely_response_failure.json"
+udaap_language_check_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate5_udaap_language_check.json"
+ecoa_reg_b_disparate_impact_check: NOT_APPLICABLE
+association_not_causation_disclaimer_carried_forward: True
+
+# --- Gate 6 (Productization, Monitoring & Governance) results (appended, idempotent overwrite) ---
+gate6_pytest_all_passed: true
+gate6_pytest_passed: 325
+gate6_pytest_failed: 0
+gate6_pytest_skipped: 3
+gate6_notebook_syntax_all_passed: true
+gate6_gate4_reconfirms_gate3_all_outcomes: true
+gate6_n_negligible_strength_fields_detected: 2
+gate6_n_near_zero_precision_outcomes_detected: 1
+gate6_barred_fields_bar_relaxed: false
+gate6_model_card_path: "reports/bp5_root_cause_driver_analytics/MODEL_CARD.md"
+gate6_changelog_path: "reports/bp5_root_cause_driver_analytics/CHANGELOG.md"
+gate6_governance_summary_path: "notebooks/bp5_root_cause_driver_analytics/artifacts/gate6_governance_summary.json"
+gate6_generated_at_utc: "2026-09-24T11:15:03.634508+00:00"
+ecoa_reg_b_disparate_impact_check: NOT_APPLICABLE
+association_not_causation_disclaimer_carried_forward: True

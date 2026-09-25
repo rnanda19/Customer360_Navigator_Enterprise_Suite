@@ -1,0 +1,9 @@
+engineered_feature,source_column,transform,null_handling
+response_lag_days,"Date received, Date sent to company","date_sent_parsed - date_received_parsed, in real days",n/a - Gate 1 live-verified 0 nulls in either source date column
+complaint_month,Date received,real year-month bucket (date_received_parsed.strftime('%Y-%m')),n/a - Gate 1 live-verified 0 nulls in Date received
+"common_taxonomy_bucket, banking77_in_scope",Complaint ID (join key) -> data/processed/cfpb_common_taxonomy_gold.parquet,"left join on the real, unique Complaint ID to BP1/BP2's own Gate 2 Gold-layer taxonomy overlay (HYPER, reused unmodified, never recomputed)",n/a - Gate 1 live-verified the Gold taxonomy parquet's row count equals the raw CFPB row count (every row has a bucket)
+"Sub-product (sentinel-filled, part of CLUSTER_KEY)",Sub-product,real nulls cast Utf8 -> filled 'MISSING_SUB_PRODUCT' -> cast back to Categorical; a companion boolean *_was_null flag column records which rows were filled,real nulls filled with sentinel category 'MISSING_SUB_PRODUCT' - never silently dropped
+"Sub-issue (sentinel-filled, part of CLUSTER_KEY)",Sub-issue,real nulls cast Utf8 -> filled 'MISSING_SUB_ISSUE' -> cast back to Categorical; a companion boolean *_was_null flag column records which rows were filled,real nulls filled with sentinel category 'MISSING_SUB_ISSUE' - never silently dropped
+"State (sentinel-filled, not part of CLUSTER_KEY)",State,real nulls cast Utf8 -> filled 'MISSING_STATE' -> cast back to Categorical; a companion boolean *_was_null flag column records which rows were filled,real nulls filled with sentinel category 'MISSING_STATE' - never silently dropped
+(none - barred from every BP4 journey-grouping key),Tags,n/a,n/a
+(none - barred from every BP4 journey-grouping key),ZIP code,n/a,n/a

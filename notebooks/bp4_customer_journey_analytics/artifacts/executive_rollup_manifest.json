@@ -1,0 +1,34 @@
+{
+  "report": "bp4_customer_journey_analytics_executive_rollup",
+  "champion_pipeline": "polars_lazy_streaming",
+  "recommended_for_production_tier": "RECOMMENDED FOR PRODUCTION",
+  "source_artifacts_dir": "notebooks\\bp4_customer_journey_analytics\\artifacts",
+  "source_artifact_files": [
+    "gate2_feature_lineage.csv",
+    "gate3_benchmark_results.csv",
+    "gate5_cluster_decision_report.csv",
+    "gate5_decision_layer_summary.json",
+    "gate6_governance_summary.json",
+    "gate6_notebook_syntax_check_output.log",
+    "gate6_pytest_output.log",
+    "policy.json"
+  ],
+  "outputs": {
+    "dashboard_html": "reports\\bp4_customer_journey_analytics\\executive_rollup\\bp4_executive_rollup_dashboard.html",
+    "report_docx": "reports\\bp4_customer_journey_analytics\\executive_rollup\\bp4_executive_rollup_report.docx",
+    "workbook_xlsx": "reports\\bp4_customer_journey_analytics\\executive_rollup\\bp4_executive_rollup_workbook.xlsx",
+    "deck_pptx": "reports\\bp4_customer_journey_analytics\\executive_rollup\\bp4_executive_rollup_deck.pptx"
+  },
+  "output_sizes_bytes": {
+    "dashboard_html": 1503144,
+    "report_docx": 224471,
+    "workbook_xlsx": 170185,
+    "deck_pptx": 222251
+  },
+  "contains_financial_impact_section": false,
+  "contains_assumption_based_content": false,
+  "n_gate3_slow_but_correct_candidates_represented": 2,
+  "n_high_and_medium_tier_clusters_embedded": 7204,
+  "tier_2_reachable_for_this_bp": false,
+  "generated_at_utc": "2026-09-23T16:02:14.118498+00:00"
+}

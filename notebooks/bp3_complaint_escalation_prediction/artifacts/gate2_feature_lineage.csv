@@ -1,0 +1,16 @@
+engineered_feature,source_column,transform,null_handling
+"Product (one-hot, Gate 3)",Product,"one-hot encoding (fit on train only, Gate 3)","no real nulls in this column (DATA_PROFILE_REPORT.md, re-verified live)"
+"Sub-product (one-hot, Gate 3)",Sub-product,"one-hot encoding (fit on train only, Gate 3)",real nulls filled with sentinel category 'MISSING_SUB_PRODUCT'
+"Issue (one-hot, Gate 3)",Issue,"one-hot encoding (fit on train only, Gate 3)","no real nulls in this column (DATA_PROFILE_REPORT.md, re-verified live)"
+"Sub-issue (one-hot, Gate 3)",Sub-issue,"one-hot encoding (fit on train only, Gate 3)",real nulls filled with sentinel category 'MISSING_SUB_ISSUE'
+"State (one-hot, Gate 3)",State,"one-hot encoding (fit on train only, Gate 3)",real nulls filled with sentinel category 'MISSING_STATE'
+"Submitted via (one-hot, Gate 3)",Submitted via,"one-hot encoding (fit on train only, Gate 3)","no real nulls in this column (DATA_PROFILE_REPORT.md, re-verified live)"
+Company_freq,Company,"frequency encoding (fit on train only; unseen test-time companies get frequency 0 - never fabricated, never test-set-derived)","no real nulls in this column (DATA_PROFILE_REPORT.md, re-verified live)"
+"intervention_required (TARGET, not a feature)",Company response to consumer,binary target rule per Gate 1 policy.json - never used as an input feature,"n/a - this is the label, not an input feature"
+(none - barred),Company response to consumer,EXCLUDED from the feature set entirely - see Gate 1 policy.json leakage_rules,n/a - column is never read into any engineered feature
+(none - barred),Timely response?,EXCLUDED from the feature set entirely - see Gate 1 policy.json leakage_rules,n/a - column is never read into any engineered feature
+(none - barred),Date received,EXCLUDED from the feature set entirely - see Gate 1 policy.json leakage_rules,n/a - column is never read into any engineered feature
+(none - barred),Date sent to company,EXCLUDED from the feature set entirely - see Gate 1 policy.json leakage_rules,n/a - column is never read into any engineered feature
+(none - barred),Tags,EXCLUDED from the feature set entirely - see Gate 1 policy.json leakage_rules,n/a - column is never read into any engineered feature
+(none - barred),Complaint ID,EXCLUDED from the feature set entirely - see Gate 1 policy.json leakage_rules,n/a - column is never read into any engineered feature
+(none - barred),ZIP code,EXCLUDED from the feature set entirely - see Gate 1 policy.json leakage_rules,n/a - column is never read into any engineered feature

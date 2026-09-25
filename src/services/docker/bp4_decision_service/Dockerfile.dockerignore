@@ -1,0 +1,58 @@
+# Customer360 Navigator - BP4 decision-records service Dockerfile.dockerignore
+# Build context is the project ROOT (see this directory's Dockerfile header). Named
+# `Dockerfile.dockerignore` (not `.dockerignore`) so BuildKit applies it to THIS Dockerfile only -
+# same empirically-verified naming as bp1's, bp2's, and bp3's, since this project has multiple
+# Dockerfiles sharing one build context and a plain root `.dockerignore` would apply to all of
+# them indiscriminately.
+
+# Data - never belongs in a served image
+data/
+**/*.csv
+
+# BP4's own image serves ONLY its own Parquet decision-artifact index (see Dockerfile's explicit
+# COPY of that one real file) - every other real .parquet anywhere else in the tree is excluded.
+**/*.parquet
+!models/bp4_customer_journey_analytics/bp4_decision_artifact_index.parquet
+
+# Notebooks and their outputs - not imported by the service at runtime
+notebooks/
+**/*.ipynb
+**/*.ipynb_checkpoints/
+
+# Every other BP's model artifacts - this image serves BP4 only
+models/bp1_customer_intent_classification/
+models/bp2_customer_friction_classification/
+models/bp3_complaint_escalation_prediction/
+models/bp5_root_cause_driver_analytics/
+models/bp6_genai_resolution_assistant/
+models/bp7_customer_navigator_decision_engine/
+models/bp8_executive_product_analytics/
+
+# Docs, reports, packaging staging, logs - not needed to serve
+docs/
+reports/
+github_repo/
+kaggle/
+linkedin/
+logs/
+powerbi/
+
+# Tests - the image serves the app, it does not run its own test suite
+tests/
+
+# VCS / editor / cache noise
+.git/
+.github/
+.vscode/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# This project's own doc/config files not needed at runtime
+*.docx
+README.md
+LICENSE
+LESSONS_LEARNED_APPLIED.md
+desktop.ini

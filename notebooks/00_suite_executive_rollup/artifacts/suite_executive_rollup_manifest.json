@@ -1,0 +1,268 @@
+{
+  "report_id": "00_suite_executive_rollup",
+  "report_name": "Customer360 Navigator Enterprise Suite -- Executive Rollup",
+  "is_master_plan_gate": false,
+  "read_only_over_bp1_bp8": true,
+  "generated_at_utc": "2026-09-25T17:56:56.540321+00:00",
+  "contains_financial_impact_section": false,
+  "contains_assumption_based_content": false,
+  "n_bps_total": 8,
+  "n_bps_fully_complete_gate7": 7,
+  "n_bps_recommended_for_production": 5,
+  "tier_counts": {
+    "RECOMMENDED FOR PRODUCTION": 5,
+    "CONDITIONAL - GOVERNANCE REVIEW REQUIRED": 1,
+    "Recommended for Decision-Support Use, With Monitoring": 1
+  },
+  "disparate_impact_counts": {
+    "flagged": 1,
+    "not_flagged": 1,
+    "not_applicable": 2,
+    "structurally_no_check": 3
+  },
+  "n_bps_disparate_impact_flagged": 1,
+  "total_pytest_passed_across_suite": 157,
+  "n_pytest_passed_contributing_bps": 2,
+  "pytest_passed_contributing_bps": [
+    "bp1",
+    "bp2"
+  ],
+  "total_decision_or_gold_records_across_suite": 1048575,
+  "n_record_count_contributing_bps": 1,
+  "record_count_contributing_bps": [
+    "bp7"
+  ],
+  "financial_assumption_audit": {
+    "bp1": {
+      "contains_financial_impact_section": false,
+      "contains_assumption_based_content": false
+    },
+    "bp2": {
+      "contains_financial_impact_section": false,
+      "contains_assumption_based_content": false
+    },
+    "bp3": {
+      "contains_financial_impact_section": false,
+      "contains_assumption_based_content": false
+    },
+    "bp4": {
+      "contains_financial_impact_section": false,
+      "contains_assumption_based_content": false
+    },
+    "bp5": {
+      "contains_financial_impact_section": false,
+      "contains_assumption_based_content": false
+    },
+    "bp6": {
+      "contains_financial_impact_section": false,
+      "contains_assumption_based_content": false
+    },
+    "bp7": {
+      "contains_financial_impact_section": false,
+      "contains_assumption_based_content": false
+    }
+  },
+  "bp8_gate1_confirmed": true,
+  "bp8_gate2_confirmed": true,
+  "bp8_n_kpi_categories_ready": null,
+  "bp8_n_kpi_categories_deferred": null,
+  "bp8_gold_tables_written_count": null,
+  "bp8_gate3_status": "real-run confirmed",
+  "bp8_gate3_n_kpi_tables_ready": null,
+  "source_file_fingerprints_before": {
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp1_customer_intent_classification\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp1_customer_intent_classification\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "2a833e5a8dc4f84496447c217dd859c5",
+      "size_bytes": 1594
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp2_customer_friction_classification\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp2_customer_friction_classification\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "6ec7fc807063432682a759496d404ca7",
+      "size_bytes": 1638
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp3_complaint_escalation_prediction\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp3_complaint_escalation_prediction\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "5df58fa0964df15ea55c12fac9eca60f",
+      "size_bytes": 1829
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp4_customer_journey_analytics\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp4_customer_journey_analytics\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "4279ebfa8cdcde57ee0b50e264a171de",
+      "size_bytes": 1533
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp5_root_cause_driver_analytics\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp5_root_cause_driver_analytics\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "8ca649ab6bdc67e513801ec5ac242a28",
+      "size_bytes": 1374
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp6_genai_resolution_assistant\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp6_genai_resolution_assistant\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "3d4ec9f3e1006f22c93cadbe5ca825de",
+      "size_bytes": 1351
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp7_customer_navigator_decision_engine\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp7_customer_navigator_decision_engine\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "3fa40df4bb90e8939c27db11f8828d00",
+      "size_bytes": 2273
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp1_customer_intent_classification.yaml": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp1_customer_intent_classification.yaml",
+      "exists": true,
+      "md5": "eebfe249a1a4347932ec71f1248a9d16",
+      "size_bytes": 3897
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp2_customer_friction_classification.yaml": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp2_customer_friction_classification.yaml",
+      "exists": true,
+      "md5": "c80eef04bb4bfa7ecffe96b43f51b7ea",
+      "size_bytes": 6059
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\bp1_customer_intent_classification\\executive_rollup\\bp1_executive_rollup_dashboard.html": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\bp1_customer_intent_classification\\executive_rollup\\bp1_executive_rollup_dashboard.html",
+      "exists": true,
+      "md5": "d6fe8a59e19c34d5190e045cc46e8a0d",
+      "size_bytes": 214018
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\bp2_customer_friction_classification\\executive_rollup\\bp2_executive_rollup_dashboard.html": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\bp2_customer_friction_classification\\executive_rollup\\bp2_executive_rollup_dashboard.html",
+      "exists": true,
+      "md5": "366a09b34242bc8ac08cf99f4269f20e",
+      "size_bytes": 2687902
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\policy.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\policy.json",
+      "exists": true,
+      "md5": "cd0b1779a0d5d1456826146faa192302",
+      "size_bytes": 20627
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\gate2_gold_table_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\gate2_gold_table_manifest.json",
+      "exists": true,
+      "md5": "fe59f5d2e75488ce1582d0b77d76c62a",
+      "size_bytes": 12992
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\gate3_decision_engine_kpi_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\gate3_decision_engine_kpi_manifest.json",
+      "exists": true,
+      "md5": "3161794607de2121240faead4c9d1b7e",
+      "size_bytes": 2712
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp8_executive_product_analytics.yaml": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp8_executive_product_analytics.yaml",
+      "exists": true,
+      "md5": "ad1db7a1af4bf1b75f25395c398b6bb3",
+      "size_bytes": 3494
+    }
+  },
+  "source_file_fingerprints_after": {
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp1_customer_intent_classification\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp1_customer_intent_classification\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "2a833e5a8dc4f84496447c217dd859c5",
+      "size_bytes": 1594
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp2_customer_friction_classification\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp2_customer_friction_classification\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "6ec7fc807063432682a759496d404ca7",
+      "size_bytes": 1638
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp3_complaint_escalation_prediction\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp3_complaint_escalation_prediction\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "5df58fa0964df15ea55c12fac9eca60f",
+      "size_bytes": 1829
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp4_customer_journey_analytics\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp4_customer_journey_analytics\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "4279ebfa8cdcde57ee0b50e264a171de",
+      "size_bytes": 1533
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp5_root_cause_driver_analytics\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp5_root_cause_driver_analytics\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "8ca649ab6bdc67e513801ec5ac242a28",
+      "size_bytes": 1374
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp6_genai_resolution_assistant\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp6_genai_resolution_assistant\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "3d4ec9f3e1006f22c93cadbe5ca825de",
+      "size_bytes": 1351
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp7_customer_navigator_decision_engine\\artifacts\\executive_rollup_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp7_customer_navigator_decision_engine\\artifacts\\executive_rollup_manifest.json",
+      "exists": true,
+      "md5": "3fa40df4bb90e8939c27db11f8828d00",
+      "size_bytes": 2273
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp1_customer_intent_classification.yaml": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp1_customer_intent_classification.yaml",
+      "exists": true,
+      "md5": "eebfe249a1a4347932ec71f1248a9d16",
+      "size_bytes": 3897
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp2_customer_friction_classification.yaml": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp2_customer_friction_classification.yaml",
+      "exists": true,
+      "md5": "c80eef04bb4bfa7ecffe96b43f51b7ea",
+      "size_bytes": 6059
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\bp1_customer_intent_classification\\executive_rollup\\bp1_executive_rollup_dashboard.html": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\bp1_customer_intent_classification\\executive_rollup\\bp1_executive_rollup_dashboard.html",
+      "exists": true,
+      "md5": "d6fe8a59e19c34d5190e045cc46e8a0d",
+      "size_bytes": 214018
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\bp2_customer_friction_classification\\executive_rollup\\bp2_executive_rollup_dashboard.html": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\bp2_customer_friction_classification\\executive_rollup\\bp2_executive_rollup_dashboard.html",
+      "exists": true,
+      "md5": "366a09b34242bc8ac08cf99f4269f20e",
+      "size_bytes": 2687902
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\policy.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\policy.json",
+      "exists": true,
+      "md5": "cd0b1779a0d5d1456826146faa192302",
+      "size_bytes": 20627
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\gate2_gold_table_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\gate2_gold_table_manifest.json",
+      "exists": true,
+      "md5": "fe59f5d2e75488ce1582d0b77d76c62a",
+      "size_bytes": 12992
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\gate3_decision_engine_kpi_manifest.json": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\notebooks\\bp8_executive_product_analytics\\artifacts\\gate3_decision_engine_kpi_manifest.json",
+      "exists": true,
+      "md5": "3161794607de2121240faead4c9d1b7e",
+      "size_bytes": 2712
+    },
+    "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp8_executive_product_analytics.yaml": {
+      "path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp8_executive_product_analytics.yaml",
+      "exists": true,
+      "md5": "ad1db7a1af4bf1b75f25395c398b6bb3",
+      "size_bytes": 3494
+    }
+  },
+  "output_paths": {
+    "dashboard_html": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\00_suite_executive_rollup\\00_suite_executive_rollup_dashboard.html",
+    "report_docx": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\00_suite_executive_rollup\\00_suite_executive_rollup_report.docx",
+    "workbook_xlsx": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\00_suite_executive_rollup\\00_suite_executive_rollup_workbook.xlsx",
+    "deck_pptx": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\reports\\00_suite_executive_rollup\\00_suite_executive_rollup_deck.pptx"
+  },
+  "power_bi_pbix_build": "out_of_scope_human_task_master_plan_section_19",
+  "report_pdf": {
+    "status": "skipped",
+    "reason": "Neither docx2pdf (Microsoft Word) nor soffice/libreoffice was able to convert the DOCX to PDF. docx2pdf: No module named 'docx2pdf'. soffice: soffice/libreoffice not found on PATH. The HTML/DOCX/XLSX/PPTX outputs were written regardless -- install Microsoft Word or LibreOffice and re-run this notebook to also get the PDF.",
+    "path": null
+  }
+}

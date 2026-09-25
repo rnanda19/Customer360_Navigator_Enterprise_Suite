@@ -1,0 +1,18 @@
+driver_field,source_column,transform,null_handling
+"Product (one-hot + chi-square/logistic-regression driver, Gate 3/4)",Product,one-hot encoding (Gate 3/4); tested against BOTH outcome_1 and outcome_2,"no real nulls in this column (BP5 Gate 1 policy.json, re-verified live)"
+"Sub-product (one-hot + chi-square/logistic-regression driver, Gate 3/4)",Sub-product,one-hot encoding (Gate 3/4); tested against BOTH outcome_1 and outcome_2,real nulls filled with sentinel category 'MISSING_SUB_PRODUCT'
+"Issue (one-hot + chi-square/logistic-regression driver, Gate 3/4)",Issue,one-hot encoding (Gate 3/4); tested against BOTH outcome_1 and outcome_2,"no real nulls in this column (BP5 Gate 1 policy.json, re-verified live)"
+"Sub-issue (one-hot + chi-square/logistic-regression driver, Gate 3/4)",Sub-issue,one-hot encoding (Gate 3/4); tested against BOTH outcome_1 and outcome_2,real nulls filled with sentinel category 'MISSING_SUB_ISSUE'
+"Submitted via (one-hot + chi-square/logistic-regression driver, Gate 3/4)",Submitted via,one-hot encoding (Gate 3/4); tested against BOTH outcome_1 and outcome_2,"no real nulls in this column (BP5 Gate 1 policy.json, re-verified live)"
+Company_freq,Company,"frequency encoding (fit on train only, Gate 3/4); tested against BOTH outcomes; unseen test-time companies get frequency 0 - never fabricated","no real nulls in this column (BP5 Gate 1 policy.json, re-verified live)"
+State (CONTROL ONLY - never a named primary driver),State,"one-hot encoding as a control dimension only (Gate 3/4) - per BP5 Gate 1's own explicit scoping choice, never reported as a named 'product/issue/process' driver",real nulls filled with sentinel category 'MISSING_STATE'
+"outcome_1_intervention_required (TARGET 1 of 2, not a driver)",Company response to consumer,"binary outcome rule, reused verbatim from BP3 Gate 1 - never used as an input driver","n/a - this is outcome 1, not an input driver field"
+"outcome_2_timely_response_failure (TARGET 2 of 2, not a driver)",Timely response?,"binary outcome rule, new to BP5 - never used as an input driver","n/a - this is outcome 2, not an input driver field"
+(none - barred),Company response to consumer,EXCLUDED from the candidate driver set entirely - see BP5 Gate 1 policy.json leakage_rules,n/a - column is never read into any candidate driver field
+(none - barred),Timely response?,EXCLUDED from the candidate driver set entirely - see BP5 Gate 1 policy.json leakage_rules,n/a - column is never read into any candidate driver field
+(none - barred),Date received,EXCLUDED from the candidate driver set entirely - see BP5 Gate 1 policy.json leakage_rules,n/a - column is never read into any candidate driver field
+(none - barred),Date sent to company,EXCLUDED from the candidate driver set entirely - see BP5 Gate 1 policy.json leakage_rules,n/a - column is never read into any candidate driver field
+(none - barred),Tags,EXCLUDED from the candidate driver set entirely - see BP5 Gate 1 policy.json leakage_rules,n/a - column is never read into any candidate driver field
+(none - barred),Company public response,EXCLUDED from the candidate driver set entirely - see BP5 Gate 1 policy.json leakage_rules,n/a - column is never read into any candidate driver field
+(none - barred),Complaint ID,EXCLUDED from the candidate driver set entirely - see BP5 Gate 1 policy.json leakage_rules,n/a - column is never read into any candidate driver field
+(none - barred),ZIP code,EXCLUDED from the candidate driver set entirely - see BP5 Gate 1 policy.json leakage_rules,n/a - column is never read into any candidate driver field

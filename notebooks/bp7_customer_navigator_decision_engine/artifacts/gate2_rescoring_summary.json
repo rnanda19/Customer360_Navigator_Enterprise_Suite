@@ -1,0 +1,52 @@
+{
+  "bp_id": "bp7",
+  "gate": 2,
+  "generated_at_utc": "2026-09-25T06:12:39.359985+00:00",
+  "live_row_count": 1048575,
+  "gate1_recorded_row_count": 1048575,
+  "complaint_id_is_unique_and_nonnull": true,
+  "barred_columns_structurally_excluded": [
+    "Company response to consumer",
+    "Timely response?",
+    "Date received",
+    "Date sent to company",
+    "Tags"
+  ],
+  "bundle_availability": {
+    "bp2": true,
+    "bp3": true
+  },
+  "bp5_gate5_artifacts_available": true,
+  "coverage": {
+    "n_rows": 1048575,
+    "bp1": {
+      "BP1_NO_TAXONOMY_MAPPING": 979865,
+      "BP1_TAXONOMY_CONTEXT_AVAILABLE": 68710
+    },
+    "bp2": {
+      "n_available": 1048575,
+      "n_unavailable": 0,
+      "pct_available": 100.0
+    },
+    "bp3": {
+      "n_available": 1048575,
+      "n_unavailable": 0,
+      "pct_available": 100.0
+    },
+    "bp4": {
+      "BP4_JOINED": 1022746,
+      "UNSCORED_MISSING_UPSTREAM_INPUT": 25829
+    },
+    "bp5_outcome_1": {
+      "ASSOCIATED_DRIVER_CATEGORY": 79486,
+      "NOT_IN_TOP_K_ASSOCIATION_LIST": 969089
+    },
+    "bp5_outcome_2": {
+      "ASSOCIATED_DRIVER_CATEGORY": 29002,
+      "NOT_IN_TOP_K_ASSOCIATION_LIST": 1019573
+    }
+  },
+  "gold_layer_path": "data/processed/cfpb_decision_engine_context_gold.parquet",
+  "gold_layer_rows_written": 1048575,
+  "feature_lineage_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate2_feature_lineage.csv"
+}

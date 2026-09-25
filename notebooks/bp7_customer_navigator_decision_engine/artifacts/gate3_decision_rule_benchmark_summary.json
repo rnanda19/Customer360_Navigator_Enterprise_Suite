@@ -1,0 +1,99 @@
+{
+  "bp_id": "bp7",
+  "gate": 3,
+  "generated_at_utc": "2026-09-25T06:12:43.121570+00:00",
+  "live_row_count": 1048575,
+  "gate2_recorded_row_count": 1048575,
+  "candidate_names": [
+    "equal_weight_baseline",
+    "domain_informed_weighted",
+    "correlation_aware",
+    "correlation_aware_plus_lr_diagnostic"
+  ],
+  "intervention_threshold": 0.5,
+  "bp2_bp3_correlation_check": {
+    "cramers_v": 0.21443806441558086,
+    "association_strength": "weak",
+    "low_friction_bp3_positive_rate": 1.0,
+    "overall_bp3_positive_rate": 0.0664,
+    "path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_bp2_bp3_correlation_check.json"
+  },
+  "upstream_validated_metrics": {
+    "bp2_f1_macro": 0.4559281112767134,
+    "bp2_f1_macro_source": "notebooks/bp2_customer_friction_classification/artifacts/gate3_champion_test_classification_report.json",
+    "bp3_pr_auc": 0.3496,
+    "bp3_pr_auc_source": "notebooks/bp3_complaint_escalation_prediction/artifacts/gate4_statistical_validation.json"
+  },
+  "bp4_join_coverage": 0.975368,
+  "weights_by_candidate": {
+    "equal_weight_baseline": {
+      "raw": {
+        "bp2": 1.0,
+        "bp3": 1.0,
+        "bp4": 1.0
+      },
+      "normalized": {
+        "bp2": 0.3333333333333333,
+        "bp3": 0.3333333333333333,
+        "bp4": 0.3333333333333333
+      }
+    },
+    "domain_informed_weighted": {
+      "raw": {
+        "bp2": 0.4559281112767134,
+        "bp3": 0.3496,
+        "bp4": 0.975368
+      },
+      "normalized": {
+        "bp2": 0.2560105041443778,
+        "bp3": 0.1963056675716889,
+        "bp4": 0.5476838282839332
+      }
+    },
+    "correlation_aware": {
+      "raw": {
+        "bp2": 0.3581597695818834,
+        "bp3": 0.27463245268031294,
+        "bp4": 0.975368
+      },
+      "normalized": {
+        "bp2": 0.2227139837335739,
+        "bp3": 0.17077431022015202,
+        "bp4": 0.606511706046274
+      }
+    },
+    "correlation_aware_plus_lr_diagnostic": {
+      "raw": {
+        "bp2": 0.3581597695818834,
+        "bp3": 0.27463245268031294,
+        "bp4": 0.975368
+      },
+      "normalized": {
+        "bp2": 0.2227139837335739,
+        "bp3": 0.17077431022015202,
+        "bp4": 0.606511706046274
+      }
+    }
+  },
+  "lr_diagnostic": {
+    "held_out_roc_auc": 0.895153,
+    "held_out_accuracy": 0.95998,
+    "n_rows_fit_sample": 200000,
+    "path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_lr_diagnostic.json"
+  },
+  "champion_rule_scheme": "correlation_aware_plus_lr_diagnostic",
+  "champion_redundancy_double_counting_score": 0.08437880509075808,
+  "champion_weights_normalized": {
+    "bp2": 0.222714,
+    "bp3": 0.170774,
+    "bp4": 0.606512
+  },
+  "champion_bp3_agreement_rate": 0.285865,
+  "champion_coverage_pct": 100.0,
+  "disparate_impact_carry_forward_check": {
+    "deferred_to_gate4": true,
+    "deferral_reason": "BP7 Gate 2's real re-scoring join does not preserve BP3's own tags_group grouping (confirmed live above by column-presence check on the real Gate 2 Gold layer) - it lives only in BP3's own held-out test-split gate5_decision_records.csv (row_index-keyed, no Complaint ID). Reconstructing tags_group at BP7 Gate 3 would require reading the raw, barred 'Tags' column as a BP7 input (Gate 1's leakage_rules bars this). Per BP7 Gate 1's own policy.json compliance_touchpoint.ecoa_reg_b, this disparate-impact-style check on BP7's own champion intervention_flag, grouped by tags_group, is deferred to Gate 4 - disclosed here explicitly, never silently skipped.",
+    "path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_disparate_impact_carry_forward_check.json"
+  },
+  "benchmark_results_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate3_benchmark_results.csv"
+}

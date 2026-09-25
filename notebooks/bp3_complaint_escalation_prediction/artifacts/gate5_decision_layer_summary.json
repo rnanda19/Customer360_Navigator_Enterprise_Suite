@@ -1,0 +1,93 @@
+{
+  "bp_id": "bp3",
+  "gate": 5,
+  "champion_model": "xgboost",
+  "n_decision_records": 163091,
+  "n_with_reason_codes": 150,
+  "shap_sample_size_bound": 150,
+  "n_reason_codes_per_record": 5,
+  "shap_error": null,
+  "held_out_test_pr_auc_recomputed": 0.349569,
+  "gate3_recorded_held_out_test_pr_auc": 0.3496,
+  "pr_auc_consistency_diff": 3.1e-05,
+  "primary_decision_threshold": 0.5,
+  "alternate_reference_threshold_from_gate4": 0.9,
+  "alternate_threshold_note": "predicted_label_at_best_f1_threshold is Gate 4's F1-maximizing threshold from its 9-point grid, carried as an explicitly labeled alternate reference point only - it does not replace predicted_label, which stays at the default 0.5 threshold Gate 3 officially reports at.",
+  "mean_predicted_probability_correct_predictions": 0.0319,
+  "mean_predicted_probability_incorrect_predictions": 0.8195,
+  "disparate_impact_check": {
+    "tags_group_breakdown": [
+      {
+        "tags_group": "NO_TAG",
+        "n_rows_in_test": 153194,
+        "n_real_positive_in_group": 1625,
+        "selection_rate_at_0.5_threshold": 0.0684,
+        "recall_at_0.5_threshold": 0.9477
+      },
+      {
+        "tags_group": "Servicemember",
+        "n_rows_in_test": 6726,
+        "n_real_positive_in_group": 161,
+        "selection_rate_at_0.5_threshold": 0.1615,
+        "recall_at_0.5_threshold": 0.913
+      },
+      {
+        "tags_group": "Older American",
+        "n_rows_in_test": 2447,
+        "n_real_positive_in_group": 252,
+        "selection_rate_at_0.5_threshold": 0.492,
+        "recall_at_0.5_threshold": 0.9365
+      },
+      {
+        "tags_group": "Older American, Servicemember",
+        "n_rows_in_test": 724,
+        "n_real_positive_in_group": 64,
+        "selection_rate_at_0.5_threshold": 0.4862,
+        "recall_at_0.5_threshold": 0.9062
+      }
+    ],
+    "adverse_impact_ratio_recomputed": 0.139,
+    "gate4_recorded_adverse_impact_ratio": 0.139,
+    "consistency_diff_vs_gate4": 2.4e-05,
+    "flagged": true,
+    "limitation": "Monitoring signal for a human reviewer, not a legal determination of ECOA/Reg B compliance. Carried forward from Gate 4's finding, independently recomputed here on this gate's own full refit and full held-out test set."
+  },
+  "gate5_aggregated_top_reason_code_terms": [
+    "Company_freq",
+    "ohe__Submitted via_Web",
+    "ohe__Product_Credit reporting, credit repair services, or other personal consumer reports",
+    "ohe__Sub-product_Credit reporting",
+    "ohe__Issue_Incorrect information on your report",
+    "ohe__Issue_Improper use of your report",
+    "ohe__State_TX",
+    "ohe__Sub-issue_Information belongs to someone else",
+    "ohe__Product_Credit reporting or other personal consumer reports",
+    "ohe__State_FL"
+  ],
+  "gate4_global_top10_terms": [
+    "Company_freq",
+    "ohe__Issue_Credit limit changed",
+    "ohe__Sub-issue_Problem with additional add-on products or services purchased with the loan",
+    "ohe__Sub-product_General-purpose credit card or charge card",
+    "ohe__State_NY",
+    "ohe__Issue_Other transaction problem",
+    "ohe__State_GA",
+    "ohe__Sub-product_Telecommunications debt",
+    "ohe__Sub-issue_Didn't receive services that were advertised",
+    "ohe__Sub-issue_Excess mileage, damage, or wear fees, or other problem after the lease is finished"
+  ],
+  "overlap_terms_with_gate4": [
+    "Company_freq"
+  ],
+  "overlap_count_with_gate4": 1,
+  "reason_code_grounding_failures": 0,
+  "reason_code_grounding_method": "A reason code is only ever reported for a row if that feature's value is nonzero in that row - i.e. the category is literally present in that row by construction of the one-hot encoding, not asserted after the fact.",
+  "compliance_touchpoint": {
+    "udaap_language_review": "Not Applicable to BP3 Gate 5 - this gate generates no GenAI or customer-facing text; predicted labels, probabilities, and per-instance SHAP reason codes are deterministic outputs of the champion classifier. Real GenAI-drafted customer-facing text (subject to UDAAP review) is scoped to BP6 (GenAI Resolution Assistant) per the Master Execution Plan, same standing scope decision as BP1/BP2 Gate 5.",
+    "nist_ai_rmf_measure_manage": "Not Applicable to BP3 Gate 5 for the same reason - no GenAI output is produced here. Applies at BP6.",
+    "ecoa_reg_b_disparate_impact_monitoring": "Applicable and carried forward from Gate 4 (see disparate_impact_check above) - recomputed independently here, not simply copied.",
+    "genai_api_used": false,
+    "scope_decision_confirmed_by_user_utc": "2026-09-22"
+  },
+  "generated_at_utc": "2026-09-23T09:13:17.664996+00:00"
+}

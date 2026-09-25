@@ -1,0 +1,244 @@
+# CFPB <-> BANKING77 taxonomy crosswalk — Customer360 Navigator
+# Master Execution Plan Section 6 (Integration Architecture) / Section 7 (BP1 Methodology, Gate 2)
+#
+# Source of truth:
+#   - CFPB Product/Sub-product values: real value_counts() over data/raw/cfpb_complaints.csv
+#     (1,048,575 data rows), measured 2026-09-21. See docs/data_dictionary/RAW_DATA_MANIFEST.md
+#     and CFPB_BANKING77_TAXONOMY_MAPPING.md for the full distribution and rationale.
+#   - BANKING77 category names: verbatim from data/external/banking77_categories.json (77 total).
+#
+# This is a documented judgment mapping (Gate 2 taxonomy engineering), not a statistical result.
+# Every 'confidence' value below is a stated reasoning judgment — HIGH/MEDIUM/LOW — never invented
+# as a computed metric. Do not treat this file as ground truth without Gate 2 human review.
+
+total_cfpb_rows: 1048575
+in_scope_cfpb_rows: 68710
+out_of_scope_cfpb_rows: 979865
+in_scope_fraction: 0.0655
+
+cfpb_product_distribution:
+  - product: "Credit reporting, credit repair services, or other personal consumer reports"
+    row_count: 477097
+    fraction_of_total: 0.455
+    in_scope_for_banking77_overlap: false
+  - product: "Credit reporting or other personal consumer reports"
+    row_count: 430204
+    fraction_of_total: 0.4103
+    in_scope_for_banking77_overlap: false
+  - product: "Debt collection"
+    row_count: 44493
+    fraction_of_total: 0.0424
+    in_scope_for_banking77_overlap: false
+  - product: "Checking or savings account"
+    row_count: 27952
+    fraction_of_total: 0.0267
+    in_scope_for_banking77_overlap: true
+  - product: "Credit card or prepaid card"
+    row_count: 25486
+    fraction_of_total: 0.0243
+    in_scope_for_banking77_overlap: true
+  - product: "Mortgage"
+    row_count: 12133
+    fraction_of_total: 0.0116
+    in_scope_for_banking77_overlap: false
+  - product: "Money transfer, virtual currency, or money service"
+    row_count: 8263
+    fraction_of_total: 0.0079
+    in_scope_for_banking77_overlap: true
+  - product: "Vehicle loan or lease"
+    row_count: 7215
+    fraction_of_total: 0.0069
+    in_scope_for_banking77_overlap: false
+  - product: "Credit card"
+    row_count: 6575
+    fraction_of_total: 0.0063
+    in_scope_for_banking77_overlap: true
+  - product: "Student loan"
+    row_count: 3948
+    fraction_of_total: 0.0038
+    in_scope_for_banking77_overlap: false
+  - product: "Payday loan, title loan, or personal loan"
+    row_count: 3308
+    fraction_of_total: 0.0032
+    in_scope_for_banking77_overlap: false
+  - product: "Payday loan, title loan, personal loan, or advance loan"
+    row_count: 1187
+    fraction_of_total: 0.0011
+    in_scope_for_banking77_overlap: false
+  - product: "Prepaid card"
+    row_count: 434
+    fraction_of_total: 0.0004
+    in_scope_for_banking77_overlap: true
+  - product: "Debt or credit management"
+    row_count: 259
+    fraction_of_total: 0.0002
+    in_scope_for_banking77_overlap: false
+  - product: "Credit reporting"
+    row_count: 21
+    fraction_of_total: 0.0
+    in_scope_for_banking77_overlap: false
+
+common_taxonomy_buckets:
+  CARD_ISSUANCE_AND_LIFECYCLE:
+    cfpb_product_candidates:
+      - "Credit card or prepaid card"
+      - "Credit card"
+      - "Prepaid card"
+    cfpb_subproduct_candidates:
+      - "General-purpose credit card or charge card"
+      - "General-purpose prepaid card"
+      - "Store credit card"
+      - "Government benefit card"
+    confidence: MEDIUM
+    rationale: "BANKING77 categories about receiving/activating/losing/replacing a physical or virtual card map to CFPB's card-product family. CFPB does not separately code 'card lifecycle' as an Issue, so this is a product-level match only, not issue-level."
+  CARD_PAYMENT_ISSUES:
+    cfpb_product_candidates:
+      - "Credit card or prepaid card"
+      - "Credit card"
+      - "Prepaid card"
+    cfpb_subproduct_candidates:
+      - "General-purpose credit card or charge card"
+      - "General-purpose prepaid card"
+    confidence: MEDIUM
+    rationale: "Declined/failed/double-charged/fee-disputed card payments correspond to CFPB card-product complaints, but the specific CFPB Issue values for these rows have not yet been pulled and verified (Gate 2 follow-up) — confidence is capped at MEDIUM until that is done."
+  ATM_CASH_WITHDRAWAL:
+    cfpb_product_candidates:
+      - "Checking or savings account"
+      - "Credit card or prepaid card"
+    cfpb_subproduct_candidates:
+      - "Checking account"
+      - "Savings account"
+    confidence: LOW
+    rationale: "CFPB does not have a dedicated ATM/cash-withdrawal product; ATM disputes are typically filed under the deposit-account product. This is an inference, not a confirmed CFPB coding rule — flagged LOW until cross-checked against real Issue values."
+  TRANSFERS:
+    cfpb_product_candidates:
+      - "Money transfer, virtual currency, or money service"
+      - "Checking or savings account"
+    cfpb_subproduct_candidates:
+      - "Domestic (US) money transfer"
+      - "International money transfer"
+    confidence: HIGH
+    rationale: "CFPB's 'Money transfer, virtual currency, or money service' product is a direct, named match for BANKING77's transfer-related categories (sent/received/cancelled/declined/failed transfers, beneficiary and timing issues)."
+  TOP_UP_AND_WALLET:
+    cfpb_product_candidates:
+      - "Money transfer, virtual currency, or money service"
+    cfpb_subproduct_candidates:
+      - "Mobile or digital wallet"
+      - "Virtual currency"
+    confidence: LOW
+    rationale: "BANKING77's 'top up' categories describe adding funds to a digital wallet/prepaid account, a product type CFPB does not code with the same granularity. Mapped to the closest available CFPB sub-product as a judgment call, not a confirmed equivalence."
+  FX_AND_EXCHANGE:
+    cfpb_product_candidates:
+      - "Money transfer, virtual currency, or money service"
+    cfpb_subproduct_candidates:
+      - "International money transfer"
+      - "Virtual currency"
+    confidence: LOW
+    rationale: "Exchange-rate and currency-support categories have no precise CFPB analog in this product list; mapped to the money-transfer/virtual-currency product as the nearest defensible match."
+  IDENTITY_AND_ACCOUNT_VERIFICATION:
+    cfpb_product_candidates:
+      - "Checking or savings account"
+      - "Credit card or prepaid card"
+    cfpb_subproduct_candidates:
+      - "Checking account"
+      - "Savings account"
+    confidence: LOW
+    rationale: "Identity verification, PIN, and passcode categories could plausibly appear under deposit-account or card-product complaints in CFPB, but no CFPB Issue value confirming this has been pulled yet — treat as an open hypothesis, not a verified mapping."
+  FRAUD_AND_DISPUTES:
+    cfpb_product_candidates:
+      - "Credit card or prepaid card"
+      - "Checking or savings account"
+    cfpb_subproduct_candidates:
+      - "General-purpose credit card or charge card"
+      - "Checking account"
+    confidence: MEDIUM
+    rationale: "Lost/stolen-card, compromised-card, refund, and duplicate-charge categories align with CFPB's well-known 'fraud or scam' / 'problem with a purchase' issue family under card and deposit products, though the exact Issue strings have not yet been verified against this file."
+  ACCOUNT_MANAGEMENT:
+    cfpb_product_candidates:
+      - "Checking or savings account"
+      - "Credit card or prepaid card"
+    cfpb_subproduct_candidates:
+      - "Checking account"
+      - "Savings account"
+    confidence: MEDIUM
+    rationale: "Account closure and balance-after-deposit categories map to CFPB's deposit-account and card-account product families."
+
+banking77_category_to_bucket:
+  "card_arrival": CARD_ISSUANCE_AND_LIFECYCLE
+  "card_linking": CARD_ISSUANCE_AND_LIFECYCLE
+  "exchange_rate": FX_AND_EXCHANGE
+  "card_payment_wrong_exchange_rate": CARD_PAYMENT_ISSUES
+  "extra_charge_on_statement": CARD_PAYMENT_ISSUES
+  "pending_cash_withdrawal": ATM_CASH_WITHDRAWAL
+  "fiat_currency_support": FX_AND_EXCHANGE
+  "card_delivery_estimate": CARD_ISSUANCE_AND_LIFECYCLE
+  "automatic_top_up": TOP_UP_AND_WALLET
+  "card_not_working": CARD_PAYMENT_ISSUES
+  "exchange_via_app": FX_AND_EXCHANGE
+  "lost_or_stolen_card": CARD_ISSUANCE_AND_LIFECYCLE
+  "age_limit": IDENTITY_AND_ACCOUNT_VERIFICATION
+  "pin_blocked": IDENTITY_AND_ACCOUNT_VERIFICATION
+  "contactless_not_working": CARD_PAYMENT_ISSUES
+  "top_up_by_bank_transfer_charge": TOP_UP_AND_WALLET
+  "pending_top_up": TOP_UP_AND_WALLET
+  "cancel_transfer": TRANSFERS
+  "top_up_limits": TOP_UP_AND_WALLET
+  "wrong_amount_of_cash_received": ATM_CASH_WITHDRAWAL
+  "card_payment_fee_charged": CARD_PAYMENT_ISSUES
+  "transfer_not_received_by_recipient": TRANSFERS
+  "supported_cards_and_currencies": CARD_ISSUANCE_AND_LIFECYCLE
+  "getting_virtual_card": CARD_ISSUANCE_AND_LIFECYCLE
+  "card_acceptance": CARD_PAYMENT_ISSUES
+  "top_up_reverted": TOP_UP_AND_WALLET
+  "balance_not_updated_after_cheque_or_cash_deposit": ACCOUNT_MANAGEMENT
+  "card_payment_not_recognised": CARD_PAYMENT_ISSUES
+  "edit_personal_details": IDENTITY_AND_ACCOUNT_VERIFICATION
+  "why_verify_identity": IDENTITY_AND_ACCOUNT_VERIFICATION
+  "unable_to_verify_identity": IDENTITY_AND_ACCOUNT_VERIFICATION
+  "get_physical_card": CARD_ISSUANCE_AND_LIFECYCLE
+  "visa_or_mastercard": CARD_ISSUANCE_AND_LIFECYCLE
+  "topping_up_by_card": TOP_UP_AND_WALLET
+  "disposable_card_limits": CARD_ISSUANCE_AND_LIFECYCLE
+  "compromised_card": FRAUD_AND_DISPUTES
+  "atm_support": ATM_CASH_WITHDRAWAL
+  "direct_debit_payment_not_recognised": TRANSFERS
+  "passcode_forgotten": IDENTITY_AND_ACCOUNT_VERIFICATION
+  "declined_cash_withdrawal": ATM_CASH_WITHDRAWAL
+  "pending_card_payment": CARD_PAYMENT_ISSUES
+  "lost_or_stolen_phone": FRAUD_AND_DISPUTES
+  "request_refund": FRAUD_AND_DISPUTES
+  "declined_transfer": TRANSFERS
+  "Refund_not_showing_up": FRAUD_AND_DISPUTES
+  "declined_card_payment": CARD_PAYMENT_ISSUES
+  "pending_transfer": TRANSFERS
+  "terminate_account": ACCOUNT_MANAGEMENT
+  "card_swallowed": CARD_ISSUANCE_AND_LIFECYCLE
+  "transaction_charged_twice": FRAUD_AND_DISPUTES
+  "verify_source_of_funds": IDENTITY_AND_ACCOUNT_VERIFICATION
+  "transfer_timing": TRANSFERS
+  "reverted_card_payment?": CARD_PAYMENT_ISSUES
+  "change_pin": IDENTITY_AND_ACCOUNT_VERIFICATION
+  "beneficiary_not_allowed": TRANSFERS
+  "transfer_fee_charged": TRANSFERS
+  "receiving_money": TRANSFERS
+  "failed_transfer": TRANSFERS
+  "transfer_into_account": TRANSFERS
+  "verify_top_up": TOP_UP_AND_WALLET
+  "getting_spare_card": CARD_ISSUANCE_AND_LIFECYCLE
+  "top_up_by_cash_or_cheque": TOP_UP_AND_WALLET
+  "order_physical_card": CARD_ISSUANCE_AND_LIFECYCLE
+  "virtual_card_not_working": CARD_PAYMENT_ISSUES
+  "wrong_exchange_rate_for_cash_withdrawal": ATM_CASH_WITHDRAWAL
+  "get_disposable_virtual_card": CARD_ISSUANCE_AND_LIFECYCLE
+  "top_up_failed": TOP_UP_AND_WALLET
+  "balance_not_updated_after_bank_transfer": ACCOUNT_MANAGEMENT
+  "cash_withdrawal_not_recognised": ATM_CASH_WITHDRAWAL
+  "exchange_charge": FX_AND_EXCHANGE
+  "top_up_by_card_charge": TOP_UP_AND_WALLET
+  "activate_my_card": CARD_ISSUANCE_AND_LIFECYCLE
+  "cash_withdrawal_charge": ATM_CASH_WITHDRAWAL
+  "card_about_to_expire": CARD_ISSUANCE_AND_LIFECYCLE
+  "apple_pay_or_google_pay": CARD_PAYMENT_ISSUES
+  "verify_my_identity": IDENTITY_AND_ACCOUNT_VERIFICATION
+  "country_support": FX_AND_EXCHANGE
+

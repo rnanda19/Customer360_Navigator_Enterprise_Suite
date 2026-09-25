@@ -1,0 +1,85 @@
+{
+  "bp_id": "bp2",
+  "gate": 3,
+  "compliance_touchpoint": "Model inventory entry opened (SR 11-7 first-line record)",
+  "model_name": "xgboost",
+  "model_family": "one-hot/frequency-encoded structured features + xgboost",
+  "target_variable": "friction_severity_class",
+  "feature_columns": [
+    "Product",
+    "Sub-product",
+    "Issue",
+    "Sub-issue",
+    "State",
+    "Submitted via",
+    "common_taxonomy_bucket",
+    "Company"
+  ],
+  "barred_columns": [
+    "Company response to consumer",
+    "Timely response?",
+    "Date received",
+    "Date sent to company",
+    "Company public response",
+    "Complaint ID",
+    "ZIP code",
+    "Tags"
+  ],
+  "excluded_classes_not_trained_on": [
+    "EXCLUDED_PENDING",
+    "EXCLUDED_UNKNOWN"
+  ],
+  "training_data": "Real CFPB extract, fresh stratified 80/20 split (CFPB provides no split of its own), random_state=42",
+  "n_train_rows": 653373,
+  "n_test_rows": 163344,
+  "n_classes": 4,
+  "class_imbalance_ratio_majority_over_minority": 152.0,
+  "cv_folds": 5,
+  "cv_mean_f1_macro": 0.4584,
+  "held_out_test_f1_macro": 0.4559281112767134,
+  "held_out_test_f1_weighted": 0.7354978468611081,
+  "held_out_test_accuracy": 0.7557730923694779,
+  "candidates_evaluated": [
+    "logistic_regression",
+    "random_forest",
+    "hist_gradient_boosting",
+    "xgboost",
+    "lightgbm"
+  ],
+  "candidates_failed": [],
+  "demographic_adjacent_tags_found": [
+    "servicemember",
+    "older american",
+    "older american, servicemember"
+  ],
+  "open_item_company_public_response_ablation_not_run": true,
+  "generated_at_utc": "2026-09-22T14:58:50.729269+00:00",
+  "status": "Model persistence (Hardening Step 2) complete",
+  "gate4_paired_ttest_pvalue_vs_runner_up": 0.2371,
+  "gate4_held_out_test_f1_macro_bootstrap_ci_95": [
+    0.4452,
+    0.4666
+  ],
+  "gate4_roc_auc_ovr_macro": 0.8857,
+  "gate4_generated_at_utc": "2026-09-22T15:35:22.097700+00:00",
+  "gate5_n_decision_records": 163344,
+  "gate5_overall_test_accuracy": 0.755773,
+  "gate5_genai_api_used": false,
+  "gate5_generated_at_utc": "2026-09-22T15:38:17.753479+00:00",
+  "gate6_pytest_all_passed": true,
+  "gate6_pytest_counts": {
+    "passed": 105,
+    "failed": 0,
+    "skipped": 1,
+    "errors": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "gate6_notebook_syntax_all_passed": true,
+  "gate6_model_card_path": "reports\\bp2_customer_friction_classification\\MODEL_CARD.md",
+  "gate6_generated_at_utc": "2026-09-22T15:38:48.420509+00:00",
+  "model_persistence_joblib_path": "models\\bp2_customer_friction_classification\\bp2_champion_bundle.joblib",
+  "model_persistence_sha256": "e067dbfa94124cf8d6145ddfd3fee0eaaa3d4572c7d83df454caa611b2c4aba1",
+  "model_persistence_reload_verified": true,
+  "model_persistence_generated_at_utc": "2026-09-25T16:05:36.314557+00:00"
+}

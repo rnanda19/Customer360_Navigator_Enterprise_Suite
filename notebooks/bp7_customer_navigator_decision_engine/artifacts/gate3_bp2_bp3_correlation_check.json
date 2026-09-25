@@ -1,0 +1,18 @@
+{
+  "chi_square_cramers_v": {
+    "driver_field": "bp2_predicted_label",
+    "outcome_field": "bp3_predicted_label",
+    "n_rows_tested": 1048575,
+    "n_distinct_levels": 4,
+    "chi2_statistic": 48217.34089487067,
+    "degrees_of_freedom": 3,
+    "p_value": 0.0,
+    "cramers_v": 0.21443806441558086,
+    "association_strength": "weak",
+    "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+  },
+  "n_low_friction_rows": 2331,
+  "overall_bp3_positive_rate": 0.0664,
+  "low_friction_bp3_positive_rate": 1.0,
+  "interpretation": "BP7 Gate 1's own policy.json (assumptions) named this exact open question - whether BP2's LOW_FRICTION class and BP3's positive class, both defined on the identical real CFPB value 'Closed with monetary relief', are independent, additively-combinable signals. cramers_v above real-quantifies the overall association between the two full prediction fields; low_friction_bp3_positive_rate real-quantifies the specific redundancy Gate 1 flagged, against overall_bp3_positive_rate as the real base-rate reference. Neither number is a causal claim - both are real, live-computed associations on BP7's own Gate 2 Gold layer. cramers_v feeds the correlation_aware / correlation_aware_plus_lr_diagnostic candidates' weight-redundancy discount below - this function does not itself decide independence or dependence a priori."
+}

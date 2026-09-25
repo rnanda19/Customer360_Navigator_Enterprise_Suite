@@ -1,0 +1,236 @@
+{
+  "bp_id": "bp8",
+  "bp_name": "bp8_executive_product_analytics",
+  "gate": 2,
+  "generated_at_utc": "2026-09-25T09:38:15.512377+00:00",
+  "upstream_bp_status": {
+    "bp1": {
+      "bp_name": "bp1_customer_intent_classification",
+      "config_path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp1_customer_intent_classification.yaml",
+      "status": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+      "gate6_reached": true,
+      "old_substring_only_check": true
+    },
+    "bp2": {
+      "bp_name": "bp2_customer_friction_classification",
+      "config_path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp2_customer_friction_classification.yaml",
+      "status": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+      "gate6_reached": true,
+      "old_substring_only_check": true
+    },
+    "bp3": {
+      "bp_name": "bp3_complaint_escalation_prediction",
+      "config_path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp3_complaint_escalation_prediction.yaml",
+      "status": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+      "gate6_reached": true,
+      "old_substring_only_check": true
+    },
+    "bp4": {
+      "bp_name": "bp4_customer_journey_analytics",
+      "config_path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp4_customer_journey_analytics.yaml",
+      "status": "gate6_complete",
+      "gate6_reached": true,
+      "old_substring_only_check": true
+    },
+    "bp5": {
+      "bp_name": "bp5_root_cause_driver_analytics",
+      "config_path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp5_root_cause_driver_analytics.yaml",
+      "status": "gate1_confirmed",
+      "gate6_reached": true,
+      "old_substring_only_check": false
+    },
+    "bp6": {
+      "bp_name": "bp6_genai_resolution_assistant",
+      "config_path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp6_genai_resolution_assistant.yaml",
+      "status": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed",
+      "gate6_reached": true,
+      "old_substring_only_check": false
+    },
+    "bp7": {
+      "bp_name": "bp7_customer_navigator_decision_engine",
+      "config_path": "C:\\Users\\rnand\\Documents\\Customer360_Navigator_Enterprise_Suite\\configs\\bp7_customer_navigator_decision_engine.yaml",
+      "status": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed",
+      "gate6_reached": true,
+      "old_substring_only_check": false
+    }
+  },
+  "kpi_category_scope": {
+    "friction_trends": {
+      "ready": true,
+      "reason": "BP2 (customer friction classification) has reached its own real Gate6 and its Gold table cfpb_friction_severity_gold.parquet is present; BP8 rolls up friction_severity_class exactly as BP2 computed it."
+    },
+    "escalation_trends": {
+      "ready": true,
+      "reason": "BP3 (complaint escalation prediction) has reached its own real Gate6 and its Gold table cfpb_intervention_escalation_gold.parquet is present; BP8 rolls up intervention_required exactly as BP3 computed it."
+    },
+    "product_opportunity_flags": {
+      "ready": true,
+      "reason": "BP4 (customer journey analytics) has reached its own real Gate6 and its real review_priority_tier source, models/bp4_customer_journey_analytics/bp4_decision_artifact_index.parquet, is present (correcting Gate1's own policy.json, which named cfpb_issue_cluster_summary_gold.parquet \u2014 a file that does not contain review_priority_tier)."
+    },
+    "customer_intent_and_volume": {
+      "ready": true,
+      "reason": "BP1 (customer intent classification) has reached its own real Gate6 and both its Gold tables (cfpb_common_taxonomy_gold.parquet, banking77_common_taxonomy_gold.parquet) are present."
+    },
+    "root_cause_driver_kpis": {
+      "ready": true,
+      "reason": "BP5 (root cause driver analytics) has reached its own real Gate6 \u2014 visible only via the corrected multi-signal check (a flat gate6_generated_at_utc key), since BP5's status string itself never grows a 'gate6' substring \u2014 and its Gold table cfpb_root_cause_driver_gold.parquet plus its Gate5 field-driver-ranking JSON artifacts are present. This is a genuine upgrade from Gate1's own deferred verdict."
+    },
+    "genai_resolution_kpis": {
+      "ready": false,
+      "reason": "BP6 (GenAI resolution assistant) has reached its own real Gate6 (via the corrected multi-signal check, nested gate6_productization_monitoring_governance dict), but has no Gold-layer parquet anywhere under data/processed/ and no quantifiable governed outcome table under its own notebooks/artifacts/ folder (only PII-screening, retrieval-strategy, explainability-trace and human-review-pending artifacts). Deferred cleanly; same verdict as Gate1, for the same underlying reason (no Gold table exists), now confirmed live rather than assumed."
+    },
+    "decision_engine_kpis": {
+      "ready": false,
+      "reason": "BP7 (customer navigator decision engine) has reached its own real Gate6 (via the corrected multi-signal check, flat gate6_generated_at_utc key) \u2014 unlike Gate1's own snapshot, which recorded bp7 gate6_reached=False. However BP7 has no data/processed/*_gold.parquet final decision-output table: only a Gate2 input/context Gold parquet (cfpb_decision_engine_context_gold.parquet), which lacks BP7's own final priority_score/recommended_action fields. Deferred, same DEFERRED verdict as Gate1, but for an updated, more precise reason: BP7's real Gate6 IS now done, but its real decision-output Gold table specifically still does not exist under data/processed/."
+    }
+  },
+  "gold_tables_written": [
+    {
+      "category": "friction_trends",
+      "filename": "bp8_gold_friction_trends.parquet",
+      "relative_path": "powerbi\\gold_tables\\bp8_gold_friction_trends.parquet",
+      "n_rows": 700,
+      "columns": [
+        "complaint_month",
+        "Product",
+        "friction_severity_class",
+        "n_complaints"
+      ]
+    },
+    {
+      "category": "escalation_trends",
+      "filename": "bp8_gold_escalation_trends.parquet",
+      "relative_path": "powerbi\\gold_tables\\bp8_gold_escalation_trends.parquet",
+      "n_rows": 521,
+      "columns": [
+        "complaint_month",
+        "Product",
+        "intervention_status",
+        "n_complaints"
+      ]
+    },
+    {
+      "category": "product_opportunity_flags",
+      "filename": "bp8_gold_product_opportunity_flags.parquet",
+      "relative_path": "powerbi\\gold_tables\\bp8_gold_product_opportunity_flags.parquet",
+      "n_rows": 37160,
+      "columns": [
+        "Company",
+        "Product",
+        "Sub-product",
+        "Issue",
+        "Sub-issue",
+        "n_complaints_total",
+        "first_complaint_date",
+        "last_complaint_date",
+        "review_priority_score",
+        "review_priority_tier",
+        "reason_codes",
+        "recurring_flag",
+        "elevated_lag_flag",
+        "high_volume_flag"
+      ]
+    },
+    {
+      "category": "customer_intent_and_volume",
+      "filename": "bp8_gold_customer_intent_taxonomy_trends.parquet",
+      "relative_path": "powerbi\\gold_tables\\bp8_gold_customer_intent_taxonomy_trends.parquet",
+      "n_rows": 262,
+      "columns": [
+        "complaint_month",
+        "Product",
+        "common_taxonomy_bucket",
+        "n_complaints"
+      ]
+    },
+    {
+      "category": "customer_intent_and_volume",
+      "filename": "bp8_gold_customer_intent_banking77_categories.parquet",
+      "relative_path": "powerbi\\gold_tables\\bp8_gold_customer_intent_banking77_categories.parquet",
+      "n_rows": 154,
+      "columns": [
+        "category",
+        "common_taxonomy_bucket",
+        "split",
+        "n_examples"
+      ]
+    },
+    {
+      "category": "root_cause_driver_kpis",
+      "filename": "bp8_gold_root_cause_outcome_trends.parquet",
+      "relative_path": "powerbi\\gold_tables\\bp8_gold_root_cause_outcome_trends.parquet",
+      "n_rows": 660,
+      "columns": [
+        "complaint_month",
+        "Product",
+        "outcome_1_status",
+        "outcome_2_status",
+        "n_complaints"
+      ]
+    },
+    {
+      "category": "root_cause_driver_kpis",
+      "filename": "bp8_gold_root_cause_field_driver_ranking.parquet",
+      "relative_path": "powerbi\\gold_tables\\bp8_gold_root_cause_field_driver_ranking.parquet",
+      "n_rows": 10,
+      "columns": [
+        "outcome_field",
+        "rank",
+        "driver_field",
+        "cramers_v",
+        "association_strength",
+        "chi2_statistic",
+        "degrees_of_freedom",
+        "p_value",
+        "n_rows_tested",
+        "n_distinct_levels"
+      ]
+    }
+  ],
+  "corrections_vs_gate1": [
+    "review_priority_tier source-table correction: Gate1's own policy.json (kpi_category_scope.product_opportunity_flags.source_table) named cfpb_issue_cluster_summary_gold.parquet as the source of review_priority_tier; that parquet has no review_priority_tier column. The real source is models/bp4_customer_journey_analytics/bp4_decision_artifact_index.parquet, joinable on (Company, Product, Sub-product, Issue, Sub-issue). Gate2 reads from the corrected file.",
+    "gate6_reached multi-signal correction: Gate1's own live-check used a status-substring-only rule (bool(status) and 'gate6' in status.lower()), which is structurally blind to bp5/bp6/bp7 (their status strings never grow a 'gate6' substring, even after their real Gate6 completes). The corrected check changed the verdict for bp5 (gate6_generated_at_utc=2026-09-24T11:15:03.634508+00:00), bp6 (nested gate6_productization_monitoring_governance.generated_at_utc=2026-09-24T16:45:52.155603+00:00), and bp7 (gate6_generated_at_utc=2026-09-25T06:49:02.757522+00:00) from gate6_reached=False (Gate1) to gate6_reached=True (Gate2), for all three.",
+    "root_cause_driver_kpis upgraded from Gate1's DEFERRED to Gate2's READY, as a direct consequence of the gate6_reached correction for bp5, combined with the real, newly-present cfpb_root_cause_driver_gold.parquet Gold table (did not exist at Gate1 run time) and BP5's real Gate5 field-driver-ranking JSON artifacts."
+  ],
+  "bp7_observed_not_yet_aggregated": {
+    "note": "These BP7 Gate5 aggregate artifacts are real and governed, but Gate2 deliberately does NOT build a decision_engine_kpis Gold table from them (see kpi_category_scope.decision_engine_kpis.reason above). Recorded here as an informational observation for a likely future gate.",
+    "files_observed": [
+      {
+        "filename": "gate5_recommended_action_breakdown.csv",
+        "relative_path": "notebooks\\bp7_customer_navigator_decision_engine\\artifacts\\gate5_recommended_action_breakdown.csv",
+        "n_rows": 3,
+        "columns": [
+          "recommended_action",
+          "n_rows",
+          "mean_priority_score",
+          "intervention_flag_rate",
+          "pct_of_population"
+        ],
+        "real_value_summary": {
+          "ESCALATE_ROOT_CAUSE_REVIEW_RECURRING_CLUSTER": 788955,
+          "STANDARD_QUEUE": 242834,
+          "PRIORITY_QUEUE_REVIEW": 16786
+        }
+      },
+      {
+        "filename": "gate5_bp4_tier_intervention_crosstab.csv",
+        "relative_path": "notebooks\\bp7_customer_navigator_decision_engine\\artifacts\\gate5_bp4_tier_intervention_crosstab.csv",
+        "n_rows": 8,
+        "columns": [
+          "bp4_review_priority_tier",
+          "intervention_flag",
+          "n_rows"
+        ]
+      }
+    ],
+    "never_referenced": "gate5_full_population_decision_records.csv (543MB) is never opened, staged, or referenced by any BP8 gate \u2014 a standing project rule, mirrored by BP7's own Gate7 rollup."
+  },
+  "scope_boundaries": [
+    "BP8 is a cross-BP Gold-layer aggregation and Power BI reporting layer, never a ninth modeling problem - no target, no classifier, no GenAI call.",
+    "BP8 never recomputes an upstream BP's own classification/severity/tier logic - it only aggregates/rolls up what that BP's own gates already computed.",
+    "BP8 never reads raw CFPB/BANKING77 row-level text (narratives) as an output dimension.",
+    "BP8 never reads a demographic-adjacent field (Tags, ZIP code) as an output dimension.",
+    "BP8 never fabricates a financial-impact, illustrative, or assumption-based figure anywhere in its outputs."
+  ],
+  "bp6_deferred_reason": "genai_resolution_kpis stays DEFERRED: BP6's real Gate6 is done (corrected check), but BP6 has no Gold-layer parquet anywhere and no quantifiable governed outcome artifact - only PII-screening / retrieval-strategy / explainability-trace / human-review-pending artifacts."
+}

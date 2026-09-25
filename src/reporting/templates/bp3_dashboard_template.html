@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BP3 Complaint Escalation / Intervention Prediction — Executive Dashboard</title>
+<!-- defer: an unreachable/slow CDN must never block the page from painting at all (real failure
+     mode seen on a real machine: a plain, non-deferred <script src> in <head> blocks HTML parsing
+     - and therefore the whole page's first paint - until the network request resolves, which can
+     hang indefinitely on a restrictive network and make the page look completely blank). -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer id="plotly-cdn"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root {
+    --navy: #1E2761;
+    --navy-deep: #12173f;
+    --accent: #4C6EF5;
+    --ice: #CADCFC;
+    --success: #1B998B;
+    --warning: #E8A33D;
+    --danger: #C1292E;
+    --gray: #6B7280;
+    --surface: #AFBEE6;
+    --card: #D2DBF6;
+    --card-border: #9FADDB;
+    --ink: #101828;
+    --ink-muted: #40495F;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(16, 24, 40, 0.14);
+    --shadow-hover: 0 10px 32px rgba(16, 24, 40, 0.20);
+    --font-display: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); line-height: 1.5;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(76,110,245,0.24) 0%, rgba(76,110,245,0) 46%),
+      radial-gradient(circle at 100% 18%, rgba(27,153,139,0.18) 0%, rgba(27,153,139,0) 40%),
+      linear-gradient(180deg, #B4C2E8 0%, #A7B7E3 45%, #98AADC 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  header.hero {
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 55%, #2c3a8c 100%);
+    color: #fff; padding: 48px 32px 64px; position: relative; overflow: hidden;
+  }
+  header.hero::after {
+    content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(76,110,245,0.35) 0%, rgba(76,110,245,0) 70%);
+    animation: auroraPulse 6.5s ease-in-out infinite;
+  }
+  header.hero::before {
+    content: ""; position: absolute; left: -70px; bottom: -110px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(27,153,139,0.28) 0%, rgba(27,153,139,0) 70%);
+    animation: auroraPulse 7.5s ease-in-out infinite reverse;
+  }
+  @keyframes auroraPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.65; transform: scale(1.1); } }
+  .hero-inner { max-width: 1320px; margin: 0 auto; position: relative; z-index: 1; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--ice); font-weight: 600; }
+  h1.title { font-size: clamp(26px, 3.6vw, 38px); margin: 10px 0 8px; font-weight: 700; font-family: var(--font-display); }
+  .title-accent { color: var(--ice); }
+  .subtitle { color: rgba(255,255,255,0.82); font-size: 15px; max-width: 780px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22); padding: 7px 14px; border-radius: 999px; font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .badge.warn .dot { background: var(--warning); }
+  .badge.fail .dot { background: var(--danger); animation: pulseDot 1.8s ease-in-out infinite; }
+  @keyframes pulseDot { 0%, 100% { box-shadow: 0 0 0 0 rgba(193,41,46,0.45); } 50% { box-shadow: 0 0 0 5px rgba(193,41,46,0); } }
+
+  .prod-banner {
+    margin-top: 22px; padding: 16px 20px; border-radius: var(--radius); font-size: 14.5px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; backdrop-filter: blur(4px);
+  }
+  .prod-banner .tier-label { font-weight: 800; font-size: 17px; font-family: var(--font-display); }
+  .prod-banner.tier-1 { background: rgba(27,153,139,0.22); border: 1px solid rgba(27,153,139,0.55); }
+  .prod-banner.tier-2 { background: rgba(232,163,61,0.22); border: 1px solid rgba(232,163,61,0.6); }
+  .prod-banner.tier-3 { background: rgba(193,41,46,0.22); border: 1px solid rgba(193,41,46,0.6); }
+
+  main { max-width: 1320px; margin: -40px auto 0; padding: 0 24px 64px; position: relative; z-index: 2; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 20px 18px; box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; opacity: 0; transform: translateY(14px);
+    animation: rise 0.6s ease forwards; position: relative; overflow: hidden; border: 1px solid transparent;
+  }
+  .kpi-card::before {
+    content: ""; position: absolute; top: -34px; right: -34px; width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-color, var(--accent)) 0%, transparent 72%); opacity: 0.16; pointer-events: none;
+  }
+  .kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--accent-color, var(--accent)); }
+  .kpi-top { display: flex; align-items: center; gap: 8px; }
+  .kpi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-color, var(--accent)); flex: none; }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 600; }
+  .kpi-value {
+    font-size: 28px; font-weight: 800; color: var(--navy); margin-top: 6px; font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word; word-break: break-word; line-height: 1.18; font-family: var(--font-display);
+  }
+  .kpi-value--text { font-size: clamp(15px, 2.1vw, 20px); line-height: 1.3; }
+  .kpi-sub { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  section.panel {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 26px 22px;
+    margin-bottom: 24px; opacity: 0; animation: rise 0.6s ease forwards;
+  }
+  section.panel h2 { font-size: 18px; margin: 0 0 4px; color: var(--navy); display: flex; align-items: center; gap: 9px; font-family: var(--font-display); }
+  section.panel .panel-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+  .panel-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  .filters-bar {
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 6px;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+  .filter-group label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  input[type="range"] { width: 220px; accent-color: var(--accent); }
+  .range-value { font-size: 13px; color: var(--navy); font-weight: 700; }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 20px; }
+  .chart-box { min-height: 340px; }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data-table th {
+    text-align: left; padding: 10px 12px; background: var(--surface); color: var(--ink-muted);
+    text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; position: sticky; top: 0;
+  }
+  table.data-table td { padding: 9px 12px; border-top: 1px solid var(--card-border); }
+  table.data-table tr:hover td { background: #BECBF0; }
+  .table-scroll { max-height: 360px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 10px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .pill.good { background: rgba(27,153,139,0.12); color: var(--success); }
+  .pill.bad { background: rgba(193,41,46,0.12); color: var(--danger); }
+
+  .assumption-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed var(--card-border); font-size: 13px; }
+  .assumption-row .a-label { color: var(--ink-muted); max-width: 70%; }
+  .assumption-row .a-value { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 28px; margin-bottom: 4px; }
+  .detail-heading { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 13px; }
+
+  .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .suggestion-card {
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 16px 18px; background: var(--card);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .suggestion-card:hover { box-shadow: var(--shadow); border-color: var(--accent-color, var(--accent)); transform: translateY(-2px); }
+  .suggestion-card h3 { font-size: 14.5px; margin: 0 0 8px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .suggestion-card .smart-row { font-size: 12.5px; margin-bottom: 5px; }
+  .smart-tag { font-weight: 700; color: var(--accent); margin-right: 4px; }
+
+  footer { max-width: 1320px; margin: 0 auto; padding: 8px 24px 40px; font-size: 12px; color: var(--ink-muted); text-align: center; }
+
+  @media (max-width: 640px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    header.hero { padding: 36px 18px 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Customer360 Navigator &middot; BP3 Executive Rollup</div>
+    <h1 class="title">Complaint Escalation / Intervention Prediction <span class="title-accent">— Executive Dashboard</span></h1>
+    <p class="subtitle">Real results from BP3 Gates 1&ndash;6, generated __GENERATED_AT__. Champion model:
+      <strong>__CHAMPION_MODEL__</strong>. Every figure, table, and KPI on this page is read live from the project's real,
+      real-run-confirmed gate artifacts &mdash; nothing on this page is assumption-based or estimated.</p>
+    <div class="badge-row" id="governance-badges"></div>
+    <div class="prod-banner" id="prod-banner"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <section class="panel">
+    <h2>Model Benchmark &amp; Explainability</h2>
+    <div class="panel-desc">Real Gate 3 5-fold cross-validation results (all 5 candidates passing, PR-AUC-selected &mdash; the real positive-class ratio is 1.29%, so accuracy is not a meaningful metric here) and Gate 4's real global SHAP feature importance.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-model-benchmark"></div>
+      <div class="chart-box" id="chart-shap"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Decision Layer — Live Probability Filter</h2>
+    <div class="panel-desc">Slice the real 163,091-row held-out decision set by minimum predicted probability of intervention_required=1 &mdash; every chart and figure below updates live.</div>
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label for="probability-filter">Min. predicted probability: <span class="range-value" id="probability-value">0.00</span></label>
+        <input type="range" id="probability-filter" min="0" max="1" step="0.01" value="0">
+      </div>
+    </div>
+    <div class="panel-desc" id="decision-summary" style="margin-top:10px;">Drag the slider above to see how coverage and precision trade off.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-confidence-dist"></div>
+      <div class="chart-box" id="chart-row-accounting"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Where the Model Gets Confused</h2>
+    <div class="panel-desc">Real full 2&times;2 confusion matrix at the default 0.5 threshold, and both real off-diagonal cells (false positives / false negatives) from the held-out test set.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-confusion-heatmap"></div>
+      <div class="chart-box" id="chart-class-performance"></div>
+    </div>
+    <div class="table-scroll" style="margin-top:16px;">
+      <table class="data-table" id="confused-pairs-table">
+        <thead><tr><th>True class</th><th>Predicted class</th><th>Real count</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Disparate-Impact Check — ECOA/Reg B (real, FLAGGED)</h2>
+    <div class="panel-desc">Real, independently-recomputed-at-Gate-5 selection rate and recall by <code>Tags</code> group at the default 0.5 threshold. This is a monitoring signal for a human reviewer, not a legal determination of ECOA/Reg B compliance.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-disparate-impact" style="grid-column: 1 / -1;"></div>
+    </div>
+    <div id="disparate-impact-detail" style="margin-top:16px;"></div>
+    <div class="table-scroll" style="margin-top:16px;">
+      <table class="data-table" id="disparate-impact-table">
+        <thead><tr><th>Tags group</th><th>N rows in test</th><th>N real positive</th><th>Selection rate @0.5</th><th>Recall @0.5</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 1 — Business Understanding &amp; Policy</h2>
+    <div class="panel-desc">Real target definition, exclusion reasons, leakage rules, scope assumptions, compliance touchpoint, and live target-class balance recorded at Gate 1 — the policy this classifier was built under.</div>
+    <div id="gate1-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 6 — Governance &amp; Known Limitations</h2>
+    <div class="panel-desc">Real governance status from this run, plus open items carried forward honestly rather than hidden — including the 2 real near-zero-recall candidates and the real FLAGGED disparate-impact finding.</div>
+    <div id="gate6-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>SMART Suggestions</h2>
+    <div class="panel-desc">Specific, Measurable, Achievable, Relevant, Time-bound recommendations — each grounded in a real number from Gates 1&ndash;6, not freeform text.</div>
+    <div class="suggestion-grid" id="suggestion-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Generated by <code>bp3_complaint_escalation_prediction_g7_executive_rollup_report.ipynb</code> &middot;
+  Governance: __PYTEST_SUMMARY__ &middot; Notebook syntax audit: __SYNTAX_SUMMARY__ &middot;
+  Customer360 Navigator Enterprise Suite &mdash; BP3 Complaint Escalation / Intervention Prediction
+</footer>
+
+<script id="rollup-data" type="application/json">__ROLLUP_DATA_JSON__</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('rollup-data').textContent);
+  const PALETTE = DATA.palette;
+  const CAT_SEQ = DATA.categorical_sequence;
+  const CHART_FONT = {family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", color: PALETTE.ink};
+  const CHART_HOVERLABEL = {bgcolor: PALETTE.primary_navy, bordercolor: PALETTE.primary_navy, font: {color: '#ffffff', size: 12, family: CHART_FONT.family}};
+
+  // ---------- resilient chart loading ----------
+  function markChartUnavailable(boxId) {
+    const box = document.getElementById(boxId);
+    if (box && !box.dataset.filled) {
+      box.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:300px;padding:20px;text-align:center;font-size:13px;color:var(--ink-muted);">Chart library (Plotly) could not be reached at cdn.plot.ly. The real underlying numbers for this chart are still available in the tables on this page.</div>';
+    }
+  }
+  function safePlot(boxId, drawFn) {
+    const run = () => {
+      try { drawFn(); const box = document.getElementById(boxId); if (box) box.dataset.filled = '1'; }
+      catch (e) { markChartUnavailable(boxId); }
+    };
+    if (window.Plotly) { run(); return; }
+    const cdnScript = document.getElementById('plotly-cdn');
+    if (!cdnScript) { markChartUnavailable(boxId); return; }
+    cdnScript.addEventListener('load', run, {once: false});
+    cdnScript.addEventListener('error', () => markChartUnavailable(boxId), {once: true});
+  }
+  setTimeout(() => {
+    if (!window.Plotly) {
+      document.querySelectorAll('.chart-box').forEach(box => markChartUnavailable(box.id));
+    }
+  }, 15000);
+
+  // ---------- animated count-up ----------
+  function groupThousands(numStr) {
+    const parts = numStr.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+  function animateValue(el, endText, duration) {
+    const numMatch = endText.match(/-?[\d.]+/);
+    if (!numMatch) { el.textContent = endText; return; }
+    const end = parseFloat(numMatch[0]);
+    const prefix = endText.slice(0, numMatch.index);
+    const suffix = endText.slice(numMatch.index + numMatch[0].length);
+    const decimals = (numMatch[0].split('.')[1] || '').length;
+    const start = 0;
+    const startTime = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = start + (end - start) * eased;
+      el.textContent = prefix + groupThousands(val.toFixed(decimals)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- Recommended for Production banner ----------
+  const prod = DATA.kpis.production_recommendation;
+  const banner = document.getElementById('prod-banner');
+  banner.className = 'prod-banner tier-' + prod.tier_code;
+  banner.innerHTML = '<span class="tier-label">' + prod.tier + '</span><span>' + prod.reason + '</span>';
+
+  // ---------- governance badges ----------
+  const badgeRow = document.getElementById('governance-badges');
+  const gov = DATA.kpis;
+  const badges = [
+    {label: gov.governance_gates_complete + '/6 Gates Real-Run Confirmed', ok: true},
+    {label: 'pytest: ' + gov.pytest_counts.passed + ' passed / ' + gov.pytest_counts.failed + ' failed', ok: gov.pytest_all_passed},
+    {label: 'Notebook syntax audit: ' + (gov.notebook_syntax_all_passed ? 'all passed' : 'issues found'), ok: gov.notebook_syntax_all_passed},
+    {label: 'Open item: ' + gov.n_gate3_near_random_pr_auc_anomalies + ' near-random-PR-AUC anomaly(ies)', ok: gov.n_gate3_near_random_pr_auc_anomalies === 0},
+    {label: 'Open item: ' + gov.n_gate3_near_zero_recall_anomalies + ' near-zero-recall anomaly(ies)', ok: gov.n_gate3_near_zero_recall_anomalies === 0},
+    {label: 'Open item: ' + gov.n_gate3_failed_candidates + ' failed Gate 3 candidate(s)', ok: gov.n_gate3_failed_candidates === 0},
+    {label: 'Disparate-impact ratio (Tags): ' + gov.adverse_impact_ratio_tags, ok: !gov.adverse_impact_flagged},
+  ];
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'badge' + (b.ok ? '' : ' fail');
+    el.innerHTML = '<span class="dot"></span>' + b.label;
+    badgeRow.appendChild(el);
+  });
+
+  // ---------- KPI cards ----------
+  const kpiGrid = document.getElementById('kpi-grid');
+  const kpiDefs = [
+    {label: 'Champion Model', value: gov.champion_model, sub: 'binary intervention_required classifier'},
+    {label: 'Held-out Test PR-AUC', value: gov.held_out_test_pr_auc.toFixed(4), sub: 'real, champion-selection metric'},
+    {label: 'Held-out Recall @0.5', value: (gov.held_out_test_recall * 100).toFixed(2) + '%', sub: 'real, on ' + gov.n_test_rows.toLocaleString() + ' held-out rows'},
+    {label: 'Held-out Precision @0.5', value: (gov.held_out_test_precision * 100).toFixed(2) + '%', sub: 'real, at the default threshold'},
+    {label: 'Positive-Class Ratio', value: (gov.positive_class_ratio_of_trainable * 100).toFixed(2) + '%', sub: 'real, of ' + gov.n_trainable_total.toLocaleString() + ' trainable rows'},
+    {label: 'Disparate-Impact Ratio', value: String(gov.adverse_impact_ratio_tags), sub: gov.adverse_impact_flagged ? 'FLAGGED (< 0.8 four-fifths rule)' : 'not flagged'},
+    {label: 'Decision Records', value: gov.n_decision_records.toLocaleString(), sub: (gov.reason_code_coverage * 100).toFixed(3) + '% with grounded reason codes'},
+    {label: 'Governance Gates Complete', value: gov.governance_gates_complete + '/6', sub: 'all real-run confirmed'},
+  ];
+  kpiDefs.forEach((k, i) => {
+    const card = document.createElement('div');
+    const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+    card.className = 'kpi-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.style.setProperty('--accent-color', accentColor);
+    const isLongText = typeof k.value === 'string' && /[a-zA-Z]{4,}/.test(k.value) && k.value.replace(/[^a-zA-Z]/g, '').length > 8;
+    const valueClass = 'kpi-value' + (isLongText ? ' kpi-value--text' : '');
+    card.innerHTML =
+      '<div class="kpi-top"><span class="kpi-dot"></span><span class="kpi-label">' + k.label + '</span></div>' +
+      '<div class="' + valueClass + '" data-final="' + k.value + '"></div>' +
+      '<div class="kpi-sub">' + k.sub + '</div>';
+    kpiGrid.appendChild(card);
+  });
+  document.querySelectorAll('.kpi-value').forEach(el => animateValue(el, el.dataset.final, 900));
+
+  // ---------- Model benchmark chart ----------
+  function renderModelBenchmark() {
+    const rows = DATA.model_benchmark;
+    safePlot('chart-model-benchmark', () => Plotly.newPlot('chart-model-benchmark', [{
+      type: 'bar', orientation: 'h',
+      y: rows.map(r => r.model), x: rows.map(r => r.mean_average_precision),
+      error_x: {type: 'data', array: rows.map(r => r.std_average_precision), color: PALETTE.neutral_gray},
+      marker: {color: rows.map(r => r.is_champion ? PALETTE.primary_navy : PALETTE.neutral_gray)},
+      text: rows.map(r => r.mean_average_precision.toFixed(4)), textposition: 'outside',
+      hovertemplate: '%{y}<br>Mean Average Precision (PR-AUC): %{x:.4f}<extra></extra>',
+    }], {
+      title: {text: 'Gate 3 — Real 5-Fold CV Model Benchmark (all 5 candidates passing)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 150, t: 50, r: 30, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean Average Precision / PR-AUC', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- SHAP chart ----------
+  function renderShap() {
+    const rows = DATA.shap_top10.slice().reverse();
+    safePlot('chart-shap', () => Plotly.newPlot('chart-shap', [{
+      type: 'bar', orientation: 'h', y: rows.map(r => r.feature), x: rows.map(r => r.mean_abs_shap),
+      marker: {color: PALETTE.accent_blue},
+      hovertemplate: '%{y}<br>Mean |SHAP|: %{x:.5f}<extra></extra>',
+    }], {
+      title: {text: 'Gate 4 — Top Globally Important Features (real SHAP)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 260, t: 50, r: 30, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean |SHAP value|', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- Row accounting chart (replaces a severity/class pie — see module docstring) ----------
+  function renderRowAccounting() {
+    const rows = DATA.row_accounting;
+    safePlot('chart-row-accounting', () => Plotly.newPlot('chart-row-accounting', [{
+      type: 'bar', orientation: 'h', y: rows.map(r => r.label), x: rows.map(r => r.count),
+      marker: {color: CAT_SEQ}, text: rows.map(r => r.count.toLocaleString()), textposition: 'outside',
+      hovertemplate: '%{y}<br>%{x:,} real CFPB rows<extra></extra>',
+    }], {
+      title: {text: 'Real Row Accounting — Trainable vs. Excluded (log scale)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 220, t: 50, r: 40, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Real CFPB row count', type: 'log', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- Confusion heatmap (2x2) ----------
+  function renderConfusionHeatmap() {
+    const cm = DATA.confusion_matrix;
+    safePlot('chart-confusion-heatmap', () => Plotly.newPlot('chart-confusion-heatmap', [{
+      type: 'heatmap', z: cm.matrix, x: cm.labels, y: cm.labels, colorscale: 'Blues',
+      hovertemplate: 'True: %{y}<br>Predicted: %{x}<br>Real count: %{z:,}<extra></extra>',
+      texttemplate: '%{z:,}', textfont: {size: 13},
+    }], {
+      title: {text: 'Real 2×2 Confusion Matrix — Held-Out Test (threshold 0.5)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 150, t: 50, r: 30, b: 90}, xaxis: {tickfont: {size: 11}}, yaxis: {tickfont: {size: 11}},
+      font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- confused pairs table ----------
+  function renderConfusedPairsTable() {
+    const tbody = document.querySelector('#confused-pairs-table tbody');
+    tbody.innerHTML = '';
+    DATA.confused_pairs.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + p.true_class + '</td><td>' + p.predicted_class + '</td><td>' + p.count.toLocaleString() + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- per-class performance chart (both real binary classes) ----------
+  function renderClassPerformance() {
+    const rows = DATA.class_performance;
+    safePlot('chart-class-performance', () => Plotly.newPlot('chart-class-performance', [
+      {type: 'bar', name: 'Precision', y: rows.map(r => r.target_class), x: rows.map(r => r.precision), orientation: 'h', marker: {color: PALETTE.accent_blue}},
+      {type: 'bar', name: 'Recall', y: rows.map(r => r.target_class), x: rows.map(r => r.recall), orientation: 'h', marker: {color: PALETTE.warning_amber}},
+      {type: 'bar', name: 'F1-score', y: rows.map(r => r.target_class), x: rows.map(r => r['f1-score']), orientation: 'h', marker: {color: PALETTE.primary_navy}},
+    ], {
+      title: {text: 'Per-Class Performance (real, both binary classes)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      barmode: 'group', margin: {l: 190, t: 50, r: 30, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+      xaxis: {title: 'Real score', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- disparate-impact chart + table ----------
+  function renderDisparateImpact() {
+    const di = DATA.disparate_impact;
+    const rows = di.tags_group_breakdown.slice().sort((a, b) => a['selection_rate_at_0.5_threshold'] - b['selection_rate_at_0.5_threshold']);
+    const maxRate = Math.max(...rows.map(r => r['selection_rate_at_0.5_threshold']));
+    safePlot('chart-disparate-impact', () => Plotly.newPlot('chart-disparate-impact', [{
+      type: 'bar', orientation: 'h', y: rows.map(r => r.tags_group), x: rows.map(r => r['selection_rate_at_0.5_threshold']),
+      marker: {color: PALETTE.accent_blue}, text: rows.map(r => r['selection_rate_at_0.5_threshold'].toFixed(4)), textposition: 'outside',
+      hovertemplate: '%{y}<br>Real selection rate: %{x:.4f}<extra></extra>',
+    }], {
+      title: {text: 'Real Selection Rate by Tags Group — FLAGGED', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 200, t: 50, r: 40, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Real selection rate at threshold 0.5', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+      shapes: [{type: 'line', x0: maxRate * di.four_fifths_rule_threshold, x1: maxRate * di.four_fifths_rule_threshold, y0: -0.5, y1: rows.length - 0.5, line: {color: PALETTE.danger_red, dash: 'dash', width: 2}}],
+    }, {responsive: true, displaylogo: false}));
+
+    const detailEl = document.getElementById('disparate-impact-detail');
+    detailEl.innerHTML =
+      '<div class="assumption-row"><span class="a-label"><strong>Compliance requirement:</strong> ' + di.compliance_requirement + '</span></div>' +
+      '<div class="assumption-row"><span class="a-label">' + di.compliance_statement + '</span></div>' +
+      '<div class="assumption-row"><span class="a-label"><strong>Adverse-impact ratio (real, min/max group selection rate):</strong></span><span class="a-value">' + di.adverse_impact_ratio_tags + (di.flagged ? ' — FLAGGED' : '') + '</span></div>' +
+      '<div class="assumption-row"><span class="a-label"><strong>Independently recomputed at Gate 5:</strong></span><span class="a-value">' + di.adverse_impact_ratio_recomputed_gate5 + ' (diff=' + di.consistency_diff_vs_gate4 + ')</span></div>' +
+      '<div class="assumption-row"><span class="a-label"><strong>Lowest real selection-rate group:</strong> ' + di.lowest_selection_rate_group + ' (' + di.lowest_selection_rate + ')</span></div>' +
+      '<div class="assumption-row"><span class="a-label"><strong>Highest real selection-rate group:</strong> ' + di.highest_selection_rate_group + ' (' + di.highest_selection_rate + ')</span></div>' +
+      '<div class="assumption-row"><span class="a-label">' + di.limitation + '</span></div>';
+
+    const tbody = document.querySelector('#disparate-impact-table tbody');
+    tbody.innerHTML = '';
+    di.tags_group_breakdown.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + r.tags_group + '</td><td>' + r.n_rows_in_test.toLocaleString() + '</td><td>' + r.n_real_positive_in_group.toLocaleString() +
+        '</td><td>' + r['selection_rate_at_0.5_threshold'] + '</td><td>' + r['recall_at_0.5_threshold'] + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- probability-filtered decision layer ----------
+  function renderConfidenceView(threshold) {
+    const recs = DATA.decision_records; // [predicted_probability, correct] pairs
+    const above = recs.filter(r => r[0] >= threshold);
+    const correctAbove = above.filter(r => r[1]).length;
+    const accAtThreshold = above.length ? (correctAbove / above.length) : 0;
+    const coverage = recs.length ? (above.length / recs.length) : 0;
+    document.getElementById('decision-summary').innerHTML =
+      'At predicted probability &ge; <strong>' + threshold.toFixed(2) + '</strong>: <strong>' + above.length.toLocaleString() +
+      '</strong> of ' + recs.length.toLocaleString() + ' real decisions (' + (coverage * 100).toFixed(1) +
+      '% coverage) are correctly classified <strong>' + (accAtThreshold * 100).toFixed(2) + '%</strong> of the time.';
+
+    const correct = above.filter(r => r[1]).map(r => r[0]);
+    const incorrect = above.filter(r => !r[1]).map(r => r[0]);
+    if (window.Plotly && document.getElementById('chart-confidence-dist').dataset.filled) {
+      try {
+        Plotly.react('chart-confidence-dist', [
+          {type: 'histogram', x: correct, name: 'Correct', marker: {color: PALETTE.success_green}, opacity: 0.78, nbinsx: 25},
+          {type: 'histogram', x: incorrect, name: 'Incorrect', marker: {color: PALETTE.danger_red}, opacity: 0.78, nbinsx: 25},
+        ], {
+          title: {text: 'Predicted Probability Distribution (filtered live)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+          barmode: 'overlay', margin: {t: 50, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+          xaxis: {title: 'Predicted probability of intervention_required=1', gridcolor: '#9FADDB'}, yaxis: {title: 'Count (log)', type: 'log', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+          transition: {duration: 400, easing: 'cubic-in-out'},
+        }, {responsive: true, displaylogo: false});
+      } catch (e) { markChartUnavailable('chart-confidence-dist'); }
+    } else if (threshold === 0) {
+      safePlot('chart-confidence-dist', () => Plotly.newPlot('chart-confidence-dist', [
+        {type: 'histogram', x: correct, name: 'Correct', marker: {color: PALETTE.success_green}, opacity: 0.78, nbinsx: 25},
+        {type: 'histogram', x: incorrect, name: 'Incorrect', marker: {color: PALETTE.danger_red}, opacity: 0.78, nbinsx: 25},
+      ], {
+        title: {text: 'Predicted Probability Distribution (filtered live)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+        barmode: 'overlay', margin: {t: 50, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+        xaxis: {title: 'Predicted probability of intervention_required=1', gridcolor: '#9FADDB'}, yaxis: {title: 'Count (log)', type: 'log', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+        transition: {duration: 400, easing: 'cubic-in-out'},
+      }, {responsive: true, displaylogo: false}));
+    }
+  }
+
+  // ---------- Gate 1 detail (real, from policy.json) ----------
+  function renderGate1() {
+    const g1 = DATA.gate1;
+    const el = document.getElementById('gate1-detail');
+    const rows = [
+      ['Primary target', g1.primary_target + ' — ' + g1.primary_target_description],
+      ['Disputed-flag note', g1.disputed_flag_not_used],
+      ['Feature variable candidates', g1.feature_variable_candidates],
+      ['Train/test split source', g1.train_test_split_source],
+      ['Compliance (' + g1.compliance_requirement + ')', g1.compliance_statement],
+      ['Real CFPB row count (Gate 1 live check)', g1.cfpb_row_count.toLocaleString()],
+    ];
+    let html = '<div class="detail-grid">';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label"><strong>' + label + ':</strong> ' + val + '</span></div>';
+    });
+    html += '</div>';
+    html += '<div class="detail-heading">Real exclusion reasons (why 233,122 rows are not trainable)</div><div class="detail-grid">';
+    Object.entries(g1.exclusion_reasons).forEach(([label, reason]) => {
+      html += '<div class="assumption-row"><span class="a-label"><strong>' + label + ':</strong> ' + reason + '</span></div>';
+    });
+    html += '</div>';
+    html += '<div class="detail-heading">Leakage rules (real, enforced live every Gate 1 run)</div><div class="detail-grid">';
+    g1.leakage_rules.forEach(rule => {
+      html += '<div class="assumption-row"><span class="a-label">' + rule + '</span></div>';
+    });
+    html += '</div>';
+    html += '<div class="detail-heading">Scope assumptions documented at Gate 1 (real)</div><div class="detail-grid">';
+    g1.assumptions.forEach(a => {
+      html += '<div class="assumption-row"><span class="a-label">' + a + '</span></div>';
+    });
+    html += '</div>';
+    html += '<div class="detail-heading">Real target-class balance (live-computed at Gate 1)</div><div class="detail-grid">';
+    Object.entries(g1.target_class_balance).forEach(([k, v]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + k + '</span><span class="a-value">' + v + '</span></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- Gate 6 detail (real governance status) ----------
+  function renderGate6() {
+    const g6 = DATA.gate6_detail;
+    const el = document.getElementById('gate6-detail');
+    const rows = [
+      ['pytest suite', g6.pytest_counts.passed + ' passed / ' + g6.pytest_counts.failed + ' failed'],
+      ['Notebook syntax audit', g6.notebook_syntax_check_n_passed + '/' + (g6.notebook_syntax_check_n_passed + g6.notebook_syntax_check_n_failed) + ' passed'],
+      ['Open item — near-random-PR-AUC anomalies', String(g6.n_gate3_near_random_pr_auc_anomalies_detected)],
+      ['Open item — near-zero-recall anomalies', String(g6.n_gate3_near_zero_recall_anomalies_detected)],
+      ['Open item — failed Gate 3 candidates', String(g6.n_gate3_failed_candidates_detected)],
+      ['Disparate-impact ratio carried forward', String(g6.adverse_impact_ratio_tags_carried_forward) + (g6.adverse_impact_flagged ? ' (FLAGGED)' : '')],
+      ['Model card', g6.model_card_path],
+      ['Changelog', g6.changelog_path],
+      ['Gate 3 candidates evaluated', g6.candidates_evaluated.join(', ')],
+      ['Gate 3 candidates failed', g6.candidates_failed.length ? g6.candidates_failed.join(', ') : 'none'],
+      ['Barred columns (real, never used as features)', g6.barred_columns.join(', ')],
+    ];
+    let html = '<div class="detail-grid">';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + label + '</span><span class="a-value">' + val + '</span></div>';
+    });
+    html += '</div>';
+    if (g6.model_inventory_compliance_touchpoint) {
+      html += '<div class="detail-grid"><div class="assumption-row"><span class="a-label"><strong>Model inventory compliance touchpoint:</strong> ' + g6.model_inventory_compliance_touchpoint + '</span></div></div>';
+    }
+    el.innerHTML = html;
+  }
+
+  // ---------- SMART suggestions ----------
+  function renderSuggestions() {
+    const grid = document.getElementById('suggestion-grid');
+    DATA.suggestions.forEach((s, i) => {
+      const card = document.createElement('div');
+      const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+      card.className = 'suggestion-card';
+      card.style.setProperty('--accent-color', accentColor);
+      card.innerHTML =
+        '<h3><span class="panel-dot" style="background:' + accentColor + '"></span>' + s.title + '</h3>' +
+        '<div class="smart-row"><span class="smart-tag">Specific:</span>' + s.specific + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Measurable:</span>' + s.measurable + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Time-bound:</span>' + s.timebound + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Owner:</span>' + s.owner_placeholder + '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- section panel accent dots ----------
+  function applyPanelDots() {
+    document.querySelectorAll('section.panel h2').forEach((h2, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'panel-dot';
+      dot.style.background = CAT_SEQ[i % CAT_SEQ.length];
+      h2.prepend(dot);
+    });
+  }
+
+  // ---------- wire up filters ----------
+  document.getElementById('probability-filter').addEventListener('input', function (e) {
+    const v = parseFloat(e.target.value);
+    document.getElementById('probability-value').textContent = v.toFixed(2);
+    renderConfidenceView(v);
+  });
+
+  // ---------- initial render ----------
+  applyPanelDots();
+  renderModelBenchmark();
+  renderShap();
+  renderRowAccounting();
+  renderConfusionHeatmap();
+  renderConfusedPairsTable();
+  renderClassPerformance();
+  renderDisparateImpact();
+  renderConfidenceView(0);
+  renderGate1();
+  renderGate6();
+  renderSuggestions();
+
+  // fade-in panels on scroll
+  const panels = document.querySelectorAll('section.panel');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = (idx * 0.05) + 's';
+        entry.target.style.opacity = 1;
+        io.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.08});
+  panels.forEach(p => io.observe(p));
+})();
+</script>
+</body>
+</html>

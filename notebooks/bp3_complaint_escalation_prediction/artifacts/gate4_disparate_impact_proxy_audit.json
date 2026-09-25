@@ -1,0 +1,423 @@
+{
+  "bp_id": "bp3",
+  "investigation": "disparate_impact_proxy_feature_audit",
+  "requested_by_user_action": "Both, in sequence (AskUserQuestion selection) - proxy audit first",
+  "champion_model": "xgboost",
+  "n_test_rows": 163091,
+  "row_index_alignment_mismatches": 0,
+  "features_audited": [
+    "Product",
+    "Sub-product",
+    "Issue",
+    "Sub-issue",
+    "State",
+    "Submitted via",
+    "Company_freq"
+  ],
+  "stratify_features": [
+    "Product",
+    "Submitted via"
+  ],
+  "proxy_audit_summary": {
+    "bp_id": "bp3",
+    "investigation": "disparate_impact_proxy_feature_audit",
+    "categorical_feature_tags_association": [
+      {
+        "feature": "Product",
+        "n_distinct_levels": 15,
+        "chi2_statistic": 12431.350908595658,
+        "p_value": 0.0,
+        "cramers_v": 0.15939824583419532,
+        "association_strength": "weak"
+      },
+      {
+        "feature": "Sub-product",
+        "n_distinct_levels": 55,
+        "chi2_statistic": 17139.428896210302,
+        "p_value": 0.0,
+        "cramers_v": 0.18716409910527582,
+        "association_strength": "weak"
+      },
+      {
+        "feature": "Issue",
+        "n_distinct_levels": 89,
+        "chi2_statistic": 14382.55916132687,
+        "p_value": 0.0,
+        "cramers_v": 0.17145196203494342,
+        "association_strength": "weak"
+      },
+      {
+        "feature": "Sub-issue",
+        "n_distinct_levels": 207,
+        "chi2_statistic": 16830.371341777958,
+        "p_value": 0.0,
+        "cramers_v": 0.18546895455455525,
+        "association_strength": "weak"
+      },
+      {
+        "feature": "State",
+        "n_distinct_levels": 59,
+        "chi2_statistic": 2398.375077671603,
+        "p_value": 0.0,
+        "cramers_v": 0.07001368336378441,
+        "association_strength": "negligible"
+      },
+      {
+        "feature": "Submitted via",
+        "n_distinct_levels": 4,
+        "chi2_statistic": 5621.8289692258,
+        "p_value": 0.0,
+        "cramers_v": 0.10719220122183944,
+        "association_strength": "weak"
+      }
+    ],
+    "numeric_feature_tags_association": [
+      {
+        "feature": "Company_freq",
+        "f_statistic": 3002.0561673558454,
+        "p_value": 0.0,
+        "eta_squared": 0.05233309712674239,
+        "association_strength": "small"
+      }
+    ],
+    "stratified_false_positive_rate_by_feature": [
+      {
+        "feature": "Product",
+        "min_cell_negatives": 30,
+        "n_levels_evaluated": 11,
+        "n_levels_with_balanced_fpr": 4,
+        "fraction_levels_balanced": 0.36363636363636365,
+        "total_real_negative_rows": 160989,
+        "real_negative_rows_covered_by_evaluated_levels": 160591,
+        "coverage_fraction": 0.9975277814012138,
+        "per_level_detail": [
+          {
+            "level": "Checking or savings account",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Older American, Servicemember",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 3688,
+              "Older American": 381,
+              "Older American, Servicemember": 113,
+              "Servicemember": 316
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.8370390455531453,
+              "Older American": 0.8713910761154856,
+              "Older American, Servicemember": 0.9203539823008849,
+              "Servicemember": 0.8607594936708861
+            },
+            "fpr_ratio_min_over_max": 0.9094751168029368,
+            "fpr_balanced_within_level": true
+          },
+          {
+            "level": "Credit card",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 697,
+              "Older American": 62,
+              "Servicemember": 58
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.7058823529411765,
+              "Older American": 0.8225806451612904,
+              "Servicemember": 0.8275862068965517
+            },
+            "fpr_ratio_min_over_max": 0.8529411764705883,
+            "fpr_balanced_within_level": true
+          },
+          {
+            "level": "Credit card or prepaid card",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Older American, Servicemember",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 3551,
+              "Older American": 321,
+              "Older American, Servicemember": 97,
+              "Servicemember": 325
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.5860321036327795,
+              "Older American": 0.8411214953271028,
+              "Older American, Servicemember": 0.7938144329896907,
+              "Servicemember": 0.6953846153846154
+            },
+            "fpr_ratio_min_over_max": 0.6967270565411934,
+            "fpr_balanced_within_level": false
+          },
+          {
+            "level": "Credit reporting or other personal consumer reports",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 40318,
+              "Older American": 178,
+              "Servicemember": 561
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.002281859219207302,
+              "Older American": 0.0449438202247191,
+              "Servicemember": 0.0017825311942959
+            },
+            "fpr_ratio_min_over_max": 0.039661319073083776,
+            "fpr_balanced_within_level": false
+          },
+          {
+            "level": "Credit reporting, credit repair services, or other personal consumer reports",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Older American, Servicemember",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 90836,
+              "Older American": 503,
+              "Older American, Servicemember": 176,
+              "Servicemember": 3916
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.006363115945219957,
+              "Older American": 0.04970178926441352,
+              "Older American, Servicemember": 0.028409090909090908,
+              "Servicemember": 0.013789581205311542
+            },
+            "fpr_ratio_min_over_max": 0.12802589281782553,
+            "fpr_balanced_within_level": false
+          },
+          {
+            "level": "Debt collection",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Older American, Servicemember",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 7248,
+              "Older American": 220,
+              "Older American, Servicemember": 76,
+              "Servicemember": 646
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.05504966887417218,
+              "Older American": 0.12727272727272726,
+              "Older American, Servicemember": 0.07894736842105263,
+              "Servicemember": 0.07120743034055728
+            },
+            "fpr_ratio_min_over_max": 0.4325331125827815,
+            "fpr_balanced_within_level": false
+          },
+          {
+            "level": "Money transfer, virtual currency, or money service",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Older American, Servicemember",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 1202,
+              "Older American": 122,
+              "Older American, Servicemember": 34,
+              "Servicemember": 85
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.6830282861896838,
+              "Older American": 0.7377049180327869,
+              "Older American, Servicemember": 0.7647058823529411,
+              "Servicemember": 0.6588235294117647
+            },
+            "fpr_ratio_min_over_max": 0.8615384615384616,
+            "fpr_balanced_within_level": true
+          },
+          {
+            "level": "Mortgage",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Older American, Servicemember",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 1548,
+              "Older American": 272,
+              "Older American, Servicemember": 84,
+              "Servicemember": 343
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.34431524547803616,
+              "Older American": 0.36764705882352944,
+              "Older American, Servicemember": 0.40476190476190477,
+              "Servicemember": 0.3323615160349854
+            },
+            "fpr_ratio_min_over_max": 0.8211284513805522,
+            "fpr_balanced_within_level": true
+          },
+          {
+            "level": "Payday loan, title loan, or personal loan",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 486,
+              "Older American": 44,
+              "Servicemember": 70
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.4609053497942387,
+              "Older American": 0.6136363636363636,
+              "Servicemember": 0.5428571428571428
+            },
+            "fpr_ratio_min_over_max": 0.7511050144795001,
+            "fpr_balanced_within_level": false
+          },
+          {
+            "level": "Student loan",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 593,
+              "Servicemember": 58
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.28330522765598654,
+              "Servicemember": 0.15517241379310345
+            },
+            "fpr_ratio_min_over_max": 0.5477216748768473,
+            "fpr_balanced_within_level": false
+          },
+          {
+            "level": "Vehicle loan or lease",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 1152,
+              "Older American": 57,
+              "Servicemember": 154
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.3151041666666667,
+              "Older American": 0.45614035087719296,
+              "Servicemember": 0.38311688311688313
+            },
+            "fpr_ratio_min_over_max": 0.6908052884615385,
+            "fpr_balanced_within_level": false
+          }
+        ]
+      },
+      {
+        "feature": "Submitted via",
+        "min_cell_negatives": 30,
+        "n_levels_evaluated": 3,
+        "n_levels_with_balanced_fpr": 0,
+        "fraction_levels_balanced": 0.0,
+        "total_real_negative_rows": 160989,
+        "real_negative_rows_covered_by_evaluated_levels": 160336,
+        "coverage_fraction": 0.995943822248725,
+        "per_level_detail": [
+          {
+            "level": "Phone",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Older American, Servicemember",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 1638,
+              "Older American": 358,
+              "Older American, Servicemember": 126,
+              "Servicemember": 148
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.30158730158730157,
+              "Older American": 0.5111731843575419,
+              "Older American, Servicemember": 0.5476190476190477,
+              "Servicemember": 0.31756756756756754
+            },
+            "fpr_ratio_min_over_max": 0.5507246376811593,
+            "fpr_balanced_within_level": false
+          },
+          {
+            "level": "Postal mail",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 434,
+              "Older American": 43
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.18433179723502305,
+              "Older American": 0.5813953488372093
+            },
+            "fpr_ratio_min_over_max": 0.3170506912442396,
+            "fpr_balanced_within_level": false
+          },
+          {
+            "level": "Web",
+            "groups_evaluated": [
+              "NO_TAG",
+              "Older American",
+              "Older American, Servicemember",
+              "Servicemember"
+            ],
+            "n_negative_per_group": {
+              "NO_TAG": 148882,
+              "Older American": 1784,
+              "Older American, Servicemember": 520,
+              "Servicemember": 6403
+            },
+            "fpr_per_group": {
+              "NO_TAG": 0.05340470977015355,
+              "Older American": 0.4226457399103139,
+              "Older American, Servicemember": 0.4173076923076923,
+              "Servicemember": 0.137904107449633
+            },
+            "fpr_ratio_min_over_max": 0.12635809314317498,
+            "fpr_balanced_within_level": false
+          }
+        ]
+      }
+    ],
+    "residual_disparity_model": {
+      "n_negative_rows_evaluated": 160989,
+      "n_false_positives_in_evaluated_rows": 11140,
+      "cv_folds": 5,
+      "features_only_mean_cv_auc": 0.9887944236712407,
+      "features_only_cv_auc_std": 0.00046046633573869903,
+      "features_plus_tags_mean_cv_auc": 0.9886735365715822,
+      "features_plus_tags_cv_auc_std": 0.0005199355929359301,
+      "auc_delta_from_adding_tags": -0.00012088709965851763,
+      "meaningful_auc_delta_convention": 0.01,
+      "tags_adds_meaningful_information_beyond_real_features": false
+    },
+    "proxy_audit_disclosure": "This audit tests whether the real candidate features the champion model was actually trained on (Product, Sub-product, Issue, Sub-issue, State, Submitted via, Company) already explain Tags' real association with the model's false-positive behavior. It does not retrain, repredict, or change any real production decision - it re-examines the same real held-out test rows Gate 5 already scored. A finding that Tags adds real information beyond these features (residual model AUC delta above the disclosed bar, and/or the stratified false-positive-rate gap persisting across most real feature levels) means the disparity is not a data-quality or feature-engineering artifact explainable by a legitimate business feature - it strengthens, not weakens, the original MODEL-DRIVEN diagnosis. A finding that the real features already explain most of the gap would instead point toward a specific real feature as a genuine candidate for further review - itself still a real finding requiring human governance judgment, not something this module resolves automatically."
+  },
+  "source_investigation_verdict": "MODEL-DRIVEN",
+  "generated_at_utc": "2026-09-23T18:11:03.674397+00:00"
+}

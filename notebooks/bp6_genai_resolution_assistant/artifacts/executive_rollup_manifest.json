@@ -1,0 +1,30 @@
+{
+  "bp_id": "bp6",
+  "gate": 7,
+  "report_name": "BP6 GenAI Resolution Assistant - Executive Rollup",
+  "champion_pipeline": "taxonomy_bucket_match",
+  "production_recommendation_tier": "RECOMMENDED FOR PRODUCTION",
+  "production_recommendation_tier_code": 1,
+  "tier_2_reachable_for_this_bp": false,
+  "ecoa_reg_b_disparate_impact_applicability": "NOT_APPLICABLE",
+  "output_paths": {
+    "dashboard_html": "reports\\bp6_genai_resolution_assistant\\executive_rollup\\bp6_executive_rollup_dashboard.html",
+    "report_docx": "reports\\bp6_genai_resolution_assistant\\executive_rollup\\bp6_executive_rollup_report.docx",
+    "workbook_xlsx": "reports\\bp6_genai_resolution_assistant\\executive_rollup\\bp6_executive_rollup_workbook.xlsx",
+    "deck_pptx": "reports\\bp6_genai_resolution_assistant\\executive_rollup\\bp6_executive_rollup_deck.pptx"
+  },
+  "output_sizes_bytes": {
+    "dashboard_html": 72549,
+    "report_docx": 189845,
+    "workbook_xlsx": 15753,
+    "deck_pptx": 191062
+  },
+  "contains_financial_impact_section": false,
+  "contains_assumption_based_content": false,
+  "n_evidence_citations_available": 28,
+  "n_citations_used": 4,
+  "n_total_upstream_artifact_files_registered": 79,
+  "human_in_the_loop_required": true,
+  "auto_applied": false,
+  "generated_at_utc": "2026-09-24T17:09:55.782349+00:00"
+}

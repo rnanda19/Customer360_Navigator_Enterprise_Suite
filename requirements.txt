@@ -1,0 +1,66 @@
+# Core data / performance (WARP standard)
+polars>=1.9
+duckdb>=1.1
+pyarrow>=17.0
+numpy>=1.26
+pandas>=2.2
+numba>=0.60
+psutil>=6.0
+joblib>=1.3
+PyYAML>=6.0
+
+# NLP (BP1, BP2, BP6)
+spacy>=3.7
+sentence-transformers>=3.1
+transformers>=4.44
+tokenizers>=0.20
+
+# Classical ML (BP3, BP5, BP7) - the 6-model benchmark set
+scikit-learn>=1.5
+xgboost>=2.1
+catboost>=1.2
+lightgbm>=4.5
+
+# Explainability / stats
+shap>=0.46
+scipy>=1.13
+statsmodels>=0.14
+
+# Reporting (HYPER shared reporting module)
+python-docx>=1.1
+openpyxl>=3.1
+python-pptx>=1.0
+matplotlib>=3.9
+
+# Service layer (optional, BP6/BP7)
+fastapi>=0.115
+uvicorn>=0.30
+
+# GenAI SDK (BP6 Gate 5 only - the sole gate in this whole project that makes a real external API
+# call; genai_sdk_modules_loaded() structurally verifies this import stays absent at every other
+# gate/BP). Provider pivoted 2026-09-24, same day as the original choice, from the Anthropic
+# Claude API to Google's Gemini API specifically because Gemini has a genuine, standing no-cost
+# free tier (the Flash-family models) reachable with just a Google AI Studio API key - no funded
+# billing account required, unlike the Anthropic Console's pay-as-you-go billing (Anthropic's own
+# Claude for Startups free-credit program was checked and ruled out: its eligibility requires
+# institutional equity funding, which this personal portfolio project does not have). Version
+# floor (google-genai>=1.0) chosen to guarantee the unified, GA (May 2025) Client/generate_content
+# interface this module calls, comfortably below the current release track (2.x as of this
+# delivery) - same "pick a defensible floor, no existing project convention to match" approach as
+# this file's own PyYAML/joblib/anthropic additions. Not imported at module load time by
+# src/genai/bp6_grounded_generation.py (deferred import inside call_grounded_generation itself),
+# so installing it is only required to run BP6 Gate 5 for real, never for Gates 1-4.
+google-genai>=1.0
+
+# Quality / CI (HYPER)
+pytest>=8.3
+black>=24.8
+flake8>=7.1
+# httpx: required by fastapi.testclient.TestClient (Starlette's TestClient wraps httpx) - needed
+# to run tests/services/test_bp1_inference_service.py and test_bp2_inference_service.py
+# (Hardening Step 3, 2026-09-22). Not a runtime dependency of src/ itself - testing-only, so it
+# lives here rather than in pyproject.toml's dependencies.
+httpx>=0.27
+isort>=5.13
+mypy>=1.11
+pre-commit>=3.8

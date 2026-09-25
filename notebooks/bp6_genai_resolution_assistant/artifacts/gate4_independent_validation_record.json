@@ -1,0 +1,61 @@
+{
+  "bp_id": "bp6",
+  "gate": 4,
+  "compliance_touchpoint": "Independent-style validation record (SR 11-7 second-line analog - BP6 has no classifier, so this record validates a retrieval strategy, not a model); disparate-impact check where applicable (ECOA/Reg B)",
+  "champion_strategy_under_validation": "taxonomy_bucket_match",
+  "gate3_recorded_coverage": 0.333333,
+  "gate4_independently_reproduced_coverage": 0.333333,
+  "coverage_reproduces_exactly": true,
+  "bootstrap_ci": {
+    "point_estimate_coverage": 0.333333,
+    "n_query_buckets": 9,
+    "n_bootstrap": 1000,
+    "random_state": 42,
+    "ci_lower_2p5": 0.0,
+    "ci_upper_97p5": 0.666667,
+    "bootstrap_std": 0.164131
+  },
+  "bucket_availability_crosstab": {
+    "both_sides_n": 3,
+    "banking77_only_n": 6,
+    "cfpb_only_n": 0,
+    "neither_side_n": 0,
+    "total_real_buckets_in_crosstab": 9
+  },
+  "explainability_trace_path": "notebooks/bp6_genai_resolution_assistant/artifacts/gate4_explainability_trace.json",
+  "n_explainability_trace_entries": 3,
+  "leakage_reconfirmed": true,
+  "leakage_check_detail": {
+    "banking77_gold_columns": [
+      "category",
+      "common_taxonomy_bucket",
+      "split",
+      "text"
+    ],
+    "cfpb_gold_columns": [
+      "Company",
+      "Company public response",
+      "Company response to consumer",
+      "Complaint ID",
+      "Date received",
+      "Date sent to company",
+      "Issue",
+      "Product",
+      "State",
+      "Sub-issue",
+      "Sub-product",
+      "Submitted via",
+      "Tags",
+      "Timely response?",
+      "ZIP code",
+      "common_taxonomy_bucket"
+    ],
+    "deliberate_disclosed_join_field": "common_taxonomy_bucket",
+    "shared_columns_excluding_deliberate_join_field": [],
+    "no_undisclosed_leakage": true
+  },
+  "ecoa_reg_b_status": "NOT_APPLICABLE",
+  "ecoa_reg_b_rationale": "Master Plan Section 9's own ECOA/Regulation B applicability row (table 3, row 4) names only BP1, BP2, BP3, BP7, and 'wherever any demographic-adjacent field could appear'. BP6's real inputs (BP1's real BANKING77 Gold text/category columns, and the real common_taxonomy_bucket column on both sides) carry no protected-class or demographic-adjacent field - re-confirmed structurally by Section 9 above (real column lists carry no such field). No disparate-impact testing is applicable to BP6's retrieval-strategy validation.",
+  "genai_sdk_modules_loaded_this_run": [],
+  "generated_at_utc": "2026-09-24T15:44:05.538510+00:00"
+}

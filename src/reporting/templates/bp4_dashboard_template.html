@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BP4 Customer Journey Analytics — Executive Dashboard</title>
+<!-- defer: an unreachable/slow CDN must never block the page from painting at all (real failure
+     mode seen on a real machine: a plain, non-deferred <script src> in <head> blocks HTML parsing
+     - and therefore the whole page's first paint - until the network request resolves, which can
+     hang indefinitely on a restrictive network and make the page look completely blank). -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer id="plotly-cdn"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root {
+    --navy: #1E2761;
+    --navy-deep: #12173f;
+    --accent: #4C6EF5;
+    --ice: #CADCFC;
+    --success: #1B998B;
+    --warning: #E8A33D;
+    --danger: #C1292E;
+    --gray: #6B7280;
+    --surface: #AFBEE6;
+    --card: #D2DBF6;
+    --card-border: #9FADDB;
+    --ink: #101828;
+    --ink-muted: #40495F;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(16, 24, 40, 0.14);
+    --shadow-hover: 0 10px 32px rgba(16, 24, 40, 0.20);
+    --font-display: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); line-height: 1.5;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(76,110,245,0.24) 0%, rgba(76,110,245,0) 46%),
+      radial-gradient(circle at 100% 18%, rgba(27,153,139,0.18) 0%, rgba(27,153,139,0) 40%),
+      linear-gradient(180deg, #B4C2E8 0%, #A7B7E3 45%, #98AADC 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  header.hero {
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 55%, #2c3a8c 100%);
+    color: #fff; padding: 48px 32px 64px; position: relative; overflow: hidden;
+  }
+  header.hero::after {
+    content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(76,110,245,0.35) 0%, rgba(76,110,245,0) 70%);
+    animation: auroraPulse 6.5s ease-in-out infinite;
+  }
+  header.hero::before {
+    content: ""; position: absolute; left: -70px; bottom: -110px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(27,153,139,0.28) 0%, rgba(27,153,139,0) 70%);
+    animation: auroraPulse 7.5s ease-in-out infinite reverse;
+  }
+  @keyframes auroraPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.65; transform: scale(1.1); } }
+  .hero-inner { max-width: 1320px; margin: 0 auto; position: relative; z-index: 1; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--ice); font-weight: 600; }
+  h1.title { font-size: clamp(26px, 3.6vw, 38px); margin: 10px 0 8px; font-weight: 700; font-family: var(--font-display); }
+  .title-accent { color: var(--ice); }
+  .subtitle { color: rgba(255,255,255,0.82); font-size: 15px; max-width: 780px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22); padding: 7px 14px; border-radius: 999px; font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .badge.warn .dot { background: var(--warning); }
+  .badge.fail .dot { background: var(--danger); animation: pulseDot 1.8s ease-in-out infinite; }
+  @keyframes pulseDot { 0%, 100% { box-shadow: 0 0 0 0 rgba(193,41,46,0.45); } 50% { box-shadow: 0 0 0 5px rgba(193,41,46,0); } }
+
+  .prod-banner {
+    margin-top: 22px; padding: 16px 20px; border-radius: var(--radius); font-size: 14.5px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; backdrop-filter: blur(4px);
+  }
+  .prod-banner .tier-label { font-weight: 800; font-size: 17px; font-family: var(--font-display); }
+  .prod-banner.tier-1 { background: rgba(27,153,139,0.22); border: 1px solid rgba(27,153,139,0.55); }
+  .prod-banner.tier-2 { background: rgba(232,163,61,0.22); border: 1px solid rgba(232,163,61,0.6); }
+  .prod-banner.tier-3 { background: rgba(193,41,46,0.22); border: 1px solid rgba(193,41,46,0.6); }
+  .prod-banner .tier-2-note { font-size: 12px; opacity: 0.85; width: 100%; margin-top: 2px; }
+
+  main { max-width: 1320px; margin: -40px auto 0; padding: 0 24px 64px; position: relative; z-index: 2; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 20px 18px; box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; opacity: 0; transform: translateY(14px);
+    animation: rise 0.6s ease forwards; position: relative; overflow: hidden; border: 1px solid transparent;
+  }
+  .kpi-card::before {
+    content: ""; position: absolute; top: -34px; right: -34px; width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-color, var(--accent)) 0%, transparent 72%); opacity: 0.16; pointer-events: none;
+  }
+  .kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--accent-color, var(--accent)); }
+  .kpi-top { display: flex; align-items: center; gap: 8px; }
+  .kpi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-color, var(--accent)); flex: none; }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 600; }
+  .kpi-value {
+    font-size: 28px; font-weight: 800; color: var(--navy); margin-top: 6px; font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word; word-break: break-word; line-height: 1.18; font-family: var(--font-display);
+  }
+  .kpi-value--text { font-size: clamp(15px, 2.1vw, 20px); line-height: 1.3; }
+  .kpi-sub { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  section.panel {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 26px 22px;
+    margin-bottom: 24px; opacity: 0; animation: rise 0.6s ease forwards;
+  }
+  section.panel h2 { font-size: 18px; margin: 0 0 4px; color: var(--navy); display: flex; align-items: center; gap: 9px; font-family: var(--font-display); }
+  section.panel .panel-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+  .panel-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  .filters-bar {
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 14px;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+  .filter-group label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  input[type="range"] { width: 220px; accent-color: var(--accent); }
+  .range-value { font-size: 13px; color: var(--navy); font-weight: 700; }
+  select, input[type="search"] {
+    font-family: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--card-border);
+    background: #fff; color: var(--ink); min-width: 190px;
+  }
+  select:focus, input[type="search"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .tier-pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tier-pill {
+    cursor: pointer; user-select: none; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    border: 1.5px solid var(--card-border); background: #fff; color: var(--ink-muted); transition: all 0.15s ease;
+  }
+  .tier-pill.active { color: #fff; border-color: transparent; }
+  .tier-pill[data-tier="ALL"].active { background: var(--navy); }
+  .tier-pill[data-tier="HIGH"].active { background: var(--danger); }
+  .tier-pill[data-tier="MEDIUM"].active { background: var(--warning); }
+  .tier-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(16,24,40,0.14); }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 20px; }
+  .chart-box { min-height: 340px; }
+  .chart-box.wide { min-height: 300px; }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data-table th {
+    text-align: left; padding: 10px 12px; background: var(--surface); color: var(--ink-muted);
+    text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; position: sticky; top: 0; cursor: pointer;
+    user-select: none; white-space: nowrap;
+  }
+  table.data-table th.sortable:hover { color: var(--navy); }
+  table.data-table th .sort-arrow { font-size: 10px; margin-left: 4px; opacity: 0.6; }
+  table.data-table td { padding: 9px 12px; border-top: 1px solid var(--card-border); }
+  table.data-table tr:hover td { background: #BECBF0; }
+  .table-scroll { max-height: 440px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 10px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .pill.tier-HIGH { background: rgba(193,41,46,0.14); color: var(--danger); }
+  .pill.tier-MEDIUM { background: rgba(232,163,61,0.16); color: #8a5b17; }
+  .table-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .table-toolbar .count-label { font-size: 12.5px; color: var(--ink-muted); }
+  .pager { display: flex; align-items: center; gap: 10px; }
+  .pager button {
+    font-family: inherit; font-size: 12.5px; font-weight: 700; padding: 6px 12px; border-radius: 8px;
+    border: 1.5px solid var(--card-border); background: #fff; color: var(--navy); cursor: pointer;
+  }
+  .pager button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .pager button:not(:disabled):hover { border-color: var(--accent); }
+  .pager .page-indicator { font-size: 12.5px; color: var(--ink-muted); min-width: 80px; text-align: center; }
+
+  .assumption-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed var(--card-border); font-size: 13px; }
+  .assumption-row .a-label { color: var(--ink-muted); max-width: 70%; }
+  .assumption-row .a-value { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 28px; margin-bottom: 4px; }
+  .detail-heading { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 13px; }
+
+  .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .suggestion-card {
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 16px 18px; background: var(--card);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .suggestion-card:hover { box-shadow: var(--shadow); border-color: var(--accent-color, var(--accent)); transform: translateY(-2px); }
+  .suggestion-card h3 { font-size: 14.5px; margin: 0 0 8px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .suggestion-card .smart-row { font-size: 12.5px; margin-bottom: 5px; }
+  .smart-tag { font-weight: 700; color: var(--accent); margin-right: 4px; }
+
+  footer { max-width: 1320px; margin: 0 auto; padding: 8px 24px 40px; font-size: 12px; color: var(--ink-muted); text-align: center; }
+
+  @media (max-width: 640px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    header.hero { padding: 36px 18px 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Customer360 Navigator &middot; BP4 Executive Rollup</div>
+    <h1 class="title">Customer Journey Analytics <span class="title-accent">— Executive Dashboard</span></h1>
+    <p class="subtitle">Real results from BP4 Gates 1&ndash;6, generated __GENERATED_AT__. Champion aggregation
+      pipeline: <strong>__CHAMPION_PIPELINE__</strong>. Every figure, table, and KPI on this page is read live
+      from the project's real, real-run-confirmed gate artifacts &mdash; nothing on this page is
+      assumption-based or estimated. BP4 has no supervised target and trains no predictive model: "champion"
+      here means the fastest correct aggregation-pipeline implementation, never a classifier.</p>
+    <div class="badge-row" id="governance-badges"></div>
+    <div class="prod-banner" id="prod-banner"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <section class="panel">
+    <h2>Aggregation-Pipeline Benchmark — Gate 3</h2>
+    <div class="panel-desc">Real wall-clock benchmark of 5 candidate aggregation-pipeline implementations
+      (pandas_groupby, polars_eager, polars_lazy, polars_lazy_streaming, duckdb_sql) — champion selected by
+      real measured speed among CORRECT candidates only, never by a predictive metric (BP4 has no
+      supervised target).</div>
+    <div class="chart-grid">
+      <div class="chart-box wide" id="chart-benchmark" style="grid-column: 1 / -1;"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Statistical Validation — Gate 4 (real, bootstrap CI)</h2>
+    <div class="panel-desc">Four real statistics, each with a 95% bootstrap confidence interval (1,000
+      resamples). BP4 carries no disparate-impact check: ECOA/Reg B does not map to BP4 per Master Plan
+      Section 9, and the issue-cluster key contains no barred column.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-ci-lag"></div>
+      <div class="chart-box" id="chart-ci-recurring"></div>
+      <div class="chart-box" id="chart-ci-diff"></div>
+      <div class="chart-box" id="chart-ci-clustersize"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Issue-Cluster Review-Priority Tier Rollup — Gate 5</h2>
+    <div class="panel-desc">Real deterministic tier rollup (HIGH/MEDIUM/LOW/NONE) over all 37,160 real issue
+      clusters. The table below embeds every real HIGH-tier and MEDIUM-tier cluster (the two tiers carrying a
+      triggered review flag) &mdash; use the tier filter, search box, and column sorting to explore live.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-tier-rollup" style="grid-column: 1 / -1;"></div>
+    </div>
+    <div class="filters-bar" style="margin-top: 18px;">
+      <div class="filter-group">
+        <label>Tier filter (slicer)</label>
+        <div class="tier-pill-group" id="tier-pill-group">
+          <span class="tier-pill active" data-tier="ALL">All embedded</span>
+          <span class="tier-pill" data-tier="HIGH">HIGH</span>
+          <span class="tier-pill" data-tier="MEDIUM">MEDIUM</span>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label for="cluster-search">Search Company / Product / Issue</label>
+        <input type="search" id="cluster-search" placeholder="e.g. mortgage, credit card, a company name…">
+      </div>
+      <div class="filter-group">
+        <label for="cluster-sort">Sort by</label>
+        <select id="cluster-sort">
+          <option value="n_complaints_total-desc">Complaint count (high to low)</option>
+          <option value="n_complaints_total-asc">Complaint count (low to high)</option>
+          <option value="avg_response_lag_days-desc">Avg. response lag (high to low)</option>
+          <option value="avg_response_lag_days-asc">Avg. response lag (low to high)</option>
+          <option value="review_priority_score-desc">Review priority score (high to low)</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" id="cluster-table">
+        <thead>
+          <tr>
+            <th data-key="Company">Company</th>
+            <th data-key="Product">Product</th>
+            <th data-key="Sub-product">Sub-product</th>
+            <th data-key="Issue">Issue</th>
+            <th data-key="review_priority_tier">Tier</th>
+            <th data-key="n_complaints_total" class="sortable">Complaints<span class="sort-arrow"></span></th>
+            <th data-key="avg_response_lag_days" class="sortable">Avg. Lag (days)<span class="sort-arrow"></span></th>
+            <th data-key="banking77_coverage_fraction">BANKING77 Cov.</th>
+            <th data-key="review_priority_score">Score</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="table-toolbar">
+      <span class="count-label" id="cluster-count-label"></span>
+      <div class="pager">
+        <button id="cluster-prev">&larr; Prev</button>
+        <span class="page-indicator" id="cluster-page-indicator"></span>
+        <button id="cluster-next">Next &rarr;</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Monthly Complaint-Volume Trend</h2>
+    <div class="panel-desc">Real monthly complaint volume, live-aggregated across all issue clusters from the
+      Gate 2 Gold table (<code>cfpb_issue_cluster_monthly_gold.parquet</code>) — never a hardcoded series.</div>
+    <div class="chart-grid">
+      <div class="chart-box wide" id="chart-monthly-trend" style="grid-column: 1 / -1;"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 1 — Business Understanding &amp; Policy</h2>
+    <div class="panel-desc">Real journey-unit definitions, scope boundaries, assumptions, compliance
+      touchpoint, and live row accounting recorded at Gate 1.</div>
+    <div id="gate1-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 6 — Governance &amp; Known Limitations</h2>
+    <div class="panel-desc">Real governance status from this run, plus open items carried forward honestly
+      rather than hidden.</div>
+    <div id="gate6-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>SMART Suggestions</h2>
+    <div class="panel-desc">Specific, Measurable, Achievable, Relevant, Time-bound recommendations — each
+      grounded in a real number from Gates 1&ndash;6, not freeform text.</div>
+    <div class="suggestion-grid" id="suggestion-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Generated by <code>bp4_customer_journey_analytics_g7_executive_rollup_report.ipynb</code> &middot;
+  Governance: __PYTEST_SUMMARY__ &middot; Notebook syntax audit: __SYNTAX_SUMMARY__ &middot;
+  Customer360 Navigator Enterprise Suite &mdash; BP4 Customer Journey Analytics
+</footer>
+
+<script id="rollup-data" type="application/json">__ROLLUP_DATA_JSON__</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('rollup-data').textContent);
+  const PALETTE = DATA.palette;
+  const CAT_SEQ = DATA.categorical_sequence;
+  const CHART_FONT = {family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", color: PALETTE.ink};
+  const CHART_HOVERLABEL = {bgcolor: PALETTE.primary_navy, bordercolor: PALETTE.primary_navy, font: {color: '#ffffff', size: 12, family: CHART_FONT.family}};
+  const TIER_COLOR = {HIGH: PALETTE.danger_red, MEDIUM: PALETTE.warning_amber, LOW: PALETTE.accent_blue, NONE: PALETTE.neutral_gray};
+
+  // ---------- resilient chart loading ----------
+  function markChartUnavailable(boxId) {
+    const box = document.getElementById(boxId);
+    if (box && !box.dataset.filled) {
+      box.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:300px;padding:20px;text-align:center;font-size:13px;color:var(--ink-muted);">Chart library (Plotly) could not be reached at cdn.plot.ly. The real underlying numbers for this chart are still available in the tables on this page.</div>';
+    }
+  }
+  function safePlot(boxId, drawFn) {
+    const run = () => {
+      try { drawFn(); const box = document.getElementById(boxId); if (box) box.dataset.filled = '1'; }
+      catch (e) { markChartUnavailable(boxId); }
+    };
+    if (window.Plotly) { run(); return; }
+    const cdnScript = document.getElementById('plotly-cdn');
+    if (!cdnScript) { markChartUnavailable(boxId); return; }
+    cdnScript.addEventListener('load', run, {once: false});
+    cdnScript.addEventListener('error', () => markChartUnavailable(boxId), {once: true});
+  }
+  setTimeout(() => {
+    if (!window.Plotly) {
+      document.querySelectorAll('.chart-box').forEach(box => markChartUnavailable(box.id));
+    }
+  }, 15000);
+
+  // ---------- animated count-up ----------
+  function groupThousands(numStr) {
+    const parts = numStr.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+  function animateValue(el, endText, duration) {
+    const numMatch = endText.match(/-?[\d.]+/);
+    if (!numMatch) { el.textContent = endText; return; }
+    const end = parseFloat(numMatch[0]);
+    const prefix = endText.slice(0, numMatch.index);
+    const suffix = endText.slice(numMatch.index + numMatch[0].length);
+    const decimals = (numMatch[0].split('.')[1] || '').length;
+    const start = 0;
+    const startTime = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = start + (end - start) * eased;
+      el.textContent = prefix + groupThousands(val.toFixed(decimals)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- Recommended for Production banner ----------
+  const prod = DATA.kpis.production_recommendation;
+  const banner = document.getElementById('prod-banner');
+  banner.className = 'prod-banner tier-' + prod.tier_code;
+  banner.innerHTML = '<span class="tier-label">' + prod.tier + '</span><span>' + prod.reason + '</span>' +
+    '<span class="tier-2-note">Note: Tier 2 (CONDITIONAL - GOVERNANCE REVIEW REQUIRED) is structurally unreachable for BP4 — no disparate-impact check exists for this business problem.</span>';
+
+  // ---------- governance badges ----------
+  const badgeRow = document.getElementById('governance-badges');
+  const gov = DATA.kpis;
+  const badges = [
+    {label: gov.governance_gates_complete + '/6 Gates Real-Run Confirmed', ok: true},
+    {label: 'pytest: ' + gov.pytest_counts.passed + ' passed / ' + gov.pytest_counts.failed + ' failed', ok: gov.pytest_all_passed},
+    {label: 'Notebook syntax audit: ' + (gov.notebook_syntax_all_passed ? 'all passed' : 'issues found'), ok: gov.notebook_syntax_all_passed},
+    {label: 'Open item: ' + gov.n_gate3_failed_candidates + ' failed Gate 3 candidate(s)', ok: gov.n_gate3_failed_candidates === 0},
+    {label: 'Open item: ' + gov.n_gate3_slow_but_correct_candidates + ' slow-but-correct Gate 3 candidate(s)', ok: gov.n_gate3_slow_but_correct_candidates === 0},
+    {label: 'ECOA/Reg B disparate-impact: ' + gov.ecoa_disparate_impact_applicability, ok: true},
+  ];
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'badge' + (b.ok ? '' : ' fail');
+    el.innerHTML = '<span class="dot"></span>' + b.label;
+    badgeRow.appendChild(el);
+  });
+
+  // ---------- KPI cards ----------
+  const kpiGrid = document.getElementById('kpi-grid');
+  const kpiDefs = [
+    {label: 'Champion Pipeline', value: gov.champion_pipeline, sub: 'real, fastest CORRECT candidate (Gate 3)'},
+    {label: 'Real Speedup vs. Baseline', value: gov.speedup_factor.toFixed(2) + 'x', sub: gov.baseline_seconds.toFixed(4) + 's → ' + gov.champion_min_seconds.toFixed(4) + 's'},
+    {label: 'Real Journey-Event Rows', value: gov.journey_row_count.toLocaleString(), sub: 'CFPB extract, live-verified'},
+    {label: 'Real Issue Clusters', value: gov.n_clusters.toLocaleString(), sub: (gov.pct_clusters_recurring * 100).toFixed(2) + '% recurring'},
+    {label: 'Mean Response Lag (days)', value: gov.mean_response_lag_days.point_estimate.toFixed(4), sub: '95% CI [' + gov.mean_response_lag_days.ci_95_low.toFixed(4) + ', ' + gov.mean_response_lag_days.ci_95_high.toFixed(4) + ']'},
+    {label: 'BANKING77-Derived Coverage', value: (gov.banking77_pct_in_scope * 100).toFixed(2) + '%', sub: 'real, secondary overlay only'},
+    {label: 'Real Rows Covered by Tier Rollup', value: gov.total_rows_covered.toLocaleString(), sub: gov.total_rows_covered_matches_gate1 ? 'matches Gate 1 exactly' : 'mismatch — investigate'},
+    {label: 'Governance Gates Complete', value: gov.governance_gates_complete + '/6', sub: 'all real-run confirmed'},
+  ];
+  kpiDefs.forEach((k, i) => {
+    const card = document.createElement('div');
+    const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+    card.className = 'kpi-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.style.setProperty('--accent-color', accentColor);
+    const isLongText = typeof k.value === 'string' && /[a-zA-Z]{4,}/.test(k.value) && k.value.replace(/[^a-zA-Z]/g, '').length > 8;
+    const valueClass = 'kpi-value' + (isLongText ? ' kpi-value--text' : '');
+    card.innerHTML =
+      '<div class="kpi-top"><span class="kpi-dot"></span><span class="kpi-label">' + k.label + '</span></div>' +
+      '<div class="' + valueClass + '" data-final="' + k.value + '"></div>' +
+      '<div class="kpi-sub">' + k.sub + '</div>';
+    kpiGrid.appendChild(card);
+  });
+  document.querySelectorAll('.kpi-value').forEach(el => animateValue(el, el.dataset.final, 900));
+
+  // ---------- Benchmark chart ----------
+  function renderBenchmark() {
+    const rows = DATA.benchmark.slice().sort((a, b) => a.min_seconds - b.min_seconds);
+    safePlot('chart-benchmark', () => Plotly.newPlot('chart-benchmark', [{
+      type: 'bar', orientation: 'h',
+      y: rows.map(r => r.candidate), x: rows.map(r => r.min_seconds),
+      marker: {color: rows.map(r => r.is_champion ? PALETTE.success_green : PALETTE.neutral_gray)},
+      text: rows.map(r => r.min_seconds.toFixed(4) + 's (' + r.status + ')'), textposition: 'outside',
+      hovertemplate: '%{y}<br>Real min_seconds: %{x:.6f}s<extra></extra>',
+    }], {
+      title: {text: 'Gate 3 — Real Aggregation-Pipeline Benchmark (5 candidates)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 170, t: 50, r: 60, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'min_seconds (real, lower is better)', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- bootstrap-CI charts ----------
+  function ciTrace(stat) {
+    return [{
+      type: 'bar', x: [stat.point_estimate], y: [stat.label], orientation: 'h',
+      marker: {color: PALETTE.accent_blue},
+      error_x: {type: 'data', symmetric: false, array: [stat.ci_95_high - stat.point_estimate], arrayminus: [stat.point_estimate - stat.ci_95_low], color: PALETTE.primary_navy, thickness: 2.5, width: 8},
+      text: [stat.point_estimate.toFixed(4)], textposition: 'outside',
+      hovertemplate: 'Point estimate: %{x:.4f}<br>95% CI: [' + stat.ci_95_low.toFixed(4) + ', ' + stat.ci_95_high.toFixed(4) + ']<extra></extra>',
+    }];
+  }
+  function renderCiChart(boxId, stat, titleText) {
+    safePlot(boxId, () => Plotly.newPlot(boxId, ciTrace(stat), {
+      title: {text: titleText, font: {size: 15, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 20, t: 50, r: 40, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, showlegend: false,
+      xaxis: {title: 'Real point estimate + 95% bootstrap CI', gridcolor: '#9FADDB'}, yaxis: {showticklabels: false},
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- Tier rollup chart ----------
+  function renderTierRollup() {
+    const rows = DATA.tier_rollup;
+    const colors = rows.map(r => TIER_COLOR[r.review_priority_tier] || PALETTE.neutral_gray);
+    safePlot('chart-tier-rollup', () => Plotly.newPlot('chart-tier-rollup', [
+      {type: 'bar', name: 'n_clusters', x: rows.map(r => r.review_priority_tier), y: rows.map(r => r.n_clusters), marker: {color: colors}, yaxis: 'y1', hovertemplate: '%{x} tier<br>%{y:,} real clusters<extra></extra>'},
+    ], {
+      title: {text: 'Real Cluster Count by Review-Priority Tier', font: {size: 15, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {t: 50, b: 40, l: 60, r: 30}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      yaxis: {title: 'n_clusters', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- Monthly volume trend chart ----------
+  function renderMonthlyTrend() {
+    const rows = DATA.monthly_trend;
+    if (!rows || !rows.length) { markChartUnavailable('chart-monthly-trend'); return; }
+    safePlot('chart-monthly-trend', () => Plotly.newPlot('chart-monthly-trend', [{
+      type: 'scatter', mode: 'lines', fill: 'tozeroy', x: rows.map(r => r.month), y: rows.map(r => r.n_complaints),
+      line: {color: PALETTE.primary_navy, width: 2.5}, fillcolor: 'rgba(76,110,245,0.18)',
+      hovertemplate: '%{x}<br>%{y:,} real complaints<extra></extra>',
+    }], {
+      title: {text: 'Real Monthly Complaint Volume (all issue clusters, live-aggregated)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {t: 50, b: 60, l: 60, r: 30}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {gridcolor: '#9FADDB'}, yaxis: {title: 'n_complaints_month', gridcolor: '#9FADDB'},
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- Interactive cluster table: tier slicer + search filter + sort + pagination ----------
+  const CLUSTER_COLS = ['Company', 'Product', 'Sub-product', 'Issue', 'Sub-issue', 'n_complaints_total', 'avg_response_lag_days', 'banking77_coverage_fraction', 'review_priority_tier', 'review_priority_score'];
+  const clusterState = {tier: 'ALL', search: '', sortKey: 'n_complaints_total', sortDir: 'desc', page: 0, pageSize: 25};
+
+  function clusterRowsAsObjects() {
+    return DATA.clusters.map(arr => {
+      const o = {};
+      CLUSTER_COLS.forEach((c, i) => { o[c] = arr[i]; });
+      return o;
+    });
+  }
+  const ALL_CLUSTER_ROWS = clusterRowsAsObjects();
+
+  function applyClusterFilters() {
+    let rows = ALL_CLUSTER_ROWS;
+    if (clusterState.tier !== 'ALL') {
+      rows = rows.filter(r => r.review_priority_tier === clusterState.tier);
+    }
+    if (clusterState.search) {
+      const q = clusterState.search.toLowerCase();
+      rows = rows.filter(r =>
+        String(r.Company).toLowerCase().includes(q) ||
+        String(r.Product).toLowerCase().includes(q) ||
+        String(r.Issue).toLowerCase().includes(q) ||
+        String(r['Sub-product']).toLowerCase().includes(q)
+      );
+    }
+    const key = clusterState.sortKey, dir = clusterState.sortDir === 'asc' ? 1 : -1;
+    rows = rows.slice().sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0) * dir);
+    return rows;
+  }
+
+  function renderClusterTable() {
+    const filtered = applyClusterFilters();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / clusterState.pageSize));
+    clusterState.page = Math.min(clusterState.page, totalPages - 1);
+    const start = clusterState.page * clusterState.pageSize;
+    const pageRows = filtered.slice(start, start + clusterState.pageSize);
+
+    const tbody = document.querySelector('#cluster-table tbody');
+    tbody.innerHTML = '';
+    pageRows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + r.Company + '</td>' +
+        '<td>' + r.Product + '</td>' +
+        '<td>' + r['Sub-product'] + '</td>' +
+        '<td>' + r.Issue + '</td>' +
+        '<td><span class="pill tier-' + r.review_priority_tier + '">' + r.review_priority_tier + '</span></td>' +
+        '<td>' + r.n_complaints_total.toLocaleString() + '</td>' +
+        '<td>' + Number(r.avg_response_lag_days).toFixed(4) + '</td>' +
+        '<td>' + Number(r.banking77_coverage_fraction).toFixed(3) + '</td>' +
+        '<td>' + r.review_priority_score + '</td>';
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('cluster-count-label').textContent =
+      filtered.length.toLocaleString() + ' real cluster(s) match this filter (of ' + ALL_CLUSTER_ROWS.length.toLocaleString() + ' embedded HIGH + MEDIUM tier clusters)';
+    document.getElementById('cluster-page-indicator').textContent = 'Page ' + (clusterState.page + 1) + ' of ' + totalPages;
+    document.getElementById('cluster-prev').disabled = clusterState.page <= 0;
+    document.getElementById('cluster-next').disabled = clusterState.page >= totalPages - 1;
+
+    document.querySelectorAll('#cluster-table th.sortable .sort-arrow').forEach(a => a.textContent = '');
+    const activeTh = document.querySelector('#cluster-table th[data-key="' + clusterState.sortKey + '"] .sort-arrow');
+    if (activeTh) activeTh.textContent = clusterState.sortDir === 'asc' ? '▲' : '▼';
+  }
+
+  document.querySelectorAll('.tier-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.tier-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      clusterState.tier = pill.dataset.tier;
+      clusterState.page = 0;
+      renderClusterTable();
+    });
+  });
+  document.getElementById('cluster-search').addEventListener('input', (e) => {
+    clusterState.search = e.target.value.trim();
+    clusterState.page = 0;
+    renderClusterTable();
+  });
+  document.getElementById('cluster-sort').addEventListener('change', (e) => {
+    const [key, dir] = e.target.value.split('-');
+    clusterState.sortKey = key;
+    clusterState.sortDir = dir;
+    clusterState.page = 0;
+    renderClusterTable();
+  });
+  document.querySelectorAll('#cluster-table th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      if (clusterState.sortKey === key) {
+        clusterState.sortDir = clusterState.sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        clusterState.sortKey = key;
+        clusterState.sortDir = 'desc';
+      }
+      const sortSelect = document.getElementById('cluster-sort');
+      const candidateValue = key + '-' + clusterState.sortDir;
+      const hasOption = Array.from(sortSelect.options).some(o => o.value === candidateValue);
+      if (hasOption) { sortSelect.value = candidateValue; }
+      renderClusterTable();
+    });
+  });
+  document.getElementById('cluster-prev').addEventListener('click', () => { clusterState.page -= 1; renderClusterTable(); });
+  document.getElementById('cluster-next').addEventListener('click', () => { clusterState.page += 1; renderClusterTable(); });
+
+  // ---------- Gate 1 detail (real, from policy.json) ----------
+  function renderGate1() {
+    const g1 = DATA.gate1;
+    const el = document.getElementById('gate1-detail');
+    let html = '<div class="detail-grid">';
+    html += '<div class="assumption-row"><span class="a-label"><strong>Unit 1 (complaint-event journey):</strong> ' + g1.unit_1_description + '</span></div>';
+    html += '<div class="assumption-row"><span class="a-label"><strong>Unit 2 (issue-cluster journey):</strong> ' + g1.unit_2_description + '</span></div>';
+    html += '<div class="assumption-row"><span class="a-label"><strong>Real CFPB row count (live check):</strong></span><span class="a-value">' + g1.cfpb_row_count.toLocaleString() + '</span></div>';
+    html += '<div class="assumption-row"><span class="a-label"><strong>Complaint ID unique event id:</strong></span><span class="a-value">' + g1.complaint_id_is_unique_event_id + '</span></div>';
+    html += '<div class="assumption-row"><span class="a-label"><strong>BANKING77-derived coverage:</strong></span><span class="a-value">' + g1.banking77_n_in_scope.toLocaleString() + ' / ' + g1.banking77_n_total.toLocaleString() + ' (' + (g1.banking77_pct_in_scope * 100).toFixed(2) + '%)</span></div>';
+    html += '<div class="assumption-row"><span class="a-label">' + g1.compliance_statement + '</span></div>';
+    html += '</div>';
+    html += '<div class="detail-heading">Scope boundaries (real)</div><div class="detail-grid">';
+    g1.scope_boundaries.forEach(b => { html += '<div class="assumption-row"><span class="a-label">' + b + '</span></div>'; });
+    html += '</div>';
+    html += '<div class="detail-heading">Assumptions documented at Gate 1 (real)</div><div class="detail-grid">';
+    g1.assumptions.forEach(a => { html += '<div class="assumption-row"><span class="a-label">' + a + '</span></div>'; });
+    html += '</div>';
+    html += '<div class="detail-heading">Real null counts (journey-relevant columns)</div><div class="detail-grid">';
+    Object.entries(g1.null_counts_journey_columns).forEach(([k, v]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + k + '</span><span class="a-value">' + v + '</span></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- Gate 6 detail (real governance status) ----------
+  function renderGate6() {
+    const g6 = DATA.gate6_detail;
+    const el = document.getElementById('gate6-detail');
+    const rows = [
+      ['pytest suite', g6.pytest_counts.passed + ' passed / ' + g6.pytest_counts.failed + ' failed (' + (g6.pytest_counts.skipped || 0) + ' skipped)'],
+      ['Notebook syntax audit', g6.notebook_syntax_check_n_passed + '/' + (g6.notebook_syntax_check_n_passed + g6.notebook_syntax_check_n_failed) + ' passed'],
+      ['Open item — failed Gate 3 candidates', String(g6.n_gate3_failed_candidates_detected)],
+      ['Open item — slow-but-correct Gate 3 candidates', String(g6.n_gate3_slow_but_correct_candidates_detected) + (g6.gate3_slow_but_correct_candidates.length ? ' (' + g6.gate3_slow_but_correct_candidates.join(', ') + ')' : '')],
+      ['Model inventory (SR 11-7) applicability', g6.model_inventory_applicability],
+      ['Model card', g6.model_card_path],
+      ['Changelog', g6.changelog_path],
+      ['Champion pipeline (consistent across gates)', g6.champion_pipeline],
+      ['Config status', g6.config_status],
+    ];
+    let html = '<div class="detail-grid">';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + label + '</span><span class="a-value">' + val + '</span></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- SMART suggestions ----------
+  function renderSuggestions() {
+    const grid = document.getElementById('suggestion-grid');
+    DATA.suggestions.forEach((s, i) => {
+      const card = document.createElement('div');
+      const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+      card.className = 'suggestion-card';
+      card.style.setProperty('--accent-color', accentColor);
+      card.innerHTML =
+        '<h3><span class="panel-dot" style="background:' + accentColor + '"></span>' + s.title + '</h3>' +
+        '<div class="smart-row"><span class="smart-tag">Specific:</span>' + s.specific + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Measurable:</span>' + s.measurable + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Time-bound:</span>' + s.timebound + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Owner:</span>' + s.owner_placeholder + '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- section panel accent dots ----------
+  function applyPanelDots() {
+    document.querySelectorAll('section.panel h2').forEach((h2, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'panel-dot';
+      dot.style.background = CAT_SEQ[i % CAT_SEQ.length];
+      h2.prepend(dot);
+    });
+  }
+
+  // ---------- initial render ----------
+  applyPanelDots();
+  renderBenchmark();
+  renderCiChart('chart-ci-lag', {label: 'Mean response lag (days)', point_estimate: DATA.kpis.mean_response_lag_days.point_estimate, ci_95_low: DATA.kpis.mean_response_lag_days.ci_95_low, ci_95_high: DATA.kpis.mean_response_lag_days.ci_95_high}, 'Mean Response Lag (days)');
+  renderCiChart('chart-ci-recurring', {label: 'Recurring-cluster rate', point_estimate: DATA.kpis.recurring_cluster_rate.point_estimate, ci_95_low: DATA.kpis.recurring_cluster_rate.ci_95_low, ci_95_high: DATA.kpis.recurring_cluster_rate.ci_95_high}, 'Recurring-Cluster Rate');
+  renderCiChart('chart-ci-diff', {label: 'In-scope minus out-of-scope lag diff (days)', point_estimate: DATA.kpis.response_lag_days_diff_in_scope_vs_out_of_scope.point_estimate, ci_95_low: DATA.kpis.response_lag_days_diff_in_scope_vs_out_of_scope.ci_95_low, ci_95_high: DATA.kpis.response_lag_days_diff_in_scope_vs_out_of_scope.ci_95_high}, 'In-Scope minus Out-of-Scope Lag Diff (days)');
+  renderCiChart('chart-ci-clustersize', {label: 'Mean cluster size', point_estimate: DATA.kpis.mean_cluster_size.point_estimate, ci_95_low: DATA.kpis.mean_cluster_size.ci_95_low, ci_95_high: DATA.kpis.mean_cluster_size.ci_95_high}, 'Mean Cluster Size (real rows/cluster)');
+  renderTierRollup();
+  renderMonthlyTrend();
+  renderClusterTable();
+  renderGate1();
+  renderGate6();
+  renderSuggestions();
+
+  // fade-in panels on scroll
+  const panels = document.querySelectorAll('section.panel');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = (idx * 0.05) + 's';
+        entry.target.style.opacity = 1;
+        io.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.08});
+  panels.forEach(p => io.observe(p));
+})();
+</script>
+</body>
+</html>

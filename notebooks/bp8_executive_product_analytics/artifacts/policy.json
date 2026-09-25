@@ -1,0 +1,515 @@
+{
+  "bp_id": "bp8",
+  "bp_name": "bp8_executive_product_analytics",
+  "gate": 1,
+  "generated_at_utc": "2026-09-25T09:37:59.826592+00:00",
+  "aggregation_scope_definition": {
+    "no_predictive_target": true,
+    "naming_commitment": "BP8 is a cross-BP Gold-layer aggregation and Power BI reporting layer, never a ninth modeling problem - no target, no classifier, no GenAI call, per Master Plan Section 5.1/6/17.5.",
+    "gate1_exit_criterion_reinterpreted": "Section 8's generic exit criterion ('No target leakage possible by construction') is trivially satisfied by construction for BP8: there is no predictive target for any feature to leak into. This is stated explicitly rather than left implicit or worked around with a fabricated target.",
+    "power_bi_layer_scope": {
+      "claude_authored_deliverable": "Gold/semantic tables written in Python to powerbi/gold_tables/ (Parquet/CSV or SQL-ready form), per Master Plan Section 19.",
+      "not_claude_authored": "The interactive .pbix file itself - built by the user in Power BI Desktop, per Section 19's own words ('create the interactive .pbix in Power BI Desktop'). Never claimed as a BP8 notebook deliverable.",
+      "powerbi_gold_tables_dir_exists": true,
+      "powerbi_gold_tables_real_files_today": 11,
+      "powerbi_pbix_dir_exists": true,
+      "powerbi_pbix_real_files_today": 0
+    },
+    "bp1_4_rollup_vs_bp8_distinction": {
+      "bp1_4_own_gate7_rollups": "Already real, already built per-BP (BP1/BP2/BP3/BP4 each have their own reports/bp{n}_.../executive_rollup/ HTML+DOCX+XLSX+PPTX set, live-verified in Section 7 below) - Master Plan Section 20's OPTIONAL, per-BP recruiter-facing Financial-Impact reporting layer. NOT BP8's job.",
+      "bp8_power_bi_layer": "New, cross-BP, not yet started (live-verified below) - Master Plan Section 5/6/8/17.5/19's REQUIRED executive/product Power BI decision layer. This IS BP8's actual, sole job."
+    },
+    "kpi_category_scope": {
+      "friction_trends": {
+        "source_bp": "bp2",
+        "source_table": "data/processed/cfpb_friction_severity_gold.parquet",
+        "source_field": "friction_severity_class",
+        "real_live_value_distribution": [
+          {
+            "friction_severity_class": "MEDIUM_HIGH_FRICTION",
+            "n": 490537
+          },
+          {
+            "friction_severity_class": "MEDIUM_FRICTION",
+            "n": 312526
+          },
+          {
+            "friction_severity_class": "EXCLUDED_PENDING",
+            "n": 231856
+          },
+          {
+            "friction_severity_class": "LOW_FRICTION",
+            "n": 10427
+          },
+          {
+            "friction_severity_class": "HIGH_FRICTION",
+            "n": 3227
+          },
+          {
+            "friction_severity_class": "EXCLUDED_UNKNOWN",
+            "n": 2
+          }
+        ],
+        "ready": true
+      },
+      "escalation_trends": {
+        "source_bp": "bp3",
+        "source_table": "data/processed/cfpb_intervention_escalation_gold.parquet",
+        "source_field": "intervention_required",
+        "real_live_value_distribution": [
+          {
+            "intervention_required": 0,
+            "n": 804942
+          },
+          {
+            "intervention_required": null,
+            "n": 233122
+          },
+          {
+            "intervention_required": 1,
+            "n": 10511
+          }
+        ],
+        "ready": true
+      },
+      "product_opportunity_flags": {
+        "source_bp": "bp4",
+        "source_table": "data/processed/cfpb_issue_cluster_summary_gold.parquet",
+        "source_field": "review_priority_tier (BP4's own Gate 5 output, HIGH/MEDIUM/LOW/NONE)",
+        "note": "BP8 aggregates BP4's own already-computed tier rollup; it never recomputes BP4's own flags or thresholds.",
+        "ready": true
+      },
+      "customer_intent_and_volume": {
+        "source_bp": "bp1",
+        "source_table": "data/processed/cfpb_common_taxonomy_gold.parquet, data/processed/banking77_common_taxonomy_gold.parquet",
+        "source_field": "category (77-class), common_taxonomy_bucket (9-bucket)",
+        "ready": true
+      },
+      "root_cause_driver_kpis": {
+        "source_bp": "bp5",
+        "status": "DEFERRED - bp5 live-verified not_started, no Gold-layer output exists yet.",
+        "ready": false
+      },
+      "genai_resolution_kpis": {
+        "source_bp": "bp6",
+        "status": "DEFERRED - bp6 live-verified not_started, no Gold-layer output exists yet.",
+        "ready": false
+      },
+      "decision_engine_kpis": {
+        "source_bp": "bp7",
+        "status": "DEFERRED - bp7 live-verified not_started, no Gold-layer output exists yet.",
+        "ready": false
+      }
+    }
+  },
+  "scope_boundaries": [
+    "BP8 reads only already-aggregated Gold-layer columns upstream BPs' own gates already computed and governed (friction_severity_class, intervention_required, review_priority_tier, category/common_taxonomy_bucket) - never raw CFPB/BANKING77 rows directly.",
+    "BP8 never recomputes an upstream BP's own classification, severity mapping, or tier logic - it aggregates and rolls up what that BP's own gates already produced.",
+    "BP8 never opens or parses another BP's own Gate 7 rollup DOCX/XLSX/PPTX - those are that BP's own deliverable, not an input to BP8's Gold tables.",
+    "No KPI category is defined for BP5/6/7 until that BP's own Gold-layer output live-verifies as present - no placeholder or illustrative KPI field is created now.",
+    "BP8 authors Gold/semantic Python-built tables only (powerbi/gold_tables/); it never authors a .pbix file - that is a Power BI Desktop, human step (Section 19)."
+  ],
+  "explicitly_out_of_scope": [
+    "Any per-customer/per-consumer rollup - BP8 inherits every upstream BP's own no-customer-identifier scope boundary (BP2/BP3/BP4 Gate 1 precedent); it aggregates at the same issue/event/cluster grain those BPs already established, never a person grain.",
+    "Any financial-impact or dollar-value KPI not itself already a real, defensible figure computed by an upstream BP's own gates - Master Plan Section 20's dollar-shorthand rule applies if any such figure is ever added, never assumed here.",
+    "Recomputing or overriding BP1-BP4's own already-confirmed Gate 3-6 metrics - BP8 reports them, it does not re-derive them."
+  ],
+  "assumptions": [
+    "BP1's own Gold-layer output (cfpb_common_taxonomy_gold.parquet, banking77_common_taxonomy_gold.parquet) is attributed here to BP1's Gate 2 (shared taxonomy/intent layer, Master Plan Section 6) - BP1's own config file carries no Gate 2 marker block of its own, so this attribution is stated as an ASSUMPTION grounded in the Master Plan's architecture description and the real file paths, not read from a BP1-owned config field.",
+    "BP3's Gate 7 executive-rollup notebook was, as of this Gate 1's own live check, real-file-present on disk but not yet confirmed as the user's own real run in this project's Evidence Ledger - BP8 does not depend on BP3's Gate 7 rollup at all (see the bp1_4_rollup_vs_bp8_distinction field above), so this has no effect on BP8's own scope; stated here only for completeness.",
+    "src/utils/bp1_config_sync.py is reused unmodified for BP8's own config file - already fully generic, parameterized by config_path, no BP1-specific logic (already reused unmodified by BP2, BP3 and BP4).",
+    "This Gate 1 snapshot of upstream readiness (Section 5-9 above) is real as of this notebook's own run - BP8's future Gate 2 must re-check every one of these live checks again rather than trusting this Gate 1 artifact as still current."
+  ],
+  "compliance_touchpoint": {
+    "requirement": "Data-minimization & purpose-limitation statement (GLBA/GDPR-aligned, Master Plan Section 8's Gate 1 row)",
+    "statement": "BP8 collects no new data of any kind - it reads only already-governed Gold-layer columns upstream BPs' own Gate 1-6 cycles already cleared for the stated purpose of executive/product analytics reporting (severity class, intervention flag, review-priority tier, intent bucket - never raw complaint narratives, never a demographic-adjacent field). No CFPB or BANKING77 row-level data is read directly by any BP8 gate. This satisfies the same data-minimization standard every upstream BP's own Gate 1 already established for its own scope."
+  },
+  "live_checks": {
+    "upstream_bp_status": {
+      "bp1": {
+        "bp_name": "bp1_customer_intent_classification",
+        "config_yaml_exists": true,
+        "config_status": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+        "gate6_reached": true,
+        "policy_json_exists": true,
+        "gold_tables": [
+          {
+            "filename": "cfpb_common_taxonomy_gold.parquet",
+            "exists": true,
+            "n_rows": 1048575,
+            "columns": [
+              "Date received",
+              "Product",
+              "Sub-product",
+              "Issue",
+              "Sub-issue",
+              "Company public response",
+              "Company",
+              "State",
+              "ZIP code",
+              "Tags",
+              "Submitted via",
+              "Date sent to company",
+              "Company response to consumer",
+              "Timely response?",
+              "Complaint ID",
+              "common_taxonomy_bucket"
+            ]
+          },
+          {
+            "filename": "banking77_common_taxonomy_gold.parquet",
+            "exists": true,
+            "n_rows": 13083,
+            "columns": [
+              "text",
+              "category",
+              "split",
+              "common_taxonomy_bucket"
+            ]
+          }
+        ],
+        "own_gate7_rollup_files": [
+          {
+            "filename": "bp1_executive_rollup_dashboard.html",
+            "exists": true,
+            "size_bytes": 214018
+          },
+          {
+            "filename": "bp1_executive_rollup_report.docx",
+            "exists": true,
+            "size_bytes": 288727
+          },
+          {
+            "filename": "bp1_executive_rollup_workbook.xlsx",
+            "exists": true,
+            "size_bytes": 120924
+          },
+          {
+            "filename": "bp1_executive_rollup_deck.pptx",
+            "exists": true,
+            "size_bytes": 287493
+          }
+        ],
+        "real_model_artifact_files": [
+          "bp1_champion_pipeline.joblib",
+          "bp1_model_metadata.json"
+        ]
+      },
+      "bp2": {
+        "bp_name": "bp2_customer_friction_classification",
+        "config_yaml_exists": true,
+        "config_status": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+        "gate6_reached": true,
+        "policy_json_exists": true,
+        "gold_tables": [
+          {
+            "filename": "cfpb_friction_severity_gold.parquet",
+            "exists": true,
+            "n_rows": 1048575,
+            "columns": [
+              "Date received",
+              "Product",
+              "Sub-product",
+              "Issue",
+              "Sub-issue",
+              "Company public response",
+              "Company",
+              "State",
+              "ZIP code",
+              "Tags",
+              "Submitted via",
+              "Date sent to company",
+              "Company response to consumer",
+              "Timely response?",
+              "Complaint ID",
+              "friction_severity_class",
+              "common_taxonomy_bucket"
+            ]
+          }
+        ],
+        "own_gate7_rollup_files": [
+          {
+            "filename": "bp2_executive_rollup_dashboard.html",
+            "exists": true,
+            "size_bytes": 2687902
+          },
+          {
+            "filename": "bp2_executive_rollup_report.docx",
+            "exists": true,
+            "size_bytes": 296873
+          },
+          {
+            "filename": "bp2_executive_rollup_workbook.xlsx",
+            "exists": true,
+            "size_bytes": 5189506
+          },
+          {
+            "filename": "bp2_executive_rollup_deck.pptx",
+            "exists": true,
+            "size_bytes": 296309
+          }
+        ],
+        "real_model_artifact_files": [
+          "bp2_champion_bundle.joblib",
+          "bp2_model_metadata.json"
+        ]
+      },
+      "bp3": {
+        "bp_name": "bp3_complaint_escalation_prediction",
+        "config_yaml_exists": true,
+        "config_status": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+        "gate6_reached": true,
+        "policy_json_exists": true,
+        "gold_tables": [
+          {
+            "filename": "cfpb_intervention_escalation_gold.parquet",
+            "exists": true,
+            "n_rows": 1048575,
+            "columns": [
+              "Date received",
+              "Product",
+              "Sub-product",
+              "Issue",
+              "Sub-issue",
+              "Company public response",
+              "Company",
+              "State",
+              "ZIP code",
+              "Tags",
+              "Submitted via",
+              "Date sent to company",
+              "Company response to consumer",
+              "Timely response?",
+              "Complaint ID",
+              "intervention_required",
+              "exclusion_reason"
+            ]
+          }
+        ],
+        "own_gate7_rollup_files": [
+          {
+            "filename": "bp3_executive_rollup_dashboard.html",
+            "exists": true,
+            "size_bytes": 2650567
+          },
+          {
+            "filename": "bp3_executive_rollup_report.docx",
+            "exists": true,
+            "size_bytes": 346639
+          },
+          {
+            "filename": "bp3_executive_rollup_workbook.xlsx",
+            "exists": true,
+            "size_bytes": 5180844
+          },
+          {
+            "filename": "bp3_executive_rollup_deck.pptx",
+            "exists": true,
+            "size_bytes": 345139
+          }
+        ],
+        "real_model_artifact_files": [
+          "bp3_champion_bundle.joblib",
+          "bp3_model_metadata.json"
+        ]
+      },
+      "bp4": {
+        "bp_name": "bp4_customer_journey_analytics",
+        "config_yaml_exists": true,
+        "config_status": "gate6_complete",
+        "gate6_reached": true,
+        "policy_json_exists": true,
+        "gold_tables": [
+          {
+            "filename": "cfpb_journey_event_gold.parquet",
+            "exists": true,
+            "n_rows": 1048575,
+            "columns": [
+              "Date received",
+              "Product",
+              "Sub-product",
+              "Issue",
+              "Sub-issue",
+              "Company public response",
+              "Company",
+              "State",
+              "ZIP code",
+              "Tags",
+              "Submitted via",
+              "Date sent to company",
+              "Company response to consumer",
+              "Timely response?",
+              "Complaint ID",
+              "sub_product_was_null",
+              "sub_issue_was_null",
+              "state_was_null",
+              "date_received_parsed",
+              "date_sent_parsed",
+              "response_lag_days",
+              "complaint_month",
+              "common_taxonomy_bucket",
+              "banking77_in_scope"
+            ]
+          },
+          {
+            "filename": "cfpb_issue_cluster_monthly_gold.parquet",
+            "exists": true,
+            "n_rows": 74415,
+            "columns": [
+              "Company",
+              "Product",
+              "Sub-product",
+              "Issue",
+              "Sub-issue",
+              "complaint_month",
+              "n_complaints_month",
+              "avg_response_lag_days_month",
+              "n_banking77_in_scope_month"
+            ]
+          },
+          {
+            "filename": "cfpb_issue_cluster_summary_gold.parquet",
+            "exists": true,
+            "n_rows": 37160,
+            "columns": [
+              "Company",
+              "Product",
+              "Sub-product",
+              "Issue",
+              "Sub-issue",
+              "n_complaints_total",
+              "first_complaint_date",
+              "last_complaint_date",
+              "n_active_months",
+              "avg_response_lag_days",
+              "banking77_coverage_fraction",
+              "is_recurring_cluster"
+            ]
+          }
+        ],
+        "own_gate7_rollup_files": [
+          {
+            "filename": "bp4_executive_rollup_dashboard.html",
+            "exists": true,
+            "size_bytes": 1503144
+          },
+          {
+            "filename": "bp4_executive_rollup_report.docx",
+            "exists": true,
+            "size_bytes": 224471
+          },
+          {
+            "filename": "bp4_executive_rollup_workbook.xlsx",
+            "exists": true,
+            "size_bytes": 170185
+          },
+          {
+            "filename": "bp4_executive_rollup_deck.pptx",
+            "exists": true,
+            "size_bytes": 222251
+          }
+        ],
+        "real_model_artifact_files": [
+          "bp4_decision_artifact_index.parquet",
+          "bp4_decision_artifact_metadata.json"
+        ]
+      },
+      "bp5": {
+        "bp_name": "bp5_root_cause_driver_analytics",
+        "config_yaml_exists": true,
+        "config_status": "gate1_confirmed",
+        "gate6_reached": false,
+        "policy_json_exists": true,
+        "gold_tables": [],
+        "own_gate7_rollup_files": [
+          {
+            "filename": "bp5_executive_rollup_dashboard.html",
+            "exists": true,
+            "size_bytes": 79564
+          },
+          {
+            "filename": "bp5_executive_rollup_report.docx",
+            "exists": true,
+            "size_bytes": 364891
+          },
+          {
+            "filename": "bp5_executive_rollup_workbook.xlsx",
+            "exists": true,
+            "size_bytes": 18840
+          },
+          {
+            "filename": "bp5_executive_rollup_deck.pptx",
+            "exists": true,
+            "size_bytes": 367762
+          }
+        ]
+      },
+      "bp6": {
+        "bp_name": "bp6_genai_resolution_assistant",
+        "config_yaml_exists": true,
+        "config_status": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed",
+        "gate6_reached": false,
+        "policy_json_exists": true,
+        "gold_tables": [],
+        "own_gate7_rollup_files": [
+          {
+            "filename": "bp6_executive_rollup_dashboard.html",
+            "exists": true,
+            "size_bytes": 72549
+          },
+          {
+            "filename": "bp6_executive_rollup_report.docx",
+            "exists": true,
+            "size_bytes": 189845
+          },
+          {
+            "filename": "bp6_executive_rollup_workbook.xlsx",
+            "exists": true,
+            "size_bytes": 15753
+          },
+          {
+            "filename": "bp6_executive_rollup_deck.pptx",
+            "exists": true,
+            "size_bytes": 191062
+          }
+        ]
+      },
+      "bp7": {
+        "bp_name": "bp7_customer_navigator_decision_engine",
+        "config_yaml_exists": true,
+        "config_status": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed",
+        "gate6_reached": false,
+        "policy_json_exists": true,
+        "gold_tables": [],
+        "own_gate7_rollup_files": [
+          {
+            "filename": "bp7_executive_rollup_dashboard.html",
+            "exists": true,
+            "size_bytes": 80266
+          },
+          {
+            "filename": "bp7_executive_rollup_report.docx",
+            "exists": true,
+            "size_bytes": 329187
+          },
+          {
+            "filename": "bp7_executive_rollup_workbook.xlsx",
+            "exists": true,
+            "size_bytes": 19300
+          },
+          {
+            "filename": "bp7_executive_rollup_deck.pptx",
+            "exists": true,
+            "size_bytes": 331472
+          }
+        ]
+      }
+    },
+    "powerbi_gold_tables_dir_exists": true,
+    "powerbi_gold_tables_real_files_today": 11,
+    "powerbi_pbix_dir_exists": true,
+    "powerbi_pbix_real_files_today": 0,
+    "n_kpi_categories_ready_today": 4,
+    "n_kpi_categories_deferred": 3
+  }
+}

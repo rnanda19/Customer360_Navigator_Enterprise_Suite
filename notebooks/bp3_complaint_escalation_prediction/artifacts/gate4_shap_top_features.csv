@@ -1,0 +1,21 @@
+feature,mean_abs_shap
+Company_freq,6.868529
+ohe__Issue_Credit limit changed,1.384851
+ohe__Sub-issue_Problem with additional add-on products or services purchased with the loan,1.3403045
+ohe__Sub-product_General-purpose credit card or charge card,1.3139247
+ohe__State_NY,1.275556
+ohe__Issue_Other transaction problem,1.1781341
+ohe__State_GA,1.0906507
+ohe__Sub-product_Telecommunications debt,0.99301493
+ohe__Sub-issue_Didn't receive services that were advertised,0.9818773
+"ohe__Sub-issue_Excess mileage, damage, or wear fees, or other problem after the lease is finished",0.9738424
+ohe__Sub-issue_Didn't receive advertised or promotional terms,0.9706614
+ohe__Issue_Struggling to pay your bill,0.9360808
+ohe__State_WA,0.8882409
+ohe__Sub-issue_Loan sold or transferred to another company,0.8532904
+ohe__Sub-issue_Fee problem,0.7889277
+ohe__Issue_Trouble using your card,0.78150916
+ohe__Sub-issue_Threatened to sue you for very old debt,0.7759024
+ohe__Submitted via_Web,0.75345814
+ohe__Sub-issue_Notification didn't disclose it was an attempt to collect a debt,0.75196683
+ohe__Sub-issue_Problem making or receiving payments,0.74582547

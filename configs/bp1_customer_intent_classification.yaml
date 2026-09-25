@@ -1,0 +1,76 @@
+# Per-BP config - filled in at Gate 1 (Business Understanding & Policy)
+# Gate 1 owns bp_id through random_state below via write_front_matter() (src/utils/bp1_config_sync.py);
+# Gates 2-5 each own exactly one marker-delimited block appended after it via write_gate_block() -
+# do not hand-edit either section, re-run the owning notebook instead.
+bp_id: "bp1"
+bp_name: "bp1_customer_intent_classification"
+status: "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed"
+target_definition:
+  primary_target: "category"
+  secondary_target: "common_taxonomy_bucket"
+  feature_variable: "text"
+  train_test_split_source: "BANKING77's own provided train/test split - never re-randomized."
+leakage_rules:
+  - "No CFPB row-level data is ever joined into BANKING77 training/evaluation data (zero shared columns,
+     verified live in the Gate 1 notebook)."
+  - "BANKING77 train/test split used as provided, never re-randomized or re-merged (live exact-text
+     overlap check run every Gate 1 execution)."
+  - "CFPB Gate-2 bucket-tagged rows are descriptive/reporting inputs only (BP8), never training/eval data
+     for this classifier."
+assumptions:
+  - "CFPB<->BANKING77 integration is a taxonomy/semantic crosswalk (configs/taxonomy_mapping.yaml), not a
+     row-level join - see docs/data_dictionary/CFPB_BANKING77_TAXONOMY_MAPPING.md."
+  - "Only ~6.55% of the real CFPB extract (Checking/savings, Credit card/prepaid card, Money transfer products)
+     has any plausible overlap with BANKING77's 77 intents; the rest is out of scope for this integration."
+  - "BP1's trainable text classifier is built and evaluated on BANKING77 alone, because the CFPB extract used
+     in this project has no narrative/complaint-text column (RAW_DATA_MANIFEST.md Finding 2)."
+random_state: 42
+
+# --- Gate 3 (Model/Classifier Benchmark) results (appended, idempotent overwrite) ---
+gate3_model_benchmark:
+  champion_model: "logistic_regression"
+  cv_mean_f1_macro: 0.804
+  held_out_test_f1_macro: 0.8221
+  held_out_test_f1_weighted: 0.8221
+  held_out_test_accuracy: 0.8224
+  candidates_evaluated: ['logistic_regression', 'random_forest', 'hist_gradient_boosting', 'xgboost', 'lightgbm', 'catboost']
+  candidates_failed: []
+  generated_at_utc: "2026-09-22T05:39:07.990501+00:00"
+
+# --- Gate 4 (Statistical Validation & Explainability) results (appended, idempotent overwrite) ---
+gate4_statistical_validation:
+  champion_model: "logistic_regression"
+  runner_up_model: "xgboost"
+  paired_ttest_pvalue: 0.0001
+  held_out_test_f1_macro_bootstrap_ci_95: [0.808, 0.8334]
+  roc_auc_ovr_macro: 0.9933
+  generated_at_utc: "2026-09-22T06:05:06.321847+00:00"
+
+# --- Gate 5 (Decision Layer & Reporting) results (appended, idempotent overwrite) ---
+gate5_decision_layer:
+  champion_model: "logistic_regression"
+  n_decision_records: 3080
+  n_with_reason_codes: 150
+  overall_test_accuracy_recomputed: 0.822403
+  genai_api_used: false
+  generated_at_utc: "2026-09-22T06:07:25.503400+00:00"
+
+# --- Gate 6 (Productization, Monitoring & Governance) results (appended, idempotent overwrite) ---
+gate6_governance:
+  champion_model: "logistic_regression"
+  pytest_all_passed: true
+  pytest_passed: 52
+  pytest_failed: 0
+  pytest_skipped: 0
+  notebook_syntax_all_passed: true
+  generated_at_utc: "2026-09-22T06:25:18.547134+00:00"
+
+# --- Model Persistence (Hardening Step 2) results (appended, idempotent overwrite) ---
+model_persistence:
+  champion_model: "logistic_regression"
+  joblib_relative_path: "models/bp1_customer_intent_classification/bp1_champion_pipeline.joblib"
+  joblib_sha256: "455960bdda06fe4d0ccd4f595517a2e88652f5f95161ced97d30cf6fe00ddb9e"
+  fresh_refit_test_accuracy: 0.822403
+  reload_verified_accuracy: 0.822403
+  reload_accuracy_diff: 0.0
+  generated_at_utc: "2026-09-25T16:03:05.091342+00:00"

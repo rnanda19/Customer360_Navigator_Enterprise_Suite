@@ -1,0 +1,28 @@
+{
+  "outcome_1_intervention_required": {
+    "threshold": 0.5,
+    "true_positive": 1994,
+    "false_positive": 15298,
+    "true_negative": 145691,
+    "false_negative": 108,
+    "n_positive_real": 2102,
+    "n_negative_real": 160989,
+    "recall": 0.9486203615604186,
+    "precision": 0.11531343974092066,
+    "false_positive_rate": 0.09502512594028163,
+    "selection_rate": 0.10602669675211998
+  },
+  "outcome_2_timely_response_failure": {
+    "threshold": 0.5,
+    "true_positive": 629,
+    "false_positive": 32242,
+    "true_negative": 176828,
+    "false_negative": 16,
+    "n_positive_real": 645,
+    "n_negative_real": 209070,
+    "recall": 0.9751937984496124,
+    "precision": 0.01913540811049253,
+    "false_positive_rate": 0.15421629119433683,
+    "selection_rate": 0.15674129175309348
+  }
+}

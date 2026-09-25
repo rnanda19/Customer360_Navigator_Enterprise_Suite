@@ -1,0 +1,32 @@
+{
+  "bp_id": "bp7",
+  "gate": 7,
+  "report_name": "BP7 Customer Navigator Decision Engine - Executive Rollup",
+  "champion_rule_scheme": "correlation_aware_plus_lr_diagnostic",
+  "production_recommendation_tier": "RECOMMENDED FOR PRODUCTION",
+  "production_recommendation_tier_code": 1,
+  "tier_2_reachable_for_this_bp": true,
+  "flagged_four_fifths_rule": false,
+  "adverse_impact_ratio": 0.908127,
+  "udaap_applicability": "Not Applicable to BP7 Gate 5 - recommended_action is Gate 1's own named deterministic, reason-code-keyed lookup, never GenAI-generated text. Real GenAI-drafted customer-facing text (subject to UDAAP review) is scoped to BP6 per the Master Plan, the identical standing scope decision confirmed at every upstream BP's own Gate 5.",
+  "nist_ai_rmf_applicability": "Not Applicable to BP7 Gate 5 for the same reason - no GenAI output is produced here. Applies at BP6.",
+  "ecoa_reg_b_applicability": "Applicable - Section 9 above freshly re-derives the disparate-impact audit on this gate's own scored full population and cross-checks it against Gate 4's own already-real-run-confirmed finding, rather than simply re-printing Gate 4's number. Monitoring signal for a human reviewer, not a legal determination of ECOA/Reg B compliance - the identical limitation Gate 4 and BP3's own Gate 4 both stated, not softened here.",
+  "output_paths": {
+    "dashboard_html": "reports\\bp7_customer_navigator_decision_engine\\executive_rollup\\bp7_executive_rollup_dashboard.html",
+    "report_docx": "reports\\bp7_customer_navigator_decision_engine\\executive_rollup\\bp7_executive_rollup_report.docx",
+    "workbook_xlsx": "reports\\bp7_customer_navigator_decision_engine\\executive_rollup\\bp7_executive_rollup_workbook.xlsx",
+    "deck_pptx": "reports\\bp7_customer_navigator_decision_engine\\executive_rollup\\bp7_executive_rollup_deck.pptx"
+  },
+  "output_sizes_bytes": {
+    "dashboard_html": 80266,
+    "report_docx": 329187,
+    "workbook_xlsx": 19300,
+    "deck_pptx": 331472
+  },
+  "contains_financial_impact_section": false,
+  "contains_assumption_based_content": false,
+  "genai_api_used": false,
+  "n_decision_records": 1048575,
+  "gate5_coverage_pct": 100.0,
+  "generated_at_utc": "2026-09-25T07:45:24.487907+00:00"
+}

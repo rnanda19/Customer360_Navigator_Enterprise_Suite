@@ -1,0 +1,172 @@
+{
+  "bp_id": "bp7",
+  "gate": 5,
+  "generated_at_utc": "2026-09-25T06:13:24.780323+00:00",
+  "live_row_count": 1048575,
+  "champion_rule_scheme": "correlation_aware_plus_lr_diagnostic",
+  "champion_weights_normalized": {
+    "bp2": 0.2227139837335739,
+    "bp3": 0.17077431022015202,
+    "bp4": 0.606511706046274
+  },
+  "intervention_threshold": 0.5,
+  "weight_rederivation_cross_check": {
+    "cramers_v_matches_config": true,
+    "bp4_coverage_matches_config": true,
+    "weights_match_config": true
+  },
+  "champion_stats": {
+    "coverage_pct": 100.0,
+    "intervention_flag_rate": 0.768415,
+    "bp3_agreement_rate": 0.285865,
+    "avg_reason_codes_per_row": 7.8864,
+    "reason_codes_all_nonempty": true
+  },
+  "cross_checks_vs_gate3_gate4": {
+    "coverage_pct_matches_gate3": true,
+    "intervention_flag_rate_matches_gate4": true,
+    "bp3_agreement_rate_matches_gate4": true,
+    "adverse_impact_ratio_matches_gate4": true
+  },
+  "gate4_bootstrap_ci_carried_forward": {
+    "intervention_flag_rate_ci_95": [
+      0.767609,
+      0.769243
+    ],
+    "bp3_agreement_rate_ci_95": [
+      0.284984,
+      0.286725
+    ],
+    "n_bootstrap": 1000
+  },
+  "contribution_decomposition_summary": {
+    "n_rows": 1048575,
+    "n_scored_rows_compared": 1048575,
+    "mean_contribution_bp2": 0.139346,
+    "mean_contribution_bp3": 0.015184,
+    "mean_contribution_bp4": 0.399635,
+    "median_contribution_bp2": 0.148476,
+    "median_contribution_bp3": 3.9e-05,
+    "median_contribution_bp4": 0.404341,
+    "std_contribution_bp2": 0.047942,
+    "std_contribution_bp3": 0.050543,
+    "std_contribution_bp4": 0.102777,
+    "max_abs_reconstruction_error": 0.0,
+    "reconstruction_exact_within_tolerance": true,
+    "disclosure": "Exact per-row decomposition of the deterministic weighted-average priority_score formula - contribution_bp2 + contribution_bp3 + contribution_bp4 reconstructs priority_score exactly for every scored row (max_abs_reconstruction_error above is the real, live-computed structural check, expected ~0 within floating-point tolerance). This is a genuine advantage over an approximate method like SHAP here: BP7's rule is already a fully transparent linear combination, so its own arithmetic IS its explanation, not an estimate of one."
+  },
+  "disparate_impact_audit": {
+    "join_coverage_pct": 100.0,
+    "adverse_impact_ratio": 0.908127,
+    "flagged_four_fifths_rule": false,
+    "lowest_selection_rate_group": "Servicemember",
+    "highest_selection_rate_group": "Older American",
+    "breakdown_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_disparate_impact_breakdown.csv"
+  },
+  "upstream_field_coverage": {
+    "n_rows": 1048575,
+    "bp1": {
+      "BP1_NO_TAXONOMY_MAPPING": 979865,
+      "BP1_TAXONOMY_CONTEXT_AVAILABLE": 68710
+    },
+    "bp2": {
+      "n_available": 1048575,
+      "n_unavailable": 0,
+      "pct_available": 100.0
+    },
+    "bp3": {
+      "n_available": 1048575,
+      "n_unavailable": 0,
+      "pct_available": 100.0
+    },
+    "bp4": {
+      "BP4_JOINED": 1022746,
+      "UNSCORED_MISSING_UPSTREAM_INPUT": 25829
+    },
+    "bp5_outcome_1": {
+      "ASSOCIATED_DRIVER_CATEGORY": 79486,
+      "NOT_IN_TOP_K_ASSOCIATION_LIST": 969089
+    },
+    "bp5_outcome_2": {
+      "ASSOCIATED_DRIVER_CATEGORY": 29002,
+      "NOT_IN_TOP_K_ASSOCIATION_LIST": 1019573
+    }
+  },
+  "recommended_action_breakdown": [
+    {
+      "recommended_action": "ESCALATE_ROOT_CAUSE_REVIEW_RECURRING_CLUSTER",
+      "n_rows": 788955,
+      "mean_priority_score": 0.5840138663606513,
+      "intervention_flag_rate": 1.0,
+      "pct_of_population": 75.240684
+    },
+    {
+      "recommended_action": "STANDARD_QUEUE",
+      "n_rows": 242834,
+      "mean_priority_score": 0.4494550105026503,
+      "intervention_flag_rate": 0.0,
+      "pct_of_population": 23.158477
+    },
+    {
+      "recommended_action": "PRIORITY_QUEUE_REVIEW",
+      "n_rows": 16786,
+      "mean_priority_score": 0.6660745793813543,
+      "intervention_flag_rate": 1.0,
+      "pct_of_population": 1.600839
+    }
+  ],
+  "bp4_tier_intervention_crosstab": [
+    {
+      "bp4_review_priority_tier": null,
+      "intervention_flag": false,
+      "n_rows": 9249
+    },
+    {
+      "bp4_review_priority_tier": null,
+      "intervention_flag": true,
+      "n_rows": 16580
+    },
+    {
+      "bp4_review_priority_tier": "HIGH",
+      "intervention_flag": true,
+      "n_rows": 82670
+    },
+    {
+      "bp4_review_priority_tier": "LOW",
+      "intervention_flag": false,
+      "n_rows": 22611
+    },
+    {
+      "bp4_review_priority_tier": "LOW",
+      "intervention_flag": true,
+      "n_rows": 2652
+    },
+    {
+      "bp4_review_priority_tier": "MEDIUM",
+      "intervention_flag": false,
+      "n_rows": 195896
+    },
+    {
+      "bp4_review_priority_tier": "MEDIUM",
+      "intervention_flag": true,
+      "n_rows": 703839
+    },
+    {
+      "bp4_review_priority_tier": "NONE",
+      "intervention_flag": false,
+      "n_rows": 15078
+    }
+  ],
+  "n_rows_covered_by_action_breakdown": 1048575,
+  "n_rows_covered_by_tier_crosstab": 1048575,
+  "compliance_touchpoint": {
+    "udaap_language_review": "Not Applicable to BP7 Gate 5 - recommended_action is Gate 1's own named deterministic, reason-code-keyed lookup, never GenAI-generated text. Real GenAI-drafted customer-facing text (subject to UDAAP review) is scoped to BP6 per the Master Plan, the identical standing scope decision confirmed at every upstream BP's own Gate 5.",
+    "nist_ai_rmf_measure_manage": "Not Applicable to BP7 Gate 5 for the same reason - no GenAI output is produced here. Applies at BP6.",
+    "ecoa_reg_b_disparate_impact_monitoring": "Applicable - Section 9 above freshly re-derives the disparate-impact audit on this gate's own scored full population and cross-checks it against Gate 4's own already-real-run-confirmed finding, rather than simply re-printing Gate 4's number. Monitoring signal for a human reviewer, not a legal determination of ECOA/Reg B compliance - the identical limitation Gate 4 and BP3's own Gate 4 both stated, not softened here.",
+    "bp7_is_the_cross_bp_decision_engine": "Unlike every upstream BP's own Gate 5 (which each stated the cross-BP priority + intervention-risk decision was Not Applicable at their own level and named it as BP7's job), this gate IS that decision engine - priority_score/intervention_flag/recommended_action/reason_codes are computed here, for real, for the full real population, using Gate 3's already-selected, Gate 4-reproduced champion rule scheme.",
+    "genai_api_used": false
+  },
+  "records_csv_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv",
+  "action_breakdown_csv_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_recommended_action_breakdown.csv",
+  "tier_crosstab_csv_path": "notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_bp4_tier_intervention_crosstab.csv"
+}

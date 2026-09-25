@@ -1,0 +1,16 @@
+{
+  "n_rows": 1048575,
+  "n_scored_rows_compared": 1048575,
+  "mean_contribution_bp2": 0.139346,
+  "mean_contribution_bp3": 0.015184,
+  "mean_contribution_bp4": 0.399635,
+  "median_contribution_bp2": 0.148476,
+  "median_contribution_bp3": 3.9e-05,
+  "median_contribution_bp4": 0.404341,
+  "std_contribution_bp2": 0.047942,
+  "std_contribution_bp3": 0.050543,
+  "std_contribution_bp4": 0.102777,
+  "max_abs_reconstruction_error": 0.0,
+  "reconstruction_exact_within_tolerance": true,
+  "disclosure": "Exact per-row decomposition of the deterministic weighted-average priority_score formula - contribution_bp2 + contribution_bp3 + contribution_bp4 reconstructs priority_score exactly for every scored row (max_abs_reconstruction_error above is the real, live-computed structural check, expected ~0 within floating-point tolerance). This is a genuine advantage over an approximate method like SHAP here: BP7's rule is already a fully transparent linear combination, so its own arithmetic IS its explanation, not an estimate of one."
+}

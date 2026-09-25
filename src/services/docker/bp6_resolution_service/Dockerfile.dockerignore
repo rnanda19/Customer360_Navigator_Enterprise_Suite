@@ -1,0 +1,70 @@
+# Customer360 Navigator - BP6 resolution-assistant service Dockerfile.dockerignore
+# Build context is the project ROOT (see this directory's Dockerfile header). Named
+# `Dockerfile.dockerignore` (not `.dockerignore`) so BuildKit applies it to THIS Dockerfile only -
+# same convention as bp1/bp2/bp3/bp4's own, since this project has multiple Dockerfiles sharing
+# one build context.
+
+# Data - never belongs in a served image
+data/
+
+# BP6's own image serves ONLY its own two real Gate 2/Gate 4 artifacts and the 5 upstream Gate 7
+# manifests (see Dockerfile's explicit COPY list) - every other real CSV/manifest/parquet
+# anywhere else in the tree is excluded.
+**/*.csv
+!notebooks/bp6_genai_resolution_assistant/artifacts/gate2_pii_screened_narrative_text.csv
+**/*.parquet
+**/executive_rollup_manifest.json
+!notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json
+!notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json
+!notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json
+!notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json
+!notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json
+
+# Notebooks themselves and every other BP6 artifact - not imported by the service at runtime
+**/*.ipynb
+**/*.ipynb_checkpoints/
+notebooks/bp6_genai_resolution_assistant/artifacts/gate2_evidence_source_registry.json
+notebooks/bp6_genai_resolution_assistant/artifacts/gate2_pii_screening_report.json
+notebooks/bp6_genai_resolution_assistant/artifacts/gate3_retrieval_strategy_inventory_entry.json
+notebooks/bp6_genai_resolution_assistant/artifacts/gate5_recommendation_pending_human_review.json
+notebooks/bp6_genai_resolution_assistant/artifacts/policy.json
+notebooks/bp6_genai_resolution_assistant/README.md
+
+# Every other BP's own notebook tree - this image serves BP6 only (plus the 5 upstream manifests
+# explicitly COPYed above)
+notebooks/00_hardware_benchmark/
+notebooks/01_data_acquisition_profiling/
+notebooks/bp7_customer_navigator_decision_engine/
+notebooks/bp8_executive_product_analytics/
+
+# Every BP's model artifacts - BP6 has none of its own and needs none of anyone else's
+models/
+
+# Docs, reports, packaging staging, logs - not needed to serve
+docs/
+reports/
+github_repo/
+kaggle/
+linkedin/
+logs/
+powerbi/
+
+# Tests - the image serves the app, it does not run its own test suite
+tests/
+
+# VCS / editor / cache noise
+.git/
+.github/
+.vscode/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# This project's own doc/config files not needed at runtime
+*.docx
+README.md
+LICENSE
+LESSONS_LEARNED_APPLIED.md
+desktop.ini

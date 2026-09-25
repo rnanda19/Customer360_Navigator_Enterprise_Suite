@@ -1,0 +1,114 @@
+{
+  "bp_id": "bp3",
+  "investigation": "fairness_aware_retraining_candidate_v2",
+  "original_champion_model": "xgboost",
+  "candidate_model": "xgboost_fpr_targeted_reweighted_v2_amplified",
+  "amplification_exponent": 2.0,
+  "reference_group": "NO_TAG",
+  "real_group_fpr_used_for_weighting": {
+    "NO_TAG": 0.058969842118111224,
+    "Servicemember": 0.14303122619954303,
+    "Older American": 0.441002277904328,
+    "Older American, Servicemember": 0.44545454545454544
+  },
+  "sample_weight_summary": {
+    "min": 1.0,
+    "max": 76.579,
+    "mean": 3.1503
+  },
+  "original_metrics": {
+    "held_out_test_pr_auc": 0.3496,
+    "held_out_test_roc_auc": 0.9762,
+    "held_out_test_recall": 0.9424,
+    "held_out_test_precision": 0.151,
+    "held_out_test_f1": 0.2603
+  },
+  "v1_candidate_metrics": {
+    "held_out_test_pr_auc": 0.3432,
+    "false_positive_rate_ratio_min_over_max": 0.139087,
+    "recall_ratio_min_over_max": 0.925479
+  },
+  "v2_candidate_metrics": {
+    "held_out_test_pr_auc": 0.3046,
+    "held_out_test_roc_auc": 0.974,
+    "held_out_test_recall": 0.8049,
+    "held_out_test_precision": 0.207,
+    "held_out_test_f1": 0.3293
+  },
+  "real_pr_auc_cost_vs_original": 0.045,
+  "real_pr_auc_cost_vs_v1": 0.0386,
+  "group_confusion_detail_candidate": [
+    {
+      "tags_group": "NO_TAG",
+      "n_rows_in_test": 153194,
+      "n_real_positive_in_group": 1625,
+      "n_real_negative_in_group": 151569,
+      "n_selected": 6697,
+      "n_true_positive": 1326,
+      "n_false_positive": 5371,
+      "n_true_negative": 146198,
+      "n_false_negative": 299,
+      "selection_rate": 0.0437,
+      "recall": 0.816,
+      "false_positive_rate": 0.035436,
+      "precision": 0.198
+    },
+    {
+      "tags_group": "Older American",
+      "n_rows_in_test": 2447,
+      "n_real_positive_in_group": 252,
+      "n_real_negative_in_group": 2195,
+      "n_selected": 705,
+      "n_true_positive": 192,
+      "n_false_positive": 513,
+      "n_true_negative": 1682,
+      "n_false_negative": 60,
+      "selection_rate": 0.2881,
+      "recall": 0.7619,
+      "false_positive_rate": 0.233713,
+      "precision": 0.2723
+    },
+    {
+      "tags_group": "Older American, Servicemember",
+      "n_rows_in_test": 724,
+      "n_real_positive_in_group": 64,
+      "n_real_negative_in_group": 660,
+      "n_selected": 175,
+      "n_true_positive": 45,
+      "n_false_positive": 130,
+      "n_true_negative": 530,
+      "n_false_negative": 19,
+      "selection_rate": 0.2417,
+      "recall": 0.7031,
+      "false_positive_rate": 0.19697,
+      "precision": 0.2571
+    },
+    {
+      "tags_group": "Servicemember",
+      "n_rows_in_test": 6726,
+      "n_real_positive_in_group": 161,
+      "n_real_negative_in_group": 6565,
+      "n_selected": 597,
+      "n_true_positive": 129,
+      "n_false_positive": 468,
+      "n_true_negative": 6097,
+      "n_false_negative": 32,
+      "selection_rate": 0.0888,
+      "recall": 0.8012,
+      "false_positive_rate": 0.071287,
+      "precision": 0.2161
+    }
+  ],
+  "original_adverse_impact_ratio_tags": 0.139,
+  "v1_adverse_impact_ratio_tags": 0.1434,
+  "v2_adverse_impact_ratio_tags": 0.1517,
+  "original_false_positive_rate_ratio_min_over_max": 0.132381,
+  "v1_false_positive_rate_ratio_min_over_max": 0.139087,
+  "v2_false_positive_rate_ratio_min_over_max": 0.151622,
+  "original_recall_ratio_min_over_max": 0.95621,
+  "v1_recall_ratio_min_over_max": 0.925479,
+  "v2_recall_ratio_min_over_max": 0.861642,
+  "fairness_aware_retraining_disclosure": "This candidate model is produced by FPR-targeted group-conditional sample reweighting during training (compute_fpr_targeted_sample_weights()) - a heuristic informed by Tier C's real finding that no single real candidate feature explains the false-positive-rate disparity, so the fix targets the training objective directly rather than the feature list. It is NOT a formal equalized-odds-constrained optimization (that would be a further real option, not built here) and does NOT guarantee the real per-group false-positive-rate ratio clears the 0.8 four-fifths-style bar - the real result must be read from this notebook's own real held-out test set evaluation, Section 8, not assumed from the design. This candidate is never auto-promoted to BP3's champion and does NOT alter Gate 3-7's existing real-run-confirmed artifacts or config blocks - adopting it (or not) is the user's real governance decision, to be made only after comparing its real PR-AUC/ROC-AUC/recall/precision/F1 against the real, already-confirmed original champion's numbers (a materially worse real PR-AUC is a real cost of this fix that must be weighed, not hidden) alongside its real fairness-metric improvement.",
+  "adopted_as_champion": false,
+  "generated_at_utc": "2026-09-24T03:11:31.884280+00:00"
+}

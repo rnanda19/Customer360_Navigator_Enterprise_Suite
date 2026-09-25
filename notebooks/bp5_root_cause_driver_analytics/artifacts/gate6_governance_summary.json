@@ -1,0 +1,33 @@
+{
+  "bp_id": "bp5",
+  "gate": 6,
+  "pytest_summary_line": "\u001b[33m================ \u001b[32m325 passed\u001b[0m, \u001b[33m\u001b[1m3 skipped\u001b[0m, \u001b[33m\u001b[1m182 warnings\u001b[0m\u001b[33m in 9.51s\u001b[0m\u001b[33m =================\u001b[0m",
+  "pytest_counts": {
+    "passed": 325,
+    "failed": 0,
+    "skipped": 3,
+    "errors": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "pytest_returncode": 0,
+  "pytest_all_passed": true,
+  "notebook_syntax_check_n_passed": 51,
+  "notebook_syntax_check_n_failed": 0,
+  "notebook_syntax_check_returncode": 0,
+  "notebook_syntax_all_passed": true,
+  "gate4_reconfirms_gate3_per_outcome": {
+    "outcome_1_intervention_required": true,
+    "outcome_2_timely_response_failure": true
+  },
+  "n_negligible_strength_fields_detected": 2,
+  "n_near_random_pr_auc_outcomes_detected": 0,
+  "n_near_zero_precision_outcomes_detected": 1,
+  "near_zero_precision_outcomes": [
+    "outcome_2_timely_response_failure"
+  ],
+  "barred_fields_bar_relaxed": false,
+  "model_card_path": "reports\\bp5_root_cause_driver_analytics\\MODEL_CARD.md",
+  "changelog_path": "reports\\bp5_root_cause_driver_analytics\\CHANGELOG.md",
+  "generated_at_utc": "2026-09-24T11:15:03.634508+00:00"
+}

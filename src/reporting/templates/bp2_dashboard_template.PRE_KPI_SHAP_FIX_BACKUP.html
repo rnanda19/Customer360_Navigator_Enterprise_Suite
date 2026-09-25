@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BP2 Customer Friction Classification — Executive Dashboard</title>
+<!-- defer: an unreachable/slow CDN must never block the page from painting at all (real failure
+     mode seen on a real machine: a plain, non-deferred <script src> in <head> blocks HTML parsing
+     - and therefore the whole page's first paint - until the network request resolves, which can
+     hang indefinitely on a restrictive network and make the page look completely blank). -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer id="plotly-cdn"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root {
+    --navy: #1E2761;
+    --navy-deep: #12173f;
+    --accent: #4C6EF5;
+    --ice: #CADCFC;
+    --success: #1B998B;
+    --warning: #E8A33D;
+    --danger: #C1292E;
+    --gray: #6B7280;
+    --surface: #AFBEE6;
+    --card: #D2DBF6;
+    --card-border: #9FADDB;
+    --ink: #101828;
+    --ink-muted: #40495F;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(16, 24, 40, 0.14);
+    --shadow-hover: 0 10px 32px rgba(16, 24, 40, 0.20);
+    --font-display: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); line-height: 1.5;
+    /* World-class report background: a mild-coloured, fixed slate-blue gradient behind the whole
+       page (never pure white) so charts, tables, and data cards stand out through contrast
+       against it - the hero's own gradient/blobs stay unchanged above. */
+    background:
+      radial-gradient(circle at 8% 0%, rgba(76,110,245,0.24) 0%, rgba(76,110,245,0) 46%),
+      radial-gradient(circle at 100% 18%, rgba(27,153,139,0.18) 0%, rgba(27,153,139,0) 40%),
+      linear-gradient(180deg, #B4C2E8 0%, #A7B7E3 45%, #98AADC 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  header.hero {
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 55%, #2c3a8c 100%);
+    color: #fff; padding: 48px 32px 64px; position: relative; overflow: hidden;
+  }
+  header.hero::after {
+    content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(76,110,245,0.35) 0%, rgba(76,110,245,0) 70%);
+    animation: auroraPulse 6.5s ease-in-out infinite;
+  }
+  header.hero::before {
+    content: ""; position: absolute; left: -70px; bottom: -110px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(27,153,139,0.28) 0%, rgba(27,153,139,0) 70%);
+    animation: auroraPulse 7.5s ease-in-out infinite reverse;
+  }
+  @keyframes auroraPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.65; transform: scale(1.1); } }
+  .hero-inner { max-width: 1320px; margin: 0 auto; position: relative; z-index: 1; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--ice); font-weight: 600; }
+  h1.title { font-size: clamp(28px, 4vw, 40px); margin: 10px 0 8px; font-weight: 700; font-family: var(--font-display); }
+  .title-accent { color: var(--ice); }
+  .subtitle { color: rgba(255,255,255,0.82); font-size: 15px; max-width: 760px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22); padding: 7px 14px; border-radius: 999px; font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .badge.warn .dot { background: var(--warning); }
+  .badge.fail .dot { background: var(--danger); animation: pulseDot 1.8s ease-in-out infinite; }
+  @keyframes pulseDot { 0%, 100% { box-shadow: 0 0 0 0 rgba(193,41,46,0.45); } 50% { box-shadow: 0 0 0 5px rgba(193,41,46,0); } }
+
+  main { max-width: 1320px; margin: -40px auto 0; padding: 0 24px 64px; position: relative; z-index: 2; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 20px 18px; box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; opacity: 0; transform: translateY(14px);
+    animation: rise 0.6s ease forwards; position: relative; overflow: hidden; border: 1px solid transparent;
+  }
+  .kpi-card::before {
+    content: ""; position: absolute; top: -34px; right: -34px; width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-color, var(--accent)) 0%, transparent 72%); opacity: 0.16; pointer-events: none;
+  }
+  .kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--accent-color, var(--accent)); }
+  .kpi-top { display: flex; align-items: center; gap: 8px; }
+  .kpi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-color, var(--accent)); flex: none; }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 600; }
+  .kpi-value {
+    font-size: 30px; font-weight: 800; color: var(--navy); margin-top: 6px; font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word; word-break: break-word; line-height: 1.18; font-family: var(--font-display);
+  }
+  .kpi-value--text { font-size: clamp(16px, 2.3vw, 22px); line-height: 1.3; }
+  .kpi-sub { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  section.panel {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 26px 22px;
+    margin-bottom: 24px; opacity: 0; animation: rise 0.6s ease forwards;
+  }
+  section.panel h2 { font-size: 18px; margin: 0 0 4px; color: var(--navy); display: flex; align-items: center; gap: 9px; font-family: var(--font-display); }
+  section.panel .panel-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+  .panel-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  .filters-bar {
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 6px;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+  .filter-group label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  select, input[type="text"] {
+    padding: 9px 12px; border-radius: 8px; border: 1px solid var(--card-border); font-size: 14px; background: var(--card); color: var(--ink);
+  }
+  input[type="range"] { width: 220px; accent-color: var(--accent); }
+  .range-value { font-size: 13px; color: var(--navy); font-weight: 700; }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 20px; }
+  .chart-box { min-height: 340px; }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data-table th {
+    text-align: left; padding: 10px 12px; background: var(--surface); color: var(--ink-muted);
+    text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; position: sticky; top: 0;
+  }
+  table.data-table td { padding: 9px 12px; border-top: 1px solid var(--card-border); }
+  table.data-table tr:hover td { background: #BECBF0; }
+  .table-scroll { max-height: 360px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 10px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .pill.good { background: rgba(27,153,139,0.12); color: var(--success); }
+  .pill.bad { background: rgba(193,41,46,0.12); color: var(--danger); }
+
+  .assumption-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed var(--card-border); font-size: 13px; }
+  .assumption-row .a-label { color: var(--ink-muted); max-width: 70%; }
+  .assumption-row .a-value { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 28px; margin-bottom: 4px; }
+  .detail-heading { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 13px; }
+
+  .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .suggestion-card {
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 16px 18px; background: var(--card);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .suggestion-card:hover { box-shadow: var(--shadow); border-color: var(--accent-color, var(--accent)); transform: translateY(-2px); }
+  .suggestion-card h3 { font-size: 14.5px; margin: 0 0 8px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .suggestion-card .smart-row { font-size: 12.5px; margin-bottom: 5px; }
+  .smart-tag { font-weight: 700; color: var(--accent); margin-right: 4px; }
+
+  footer { max-width: 1320px; margin: 0 auto; padding: 8px 24px 40px; font-size: 12px; color: var(--ink-muted); text-align: center; }
+
+  @media (max-width: 640px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    header.hero { padding: 36px 18px 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Customer360 Navigator &middot; BP2 Executive Rollup</div>
+    <h1 class="title">Customer Friction Classification <span class="title-accent">— Executive Dashboard</span></h1>
+    <p class="subtitle">Real results from BP2 Gates 1&ndash;6, generated __GENERATED_AT__. Champion model:
+      <strong>__CHAMPION_MODEL__</strong>. Every figure, table, and KPI on this page is read live from the project's real,
+      real-run-confirmed gate artifacts &mdash; nothing on this page is assumption-based or estimated.</p>
+    <div class="badge-row" id="governance-badges"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <section class="panel">
+    <h2>Model Benchmark &amp; Explainability</h2>
+    <div class="panel-desc">Real Gate 3 5-fold cross-validation results (5 passing candidates) and Gate 4's real global SHAP feature importance.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-model-benchmark"></div>
+      <div class="chart-box" id="chart-shap"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Decision Layer — Live Confidence Filter</h2>
+    <div class="panel-desc">Slice the real 163,344-row held-out decision set by minimum prediction confidence — every chart and figure below updates live.</div>
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label for="confidence-filter">Min. prediction confidence: <span class="range-value" id="confidence-value">0.00</span></label>
+        <input type="range" id="confidence-filter" min="0" max="1" step="0.01" value="0">
+      </div>
+    </div>
+    <div class="panel-desc" id="decision-summary" style="margin-top:10px;">Drag the slider above to see how coverage and accuracy trade off.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-confidence-dist"></div>
+      <div class="chart-box" id="chart-severity-pie"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Where the Model Gets Confused</h2>
+    <div class="panel-desc">Real full 4&times;4 confusion matrix and off-diagonal severity-class confusion pairs from the held-out test set.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-confusion-heatmap" style="grid-column: 1 / -1;"></div>
+    </div>
+    <div class="table-scroll" style="margin-top:16px;">
+      <table class="data-table" id="confused-pairs-table">
+        <thead><tr><th>True class</th><th>Predicted class</th><th>Real count</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Per-Severity-Class Performance</h2>
+    <div class="panel-desc">Real per-class precision/recall/F1 from Gate 3's held-out test classification report — all 4 real ordinal friction-severity classes.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-class-performance" style="grid-column: 1 / -1;"></div>
+    </div>
+    <div class="table-scroll" style="margin-top:16px;">
+      <table class="data-table" id="class-performance-table">
+        <thead><tr><th>Severity class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 1 — Business Understanding &amp; Policy</h2>
+    <div class="panel-desc">Real target definition, scoped-out signals, leakage rules, scope assumptions, compliance touchpoint, and live target-field distributions recorded at Gate 1 — the policy this classifier was built under.</div>
+    <div id="gate1-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 6 — Governance &amp; Known Limitations</h2>
+    <div class="panel-desc">Real governance status from this run, plus open items carried forward honestly rather than hidden — including the real Gate 3 candidate failure this BP has that BP1 did not.</div>
+    <div id="gate6-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>SMART Suggestions</h2>
+    <div class="panel-desc">Specific, Measurable, Achievable, Relevant, Time-bound recommendations — each grounded in a real number from Gates 1&ndash;6, not freeform text.</div>
+    <div class="suggestion-grid" id="suggestion-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Generated by <code>bp2_customer_friction_classification_executive_rollup_report.ipynb</code> &middot;
+  Governance: __PYTEST_SUMMARY__ &middot; Notebook syntax audit: __SYNTAX_SUMMARY__ &middot;
+  Customer360 Navigator Enterprise Suite &mdash; BP2 Customer Friction Classification
+</footer>
+
+<script id="rollup-data" type="application/json">__ROLLUP_DATA_JSON__</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('rollup-data').textContent);
+  const PALETTE = DATA.palette;
+  const CAT_SEQ = DATA.categorical_sequence;
+  const CHART_FONT = {family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", color: PALETTE.ink};
+  const CHART_HOVERLABEL = {bgcolor: PALETTE.primary_navy, bordercolor: PALETTE.primary_navy, font: {color: '#ffffff', size: 12, family: CHART_FONT.family}};
+
+  // ---------- resilient chart loading ----------
+  // Plotly loads from an external CDN (deferred, so it never blocks the rest of this page from
+  // rendering - see the <head> comment). Everything below that does NOT need Plotly (KPI cards,
+  // badges, tables, Gate 1/6 detail, SMART suggestions) always renders immediately regardless of
+  // whether that CDN is reachable. Every Plotly.newPlot/react call is routed through safePlot()
+  // so a slow, blocked, or failed CDN load can never throw an uncaught error that would stop the
+  // rest of this script from running - it just leaves that one chart's box showing a plain-text
+  // fallback instead of silently blank, until/unless Plotly finishes loading.
+  function markChartUnavailable(boxId) {
+    const box = document.getElementById(boxId);
+    if (box && !box.dataset.filled) {
+      box.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:300px;padding:20px;text-align:center;font-size:13px;color:var(--ink-muted);">Chart library (Plotly) could not be reached at cdn.plot.ly. The real underlying numbers for this chart are still available in the tables on this page.</div>';
+    }
+  }
+  function safePlot(boxId, drawFn) {
+    const run = () => {
+      try { drawFn(); const box = document.getElementById(boxId); if (box) box.dataset.filled = '1'; }
+      catch (e) { markChartUnavailable(boxId); }
+    };
+    if (window.Plotly) { run(); return; }
+    const cdnScript = document.getElementById('plotly-cdn');
+    if (!cdnScript) { markChartUnavailable(boxId); return; }
+    cdnScript.addEventListener('load', run, {once: false});
+    cdnScript.addEventListener('error', () => markChartUnavailable(boxId), {once: true});
+  }
+  // Safety net: if neither the load nor error event on the Plotly script ever fires (rare, but a
+  // hung/half-open connection can do this), stop waiting after 15s and show the plain-text fallback.
+  setTimeout(() => {
+    if (!window.Plotly) {
+      document.querySelectorAll('.chart-box').forEach(box => markChartUnavailable(box.id));
+    }
+  }, 15000);
+
+  // ---------- animated count-up ----------
+  function groupThousands(numStr) {
+    const parts = numStr.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+  function animateValue(el, endText, duration) {
+    const numMatch = endText.match(/-?[\d.]+/);
+    if (!numMatch) { el.textContent = endText; return; }
+    const end = parseFloat(numMatch[0]);
+    const prefix = endText.slice(0, numMatch.index);
+    const suffix = endText.slice(numMatch.index + numMatch[0].length);
+    const decimals = (numMatch[0].split('.')[1] || '').length;
+    const start = 0;
+    const startTime = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = start + (end - start) * eased;
+      el.textContent = prefix + groupThousands(val.toFixed(decimals)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- governance badges ----------
+  const badgeRow = document.getElementById('governance-badges');
+  const gov = DATA.kpis;
+  const badges = [
+    {label: gov.governance_gates_complete + '/6 Gates Real-Run Confirmed', ok: true},
+    {label: 'pytest: ' + gov.pytest_counts.passed + ' passed / ' + gov.pytest_counts.failed + ' failed', ok: gov.pytest_all_passed},
+    {label: 'Notebook syntax audit: ' + (gov.notebook_syntax_all_passed ? 'all passed' : 'issues found'), ok: gov.notebook_syntax_all_passed},
+    {label: 'Open item: ' + gov.n_gate3_near_random_anomalies + ' near-random anomaly(ies)', ok: gov.n_gate3_near_random_anomalies === 0},
+    {label: 'Open item: ' + gov.n_gate3_high_variance_anomalies + ' high-variance anomaly(ies)', ok: gov.n_gate3_high_variance_anomalies === 0},
+    {label: 'Open item: ' + gov.n_gate3_failed_candidates + ' failed Gate 3 candidate(s) (' + (gov.gate3_failed_candidates.join(', ') || 'none') + ')', ok: gov.n_gate3_failed_candidates === 0},
+  ];
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'badge' + (b.ok ? '' : ' fail');
+    el.innerHTML = '<span class="dot"></span>' + b.label;
+    badgeRow.appendChild(el);
+  });
+
+  // ---------- KPI cards ----------
+  const kpiGrid = document.getElementById('kpi-grid');
+  const kpiDefs = [
+    {label: 'Champion Model', value: gov.champion_model, sub: gov.n_classes + '-class friction-severity classifier'},
+    {label: 'Held-out Test Accuracy', value: (gov.held_out_test_accuracy * 100).toFixed(2) + '%', sub: 'real, on ' + gov.n_test_rows.toLocaleString() + ' held-out rows'},
+    {label: 'Held-out F1-macro', value: gov.held_out_test_f1_macro.toFixed(4), sub: 'real, single evaluation'},
+    {label: 'ROC-AUC (OvR macro)', value: gov.roc_auc_ovr_macro.toFixed(4), sub: 'real, 4-class one-vs-rest'},
+    {label: 'Class Imbalance Ratio', value: gov.class_imbalance_ratio.toFixed(1) + ':1', sub: 'real, majority/minority severity class'},
+    {label: 'Decision Records', value: gov.n_decision_records.toLocaleString(), sub: (gov.reason_code_coverage * 100).toFixed(2) + '% with grounded reason codes'},
+    {label: 'Governance Gates Complete', value: gov.governance_gates_complete + '/6', sub: 'all real-run confirmed'},
+    {label: 'Gate 3 Open Items', value: (gov.n_gate3_near_random_anomalies + gov.n_gate3_high_variance_anomalies + gov.n_gate3_failed_candidates), sub: gov.n_gate3_failed_candidates + ' failed, ' + gov.n_gate3_near_random_anomalies + ' near-random, ' + gov.n_gate3_high_variance_anomalies + ' high-variance'},
+  ];
+  kpiDefs.forEach((k, i) => {
+    const card = document.createElement('div');
+    const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+    card.className = 'kpi-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.style.setProperty('--accent-color', accentColor);
+    const isLongText = typeof k.value === 'string' && /[a-zA-Z]{4,}/.test(k.value) && k.value.replace(/[^a-zA-Z]/g, '').length > 8;
+    const valueClass = 'kpi-value' + (isLongText ? ' kpi-value--text' : '');
+    card.innerHTML =
+      '<div class="kpi-top"><span class="kpi-dot"></span><span class="kpi-label">' + k.label + '</span></div>' +
+      '<div class="' + valueClass + '" data-final="' + k.value + '"></div>' +
+      '<div class="kpi-sub">' + k.sub + '</div>';
+    kpiGrid.appendChild(card);
+  });
+  document.querySelectorAll('.kpi-value').forEach(el => animateValue(el, el.dataset.final, 900));
+
+  // ---------- Model benchmark chart ----------
+  function renderModelBenchmark() {
+    const rows = DATA.model_benchmark;
+    safePlot('chart-model-benchmark', () => Plotly.newPlot('chart-model-benchmark', [{
+      type: 'bar', orientation: 'h',
+      y: rows.map(r => r.model), x: rows.map(r => r.mean_f1_macro),
+      error_x: {type: 'data', array: rows.map(r => r.std_f1_macro), color: PALETTE.neutral_gray},
+      marker: {color: rows.map(r => r.is_champion ? PALETTE.primary_navy : PALETTE.neutral_gray)},
+      text: rows.map(r => r.mean_f1_macro.toFixed(3)), textposition: 'outside',
+      hovertemplate: '%{y}<br>Mean F1-macro: %{x:.4f}<extra></extra>',
+    }], {
+      title: {text: 'Gate 3 — Real 5-Fold CV Model Benchmark (5 passing candidates)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 150, t: 50, r: 30, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean F1-macro', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- SHAP chart ----------
+  function renderShap() {
+    const rows = DATA.shap_top10.slice().reverse();
+    safePlot('chart-shap', () => Plotly.newPlot('chart-shap', [{
+      type: 'bar', orientation: 'h', y: rows.map(r => r.feature), x: rows.map(r => r.mean_abs_shap),
+      marker: {color: PALETTE.accent_blue},
+      hovertemplate: '%{y}<br>Mean |SHAP|: %{x:.5f}<extra></extra>',
+    }], {
+      title: {text: 'Gate 4 — Top Globally Important Features (real SHAP)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 190, t: 50, r: 30, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean |SHAP value|', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- Severity distribution chart ----------
+  function renderSeverityPie() {
+    const rows = DATA.severity_distribution.filter(r => r.row_count > 0);
+    safePlot('chart-severity-pie', () => Plotly.newPlot('chart-severity-pie', [{
+      type: 'pie', labels: rows.map(r => r.friction_severity_class), values: rows.map(r => r.row_count), hole: 0.45,
+      marker: {colors: CAT_SEQ, line: {color: '#D2DBF6', width: 1.5}}, textinfo: 'percent', hovertemplate: '%{label}<br>%{value:,} real CFPB rows (%{percent})<extra></extra>',
+    }], {
+      title: {text: 'Real CFPB Row Distribution by Friction-Severity Class', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {t: 50, b: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- Confusion heatmap (full 4x4) ----------
+  function renderConfusionHeatmap() {
+    const cm = DATA.confusion_matrix;
+    safePlot('chart-confusion-heatmap', () => Plotly.newPlot('chart-confusion-heatmap', [{
+      type: 'heatmap', z: cm.matrix, x: cm.labels, y: cm.labels, colorscale: 'Blues',
+      hovertemplate: 'True: %{y}<br>Predicted: %{x}<br>Real count: %{z}<extra></extra>',
+      texttemplate: '%{z:,}', textfont: {size: 11},
+    }], {
+      title: {text: 'Full Real 4×4 Confusion Matrix — Held-Out Test Set', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 160, t: 50, r: 30, b: 100}, xaxis: {tickfont: {size: 11}}, yaxis: {tickfont: {size: 11}},
+      font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- confused pairs table ----------
+  function renderConfusedPairsTable() {
+    const tbody = document.querySelector('#confused-pairs-table tbody');
+    tbody.innerHTML = '';
+    DATA.confused_pairs.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + p.true_class + '</td><td>' + p.predicted_class + '</td><td>' + p.count.toLocaleString() + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- per-class performance chart + table ----------
+  function renderClassPerformance() {
+    const rows = DATA.class_performance;
+    safePlot('chart-class-performance', () => Plotly.newPlot('chart-class-performance', [
+      {type: 'bar', name: 'Precision', y: rows.map(r => r.severity_class), x: rows.map(r => r.precision), orientation: 'h', marker: {color: PALETTE.accent_blue}},
+      {type: 'bar', name: 'Recall', y: rows.map(r => r.severity_class), x: rows.map(r => r.recall), orientation: 'h', marker: {color: PALETTE.warning_amber}},
+      {type: 'bar', name: 'F1-score', y: rows.map(r => r.severity_class), x: rows.map(r => r['f1-score']), orientation: 'h', marker: {color: PALETTE.primary_navy}},
+    ], {
+      title: {text: 'Per-Severity-Class Performance (real, Gate 3 held-out test)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      barmode: 'group', margin: {l: 170, t: 50, r: 30, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+      xaxis: {title: 'Real score', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+
+    // table population never depends on Plotly - always runs, even if the chart above is still
+    // waiting on (or never gets) a Plotly load.
+    const tbody = document.querySelector('#class-performance-table tbody');
+    tbody.innerHTML = '';
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + r.severity_class + '</td><td>' + r.precision.toFixed(3) + '</td><td>' + r.recall.toFixed(3) + '</td><td><strong>' + r['f1-score'].toFixed(3) + '</strong></td><td>' + r.support.toLocaleString() + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- confidence-filtered decision layer ----------
+  function renderConfidenceView(threshold) {
+    const recs = DATA.decision_records; // [confidence_top1, correct] pairs
+    const above = recs.filter(r => r[0] >= threshold);
+    const correctAbove = above.filter(r => r[1]).length;
+    const accAtThreshold = above.length ? (correctAbove / above.length) : 0;
+    const coverage = recs.length ? (above.length / recs.length) : 0;
+    document.getElementById('decision-summary').innerHTML =
+      'At confidence &ge; <strong>' + threshold.toFixed(2) + '</strong>: <strong>' + above.length.toLocaleString() +
+      '</strong> of ' + recs.length.toLocaleString() + ' real decisions (' + (coverage * 100).toFixed(1) +
+      '% coverage) with <strong>' + (accAtThreshold * 100).toFixed(2) + '%</strong> real accuracy among them.';
+
+    const correct = above.filter(r => r[1]).map(r => r[0]);
+    const incorrect = above.filter(r => !r[1]).map(r => r[0]);
+    // The text summary above always updates regardless of Plotly; the histogram itself is safe to
+    // skip on any single slider move if Plotly isn't ready yet (safePlot's own initial call, wired
+    // up below at threshold 0, is what actually establishes the chart once Plotly loads).
+    if (window.Plotly && document.getElementById('chart-confidence-dist').dataset.filled) {
+      try {
+        Plotly.react('chart-confidence-dist', [
+          {type: 'histogram', x: correct, name: 'Correct', marker: {color: PALETTE.success_green}, opacity: 0.78, nbinsx: 25},
+          {type: 'histogram', x: incorrect, name: 'Incorrect', marker: {color: PALETTE.danger_red}, opacity: 0.78, nbinsx: 25},
+        ], {
+          title: {text: 'Confidence Distribution (filtered live)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+          barmode: 'overlay', margin: {t: 50, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+          xaxis: {title: 'Top-1 confidence', gridcolor: '#9FADDB'}, yaxis: {title: 'Count', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+          transition: {duration: 400, easing: 'cubic-in-out'},
+        }, {responsive: true, displaylogo: false});
+      } catch (e) { markChartUnavailable('chart-confidence-dist'); }
+    } else if (threshold === 0) {
+      // first-ever call (from the "initial render" section below): establish the chart via
+      // safePlot so it appears as soon as Plotly loads, however long that takes.
+      safePlot('chart-confidence-dist', () => Plotly.newPlot('chart-confidence-dist', [
+        {type: 'histogram', x: correct, name: 'Correct', marker: {color: PALETTE.success_green}, opacity: 0.78, nbinsx: 25},
+        {type: 'histogram', x: incorrect, name: 'Incorrect', marker: {color: PALETTE.danger_red}, opacity: 0.78, nbinsx: 25},
+      ], {
+        title: {text: 'Confidence Distribution (filtered live)', font: {size: 16, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+        barmode: 'overlay', margin: {t: 50, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, legend: {font: CHART_FONT},
+        xaxis: {title: 'Top-1 confidence', gridcolor: '#9FADDB'}, yaxis: {title: 'Count', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+        transition: {duration: 400, easing: 'cubic-in-out'},
+      }, {responsive: true, displaylogo: false}));
+    }
+  }
+
+  // ---------- Gate 1 detail (real, from policy.json) ----------
+  function renderGate1() {
+    const g1 = DATA.gate1;
+    const el = document.getElementById('gate1-detail');
+    const rows = [
+      ['Primary target', g1.primary_target + ' — ' + g1.primary_target_description],
+      ['Sentiment-proxy signal — scoped OUT', g1.sentiment_proxy_scope],
+      ['Repeat-contact signal — scoped OUT', g1.repeat_contact_scope],
+      ['Feature variable candidates', g1.feature_variable_candidates],
+      ['Train/test split source', g1.train_test_split_source],
+      ['Compliance (' + g1.compliance_requirement + ')', g1.compliance_statement],
+      ['Real CFPB row count (Gate 1 live check)', g1.cfpb_row_count.toLocaleString()],
+      ['Company public response null rows (real)', g1.company_public_response_null_rows.toLocaleString()],
+    ];
+    let html = '<div class="detail-grid">';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label"><strong>' + label + ':</strong> ' + val + '</span></div>';
+    });
+    html += '</div>';
+    html += '<div class="detail-heading">Live "Company response to consumer" distribution (real)</div><div class="detail-grid">';
+    g1.company_response_distribution.forEach(r => {
+      html += '<div class="assumption-row"><span class="a-label">' + r.label + '</span><span class="a-value">' + r.n.toLocaleString() + '</span></div>';
+    });
+    html += '</div>';
+    html += '<div class="detail-heading">Leakage rules (real, enforced live every Gate 1 run)</div><div class="detail-grid">';
+    g1.leakage_rules.forEach(rule => {
+      html += '<div class="assumption-row"><span class="a-label">' + rule + '</span></div>';
+    });
+    html += '</div>';
+    html += '<div class="detail-heading">Scope assumptions documented at Gate 1 (real)</div><div class="detail-grid">';
+    g1.assumptions.forEach(a => {
+      html += '<div class="assumption-row"><span class="a-label">' + a + '</span></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- Gate 6 detail (real governance status) ----------
+  function renderGate6() {
+    const g6 = DATA.gate6_detail;
+    const el = document.getElementById('gate6-detail');
+    const rows = [
+      ['pytest suite', g6.pytest_counts.passed + ' passed / ' + g6.pytest_counts.failed + ' failed'],
+      ['Notebook syntax audit', g6.notebook_syntax_check_n_passed + '/' + (g6.notebook_syntax_check_n_passed + g6.notebook_syntax_check_n_failed) + ' passed'],
+      ['Open item — Gate 3 near-random anomalies', String(g6.n_gate3_near_random_anomalies_detected)],
+      ['Open item — Gate 3 high-variance anomalies', String(g6.n_gate3_high_variance_anomalies_detected)],
+      ['Open item — Gate 3 failed candidates', String(g6.n_gate3_failed_candidates_detected)],
+      ['Model card', g6.model_card_path],
+      ['Changelog', g6.changelog_path],
+      ['Gate 3 candidates evaluated', g6.candidates_evaluated.join(', ')],
+      ['Gate 3 candidates failed', g6.candidates_failed.length ? g6.candidates_failed.join(', ') : 'none'],
+    ];
+    let html = '<div class="detail-grid">';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + label + '</span><span class="a-value">' + val + '</span></div>';
+    });
+    html += '</div>';
+    if (g6.gate3_failed_candidates_detail && g6.gate3_failed_candidates_detail.length) {
+      html += '<div class="detail-heading">Real recorded Gate 3 candidate failure detail</div><div class="detail-grid">';
+      g6.gate3_failed_candidates_detail.forEach(fd => {
+        html += '<div class="assumption-row"><span class="a-label"><strong>' + fd.model + ':</strong> ' + fd.status + '</span></div>';
+      });
+      html += '</div>';
+    }
+    html += '<div class="detail-grid">';
+    if (g6.model_inventory_compliance_touchpoint) {
+      html += '<div class="assumption-row"><span class="a-label"><strong>Model inventory compliance touchpoint:</strong> ' + g6.model_inventory_compliance_touchpoint + '</span></div>';
+    }
+    if (g6.demographic_adjacent_tags_found && g6.demographic_adjacent_tags_found.length) {
+      html += '<div class="assumption-row"><span class="a-label"><strong>Demographic-adjacent Tags values found (real, live-checked; Tags excluded from feature set regardless):</strong> ' + g6.demographic_adjacent_tags_found.join(', ') + '</span></div>';
+    }
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- SMART suggestions ----------
+  function renderSuggestions() {
+    const grid = document.getElementById('suggestion-grid');
+    DATA.suggestions.forEach((s, i) => {
+      const card = document.createElement('div');
+      const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+      card.className = 'suggestion-card';
+      card.style.setProperty('--accent-color', accentColor);
+      card.innerHTML =
+        '<h3><span class="panel-dot" style="background:' + accentColor + '"></span>' + s.title + '</h3>' +
+        '<div class="smart-row"><span class="smart-tag">Specific:</span>' + s.specific + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Measurable:</span>' + s.measurable + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Time-bound:</span>' + s.timebound + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Owner:</span>' + s.owner_placeholder + '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- section panel accent dots ----------
+  function applyPanelDots() {
+    document.querySelectorAll('section.panel h2').forEach((h2, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'panel-dot';
+      dot.style.background = CAT_SEQ[i % CAT_SEQ.length];
+      h2.prepend(dot);
+    });
+  }
+
+  // ---------- wire up filters ----------
+  document.getElementById('confidence-filter').addEventListener('input', function (e) {
+    const v = parseFloat(e.target.value);
+    document.getElementById('confidence-value').textContent = v.toFixed(2);
+    renderConfidenceView(v);
+  });
+
+  // ---------- initial render ----------
+  applyPanelDots();
+  renderModelBenchmark();
+  renderShap();
+  renderSeverityPie();
+  renderConfusionHeatmap();
+  renderConfusedPairsTable();
+  renderClassPerformance();
+  renderConfidenceView(0);
+  renderGate1();
+  renderGate6();
+  renderSuggestions();
+
+  // fade-in panels on scroll
+  const panels = document.querySelectorAll('section.panel');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = (idx * 0.05) + 's';
+        entry.target.style.opacity = 1;
+        io.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.08});
+  panels.forEach(p => io.observe(p));
+})();
+</script>
+</body>
+</html>

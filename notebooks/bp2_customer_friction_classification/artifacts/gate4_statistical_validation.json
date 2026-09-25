@@ -1,0 +1,41 @@
+{
+  "bp_id": "bp2",
+  "gate": 4,
+  "champion_model": "xgboost",
+  "runner_up_model": "hist_gradient_boosting",
+  "champion_fold_f1_macro": [
+    0.4667,
+    0.4616,
+    0.4647,
+    0.449,
+    0.4499
+  ],
+  "runner_up_fold_f1_macro": [
+    0.4497,
+    0.4489,
+    0.4637,
+    0.456,
+    0.444
+  ],
+  "recomputed_champion_mean_cv_f1_macro": 0.4584,
+  "gate3_recorded_champion_mean_cv_f1_macro": 0.4584,
+  "consistency_check_diff": 3.5e-05,
+  "paired_ttest_statistic": 1.3893,
+  "paired_ttest_pvalue": 0.2371,
+  "wilcoxon_statistic": 3.0,
+  "wilcoxon_pvalue": 0.3125,
+  "statistical_test_limitation": "n=5 CV folds is a small sample - treat p-values as directional evidence, not a high-powered statistical claim.",
+  "held_out_test_f1_macro_point_estimate": 0.4559,
+  "held_out_test_f1_macro_bootstrap_ci_95": [
+    0.4452,
+    0.4666
+  ],
+  "bootstrap_n_iterations": 1000,
+  "roc_auc_ovr_macro": 0.8857,
+  "n_classes": 4,
+  "gate3_failed_candidates_excluded": [],
+  "shap_sample_size": 150,
+  "shap_background_size": 50,
+  "shap_error": null,
+  "generated_at_utc": "2026-09-22T15:35:22.086950+00:00"
+}

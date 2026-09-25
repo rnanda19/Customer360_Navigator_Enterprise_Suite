@@ -1,0 +1,41 @@
+{
+  "report": "bp3_complaint_escalation_prediction_executive_rollup",
+  "champion_model": "xgboost",
+  "recommended_for_production_tier": "CONDITIONAL - GOVERNANCE REVIEW REQUIRED",
+  "source_artifacts_dir": "notebooks\\bp3_complaint_escalation_prediction\\artifacts",
+  "source_artifact_files": [
+    "gate2_feature_lineage.csv",
+    "gate3_champion_test_classification_report.json",
+    "gate3_champion_test_confusion_matrix.csv",
+    "gate3_cv_benchmark_results.csv",
+    "gate4_calibration_curve.csv",
+    "gate4_disparate_impact_check.csv",
+    "gate4_shap_top_features.csv",
+    "gate4_statistical_validation.json",
+    "gate4_threshold_analysis.csv",
+    "gate5_decision_layer_summary.json",
+    "gate5_decision_records.csv",
+    "gate6_governance_summary.json",
+    "gate6_notebook_syntax_check_output.log",
+    "gate6_pytest_output.log",
+    "model_inventory_entry.json",
+    "policy.json"
+  ],
+  "outputs": {
+    "dashboard_html": "reports\\bp3_complaint_escalation_prediction\\executive_rollup\\bp3_executive_rollup_dashboard.html",
+    "report_docx": "reports\\bp3_complaint_escalation_prediction\\executive_rollup\\bp3_executive_rollup_report.docx",
+    "workbook_xlsx": "reports\\bp3_complaint_escalation_prediction\\executive_rollup\\bp3_executive_rollup_workbook.xlsx",
+    "deck_pptx": "reports\\bp3_complaint_escalation_prediction\\executive_rollup\\bp3_executive_rollup_deck.pptx"
+  },
+  "output_sizes_bytes": {
+    "dashboard_html": 2650567,
+    "report_docx": 346639,
+    "workbook_xlsx": 5180844,
+    "deck_pptx": 345139
+  },
+  "contains_financial_impact_section": false,
+  "contains_assumption_based_content": false,
+  "n_gate3_near_zero_recall_anomalies_represented": 2,
+  "disparate_impact_flagged": true,
+  "generated_at_utc": "2026-09-23T11:19:24.099353+00:00"
+}

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BP5 Root-Cause &amp; Driver Analytics — Executive Dashboard</title>
+<!-- defer: an unreachable/slow CDN must never block the page from painting at all (real failure
+     mode seen on a real machine: a plain, non-deferred <script src> in <head> blocks HTML parsing
+     - and therefore the whole page's first paint - until the network request resolves, which can
+     hang indefinitely on a restrictive network and make the page look completely blank). -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer id="plotly-cdn"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root {
+    --navy: #1E2761;
+    --navy-deep: #12173f;
+    --accent: #4C6EF5;
+    --ice: #CADCFC;
+    --success: #1B998B;
+    --warning: #E8A33D;
+    --danger: #C1292E;
+    --gray: #6B7280;
+    --surface: #AFBEE6;
+    --card: #D2DBF6;
+    --card-border: #9FADDB;
+    --ink: #101828;
+    --ink-muted: #40495F;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(16, 24, 40, 0.14);
+    --shadow-hover: 0 10px 32px rgba(16, 24, 40, 0.20);
+    --font-display: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); line-height: 1.5;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(76,110,245,0.24) 0%, rgba(76,110,245,0) 46%),
+      radial-gradient(circle at 100% 18%, rgba(27,153,139,0.18) 0%, rgba(27,153,139,0) 40%),
+      linear-gradient(180deg, #B4C2E8 0%, #A7B7E3 45%, #98AADC 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  header.hero {
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 55%, #2c3a8c 100%);
+    color: #fff; padding: 48px 32px 64px; position: relative; overflow: hidden;
+  }
+  header.hero::after {
+    content: ""; position: absolute; right: -80px; top: -80px; width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(76,110,245,0.35) 0%, rgba(76,110,245,0) 70%);
+    animation: auroraPulse 6.5s ease-in-out infinite;
+  }
+  header.hero::before {
+    content: ""; position: absolute; left: -70px; bottom: -110px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(27,153,139,0.28) 0%, rgba(27,153,139,0) 70%);
+    animation: auroraPulse 7.5s ease-in-out infinite reverse;
+  }
+  @keyframes auroraPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.65; transform: scale(1.1); } }
+  .hero-inner { max-width: 1320px; margin: 0 auto; position: relative; z-index: 1; }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: var(--ice); font-weight: 600; }
+  h1.title { font-size: clamp(26px, 3.6vw, 38px); margin: 10px 0 8px; font-weight: 700; font-family: var(--font-display); }
+  .title-accent { color: var(--ice); }
+  .subtitle { color: rgba(255,255,255,0.82); font-size: 15px; max-width: 800px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22); padding: 7px 14px; border-radius: 999px; font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .badge.warn .dot { background: var(--warning); }
+  .badge.fail .dot { background: var(--danger); animation: pulseDot 1.8s ease-in-out infinite; }
+  @keyframes pulseDot { 0%, 100% { box-shadow: 0 0 0 0 rgba(193,41,46,0.45); } 50% { box-shadow: 0 0 0 5px rgba(193,41,46,0); } }
+
+  .prod-banner {
+    margin-top: 22px; padding: 16px 20px; border-radius: var(--radius); font-size: 14.5px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; backdrop-filter: blur(4px);
+  }
+  .prod-banner .tier-label { font-weight: 800; font-size: 17px; font-family: var(--font-display); }
+  .prod-banner.tier-1 { background: rgba(27,153,139,0.22); border: 1px solid rgba(27,153,139,0.55); }
+  .prod-banner.tier-2 { background: rgba(232,163,61,0.22); border: 1px solid rgba(232,163,61,0.6); }
+  .prod-banner.tier-3 { background: rgba(193,41,46,0.22); border: 1px solid rgba(193,41,46,0.6); }
+  .prod-banner .tier-2-note { font-size: 12px; opacity: 0.85; width: 100%; margin-top: 2px; }
+
+  main { max-width: 1320px; margin: -40px auto 0; padding: 0 24px 64px; position: relative; z-index: 2; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 20px 18px; box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; opacity: 0; transform: translateY(14px);
+    animation: rise 0.6s ease forwards; position: relative; overflow: hidden; border: 1px solid transparent;
+  }
+  .kpi-card::before {
+    content: ""; position: absolute; top: -34px; right: -34px; width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-color, var(--accent)) 0%, transparent 72%); opacity: 0.16; pointer-events: none;
+  }
+  .kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: var(--accent-color, var(--accent)); }
+  .kpi-top { display: flex; align-items: center; gap: 8px; }
+  .kpi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-color, var(--accent)); flex: none; }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); font-weight: 600; }
+  .kpi-value {
+    font-size: 28px; font-weight: 800; color: var(--navy); margin-top: 6px; font-variant-numeric: tabular-nums;
+    overflow-wrap: break-word; word-break: break-word; line-height: 1.18; font-family: var(--font-display);
+  }
+  .kpi-value--text { font-size: clamp(15px, 2.1vw, 20px); line-height: 1.3; }
+  .kpi-sub { font-size: 12px; color: var(--ink-muted); margin-top: 4px; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  section.panel {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 26px 22px;
+    margin-bottom: 24px; opacity: 0; animation: rise 0.6s ease forwards;
+  }
+  section.panel h2 { font-size: 18px; margin: 0 0 4px; color: var(--navy); display: flex; align-items: center; gap: 9px; font-family: var(--font-display); }
+  section.panel .panel-desc { font-size: 13px; color: var(--ink-muted); margin-bottom: 16px; }
+  .panel-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  .outcome-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 20px; }
+  .outcome-col-heading { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+
+  .filters-bar { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 14px; }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+  .filter-group label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  select, input[type="search"] {
+    font-family: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--card-border);
+    background: #fff; color: var(--ink); min-width: 190px;
+  }
+  select:focus, input[type="search"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .outcome-pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .outcome-pill {
+    cursor: pointer; user-select: none; padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    border: 1.5px solid var(--card-border); background: #fff; color: var(--ink-muted); transition: all 0.15s ease;
+  }
+  .outcome-pill.active { color: #fff; border-color: transparent; background: var(--navy); }
+  .outcome-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(16,24,40,0.14); }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 20px; }
+  .chart-box { min-height: 340px; }
+  .chart-box.wide { min-height: 300px; }
+
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data-table th {
+    text-align: left; padding: 10px 12px; background: var(--surface); color: var(--ink-muted);
+    text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; position: sticky; top: 0; cursor: pointer;
+    user-select: none; white-space: nowrap;
+  }
+  table.data-table th.sortable:hover { color: var(--navy); }
+  table.data-table th .sort-arrow { font-size: 10px; margin-left: 4px; opacity: 0.6; }
+  table.data-table td { padding: 9px 12px; border-top: 1px solid var(--card-border); }
+  table.data-table tr:hover td { background: #BECBF0; }
+  .table-scroll { max-height: 440px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 10px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .pill.outcome-O1 { background: rgba(76,110,245,0.16); color: var(--accent); }
+  .pill.outcome-O2 { background: rgba(232,163,61,0.18); color: #8a5b17; }
+  .table-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .table-toolbar .count-label { font-size: 12.5px; color: var(--ink-muted); }
+
+  .assumption-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed var(--card-border); font-size: 13px; }
+  .assumption-row .a-label { color: var(--ink-muted); max-width: 70%; }
+  .assumption-row .a-value { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 28px; margin-bottom: 4px; }
+  .detail-heading { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 13px; }
+
+  .suggestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .suggestion-card {
+    border: 1px solid var(--card-border); border-radius: 12px; padding: 16px 18px; background: var(--card);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .suggestion-card:hover { box-shadow: var(--shadow); border-color: var(--accent-color, var(--accent)); transform: translateY(-2px); }
+  .suggestion-card h3 { font-size: 14.5px; margin: 0 0 8px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .suggestion-card .smart-row { font-size: 12.5px; margin-bottom: 5px; }
+  .smart-tag { font-weight: 700; color: var(--accent); margin-right: 4px; }
+
+  footer { max-width: 1320px; margin: 0 auto; padding: 8px 24px 40px; font-size: 12px; color: var(--ink-muted); text-align: center; }
+
+  @media (max-width: 640px) {
+    .chart-grid, .outcome-grid { grid-template-columns: 1fr; }
+    header.hero { padding: 36px 18px 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Customer360 Navigator &middot; BP5 Executive Rollup</div>
+    <h1 class="title">Root-Cause &amp; Driver Analytics <span class="title-accent">— Executive Dashboard</span></h1>
+    <p class="subtitle">Real results from BP5 Gates 1&ndash;6, generated __GENERATED_AT__, built on top of
+      Gate 5's own synthesized, citation-backed prioritized root-cause report per outcome — never a second
+      re-derivation of Gate 3's/Gate 4's raw artifacts. BP5 tests TWO real outcomes
+      (<strong>outcome_1_intervention_required</strong>, <strong>outcome_2_timely_response_failure</strong>)
+      and has no single deployed "champion" model: each outcome's champion exists purely to generate
+      SHAP-based association evidence, never a deployment artifact. Every finding is a statistical
+      ASSOCIATION, never a causal claim.</p>
+    <div class="badge-row" id="governance-badges"></div>
+    <div class="prod-banner" id="prod-banner"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <section class="panel">
+    <h2>Field-Level Root-Cause Ranking — Gate 3 / Gate 5</h2>
+    <div class="panel-desc">Real Cramer's V ranking of BP5's 5 non-control candidate driver fields against
+      each real outcome, read from Gate 5's own synthesized report. Fields shown in amber are real,
+      live-flagged "negligible" association strength (Gate 6's own open-item detection).</div>
+    <div class="outcome-grid">
+      <div>
+        <div class="outcome-col-heading">Outcome 1 — Intervention Required</div>
+        <div class="chart-box" id="chart-cramers-o1"></div>
+      </div>
+      <div>
+        <div class="outcome-col-heading">Outcome 2 — Timely-Response Failure</div>
+        <div class="chart-box" id="chart-cramers-o2"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Champion SHAP Feature Importance — Gate 3 / Gate 5</h2>
+    <div class="panel-desc">Real top-10 mean |SHAP value| features per outcome's champion, mapped back to
+      their originating real field/category. "Company_freq_zscored" ranks #1 for BOTH outcomes.</div>
+    <div class="outcome-grid">
+      <div>
+        <div class="outcome-col-heading">Outcome 1 — Intervention Required</div>
+        <div class="chart-box" id="chart-shap-o1"></div>
+      </div>
+      <div>
+        <div class="outcome-col-heading">Outcome 2 — Timely-Response Failure</div>
+        <div class="chart-box" id="chart-shap-o2"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Category-Level Findings — Gate 3 / Gate 5</h2>
+    <div class="panel-desc">Real per-category log-odds-ratio findings vs. each field's real reference
+      category, restricted to categories with at least 30 real rows. Filter by outcome and/or search by
+      field or category.</div>
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label>Outcome filter</label>
+        <div class="outcome-pill-group" id="outcome-pill-group">
+          <span class="outcome-pill active" data-outcome="ALL">Both outcomes</span>
+          <span class="outcome-pill" data-outcome="O1">Outcome 1</span>
+          <span class="outcome-pill" data-outcome="O2">Outcome 2</span>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label for="category-search">Search field / category</label>
+        <input type="search" id="category-search" placeholder="e.g. Sub-issue, Fees, Referral…">
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" id="category-table">
+        <thead>
+          <tr>
+            <th data-key="outcome_short">Outcome</th>
+            <th data-key="driver_field">Field</th>
+            <th data-key="category">Category</th>
+            <th data-key="n_rows" class="sortable">n_rows<span class="sort-arrow"></span></th>
+            <th data-key="odds_ratio_vs_reference" class="sortable">Odds Ratio vs. Ref.<span class="sort-arrow"></span></th>
+            <th data-key="log_odds_ratio" class="sortable">Log-Odds Ratio<span class="sort-arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="table-toolbar">
+      <span class="count-label" id="category-count-label"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Statistical Validation — Gate 4</h2>
+    <div class="panel-desc">Real calibration curve and confusion-derived rates at the default 0.5 threshold
+      per outcome, plus real bootstrap 95% CI for held-out ROC-AUC — Gate 6 live-reconfirmed these against
+      Gate 3's own recorded point estimate within a disclosed 0.01 tolerance, for both outcomes.</div>
+    <div class="chart-grid">
+      <div class="chart-box" id="chart-calibration-o1"></div>
+      <div class="chart-box" id="chart-calibration-o2"></div>
+      <div class="chart-box" id="chart-ci-roc-o1"></div>
+      <div class="chart-box" id="chart-ci-roc-o2"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 1 — Business Understanding &amp; Policy</h2>
+    <div class="panel-desc">Real target definitions, leakage rules, assumptions, and compliance touchpoint
+      recorded at Gate 1.</div>
+    <div id="gate1-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Gate 6 — Governance &amp; Known Limitations</h2>
+    <div class="panel-desc">Real governance status from this run, plus open items carried forward honestly
+      rather than hidden.</div>
+    <div id="gate6-detail"></div>
+  </section>
+
+  <section class="panel">
+    <h2>SMART Suggestions</h2>
+    <div class="panel-desc">Specific, Measurable, Achievable, Relevant, Time-bound recommendations — each
+      grounded in a real number from Gates 1&ndash;6, not freeform text.</div>
+    <div class="suggestion-grid" id="suggestion-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  Generated by <code>bp5_root_cause_driver_analytics_g7_executive_rollup_report.ipynb</code> &middot;
+  Governance: __PYTEST_SUMMARY__ &middot; Notebook syntax audit: __SYNTAX_SUMMARY__ &middot;
+  Customer360 Navigator Enterprise Suite &mdash; BP5 Root-Cause &amp; Driver Analytics
+</footer>
+
+<script id="rollup-data" type="application/json">__ROLLUP_DATA_JSON__</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('rollup-data').textContent);
+  const PALETTE = DATA.palette;
+  const CAT_SEQ = DATA.categorical_sequence;
+  const CHART_FONT = {family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", color: PALETTE.ink};
+  const CHART_HOVERLABEL = {bgcolor: PALETTE.primary_navy, bordercolor: PALETTE.primary_navy, font: {color: '#ffffff', size: 12, family: CHART_FONT.family}};
+
+  // ---------- resilient chart loading ----------
+  function markChartUnavailable(boxId) {
+    const box = document.getElementById(boxId);
+    if (box && !box.dataset.filled) {
+      box.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:300px;padding:20px;text-align:center;font-size:13px;color:var(--ink-muted);">Chart library (Plotly) could not be reached at cdn.plot.ly. The real underlying numbers for this chart are still available in the tables on this page.</div>';
+    }
+  }
+  function safePlot(boxId, drawFn) {
+    const run = () => {
+      try { drawFn(); const box = document.getElementById(boxId); if (box) box.dataset.filled = '1'; }
+      catch (e) { markChartUnavailable(boxId); }
+    };
+    if (window.Plotly) { run(); return; }
+    const cdnScript = document.getElementById('plotly-cdn');
+    if (!cdnScript) { markChartUnavailable(boxId); return; }
+    cdnScript.addEventListener('load', run, {once: false});
+    cdnScript.addEventListener('error', () => markChartUnavailable(boxId), {once: true});
+  }
+  setTimeout(() => {
+    if (!window.Plotly) {
+      document.querySelectorAll('.chart-box').forEach(box => markChartUnavailable(box.id));
+    }
+  }, 15000);
+
+  // ---------- animated count-up ----------
+  function groupThousands(numStr) {
+    const parts = numStr.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+  function animateValue(el, endText, duration) {
+    const numMatch = endText.match(/-?[\d.]+/);
+    if (!numMatch) { el.textContent = endText; return; }
+    const end = parseFloat(numMatch[0]);
+    const prefix = endText.slice(0, numMatch.index);
+    const suffix = endText.slice(numMatch.index + numMatch[0].length);
+    const decimals = (numMatch[0].split('.')[1] || '').length;
+    const start = 0;
+    const startTime = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = start + (end - start) * eased;
+      el.textContent = prefix + groupThousands(val.toFixed(decimals)) + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- Recommendation banner ----------
+  const prod = DATA.kpis.production_recommendation;
+  const banner = document.getElementById('prod-banner');
+  banner.className = 'prod-banner tier-' + prod.tier_code;
+  banner.innerHTML = '<span class="tier-label">' + prod.tier + '</span><span>' + prod.reason + '</span>' +
+    '<span class="tier-2-note">Note: ECOA/Reg B disparate-impact applicability is NOT_APPLICABLE to BP5 - a disparate-impact finding can never trigger this tier. Tier 2 here is triggered only by Gate 6\'s own live open-item detection (negligible-association fields / near-random PR-AUC / near-zero precision).</span>';
+
+  // ---------- governance badges ----------
+  const badgeRow = document.getElementById('governance-badges');
+  const gov = DATA.kpis;
+  const badges = [
+    {label: 'pytest: ' + gov.gate6_pytest_passed + ' passed / ' + gov.gate6_pytest_failed + ' failed', ok: gov.gate6_pytest_failed === 0},
+    {label: 'Notebook syntax audit: ' + (gov.gate6_notebook_syntax_all_passed ? 'all passed' : 'issues found'), ok: gov.gate6_notebook_syntax_all_passed},
+    {label: 'UDAAP language check: ' + (gov.udaap_language_check_passed ? 'passed' : 'failed') + ' (' + gov.n_narrative_sentences_scanned + ' sentences)', ok: gov.udaap_language_check_passed},
+    {label: 'Barred-fields bar relaxed: ' + gov.barred_fields_bar_relaxed, ok: gov.barred_fields_bar_relaxed === false},
+    {label: 'Open item: ' + gov.n_negligible_strength_fields_detected + ' negligible-association field(s)', ok: gov.n_negligible_strength_fields_detected === 0},
+    {label: 'Open item: ' + gov.n_near_zero_precision_outcomes_detected + ' near-zero-precision outcome(s)', ok: gov.n_near_zero_precision_outcomes_detected === 0},
+    {label: 'ECOA/Reg B disparate-impact: ' + gov.ecoa_reg_b_disparate_impact_applicability, ok: true},
+  ];
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'badge' + (b.ok ? '' : ' warn');
+    el.innerHTML = '<span class="dot"></span>' + b.label;
+    badgeRow.appendChild(el);
+  });
+
+  // ---------- KPI cards ----------
+  const kpiGrid = document.getElementById('kpi-grid');
+  const kpiDefs = [
+    {label: 'Top Field — Outcome 1', value: gov.top_field_outcome_1, sub: "Cramer's V=" + gov.top_field_outcome_1_cramers_v.toFixed(4)},
+    {label: 'Top Field — Outcome 2', value: gov.top_field_outcome_2, sub: "Cramer's V=" + gov.top_field_outcome_2_cramers_v.toFixed(4)},
+    {label: 'Held-out ROC-AUC — Outcome 1', value: gov.held_out_roc_auc_outcome_1.toFixed(4), sub: 'PR-AUC=' + gov.held_out_pr_auc_outcome_1.toFixed(4)},
+    {label: 'Held-out ROC-AUC — Outcome 2', value: gov.held_out_roc_auc_outcome_2.toFixed(4), sub: 'PR-AUC=' + gov.held_out_pr_auc_outcome_2.toFixed(4)},
+    {label: 'Brier Score — Outcome 1', value: gov.brier_score_outcome_1.toFixed(4), sub: 'real, held-out'},
+    {label: 'Brier Score — Outcome 2', value: gov.brier_score_outcome_2.toFixed(4), sub: 'real, held-out'},
+    {label: 'Precision @0.5 — Outcome 2', value: (gov.precision_at_0_5_outcome_2 * 100).toFixed(2) + '%', sub: 'recall=' + (gov.recall_at_0_5_outcome_2 * 100).toFixed(2) + '%'},
+    {label: 'UDAAP Sentences Scanned', value: String(gov.n_narrative_sentences_scanned), sub: gov.udaap_language_check_passed ? '0 failing' : 'failures found'},
+  ];
+  kpiDefs.forEach((k, i) => {
+    const card = document.createElement('div');
+    const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+    card.className = 'kpi-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.style.setProperty('--accent-color', accentColor);
+    const isLongText = typeof k.value === 'string' && /[a-zA-Z]{4,}/.test(k.value) && k.value.replace(/[^a-zA-Z]/g, '').length > 8;
+    const valueClass = 'kpi-value' + (isLongText ? ' kpi-value--text' : '');
+    card.innerHTML =
+      '<div class="kpi-top"><span class="kpi-dot"></span><span class="kpi-label">' + k.label + '</span></div>' +
+      '<div class="' + valueClass + '" data-final="' + k.value + '"></div>' +
+      '<div class="kpi-sub">' + k.sub + '</div>';
+    kpiGrid.appendChild(card);
+  });
+  document.querySelectorAll('.kpi-value').forEach(el => animateValue(el, el.dataset.final, 900));
+
+  // ---------- Cramer's V bar charts ----------
+  function renderCramersV(boxId, rows) {
+    const sorted = rows.slice().sort((a, b) => a.cramers_v - b.cramers_v);
+    const colors = sorted.map(r => r.association_strength === 'negligible' ? PALETTE.warning_amber : PALETTE.accent_blue);
+    safePlot(boxId, () => Plotly.newPlot(boxId, [{
+      type: 'bar', orientation: 'h',
+      y: sorted.map(r => r.driver_field), x: sorted.map(r => r.cramers_v),
+      marker: {color: colors},
+      text: sorted.map(r => r.cramers_v.toFixed(4) + ' (' + r.association_strength + ')'), textposition: 'outside',
+      hovertemplate: "%{y}<br>Real Cramer's V: %{x:.4f}<extra></extra>",
+    }], {
+      margin: {l: 110, t: 20, r: 60, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: "Cramer's V", gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- SHAP bar charts ----------
+  function renderShap(boxId, rows) {
+    const sorted = rows.slice().sort((a, b) => a.mean_abs_shap - b.mean_abs_shap);
+    safePlot(boxId, () => Plotly.newPlot(boxId, [{
+      type: 'bar', orientation: 'h',
+      y: sorted.map(r => r.feature), x: sorted.map(r => r.mean_abs_shap),
+      marker: {color: PALETTE.success_green},
+      hovertemplate: '%{y}<br>Real mean |SHAP|: %{x:.4f}<extra></extra>',
+    }], {
+      margin: {l: 190, t: 20, r: 40, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean |SHAP value|', gridcolor: '#9FADDB'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- calibration curve charts ----------
+  function renderCalibration(boxId, points, titleText) {
+    safePlot(boxId, () => Plotly.newPlot(boxId, [
+      {type: 'scatter', mode: 'lines+markers', name: 'Champion (real, held-out)',
+       x: points.map(p => p.mean_predicted_probability), y: points.map(p => p.fraction_of_positives),
+       line: {color: PALETTE.accent_blue}, marker: {size: 7},
+       hovertemplate: 'Predicted: %{x:.4f}<br>Observed: %{y:.4f}<extra></extra>'},
+      {type: 'scatter', mode: 'lines', name: 'Perfect calibration', x: [0, 1], y: [0, 1],
+       line: {color: PALETTE.neutral_gray, dash: 'dash'}},
+    ], {
+      title: {text: titleText, font: {size: 14, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {t: 45, b: 45, l: 55, r: 20}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL,
+      xaxis: {title: 'Mean predicted probability', gridcolor: '#9FADDB'},
+      yaxis: {title: 'Fraction of positives', gridcolor: '#9FADDB'},
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', legend: {font: {size: 10}},
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- bootstrap-CI charts ----------
+  function renderCiChart(boxId, stat, titleText) {
+    safePlot(boxId, () => Plotly.newPlot(boxId, [{
+      type: 'bar', x: [stat.point_estimate], y: [titleText], orientation: 'h',
+      marker: {color: PALETTE.accent_blue},
+      error_x: {type: 'data', symmetric: false, array: [stat.ci_95_high - stat.point_estimate], arrayminus: [stat.point_estimate - stat.ci_95_low], color: PALETTE.primary_navy, thickness: 2.5, width: 8},
+      text: [stat.point_estimate.toFixed(4)], textposition: 'outside',
+      hovertemplate: 'Point estimate: %{x:.4f}<br>95% CI: [' + stat.ci_95_low.toFixed(4) + ', ' + stat.ci_95_high.toFixed(4) + ']<extra></extra>',
+    }], {
+      title: {text: 'Held-Out ROC-AUC — ' + titleText, font: {size: 14, color: PALETTE.primary_navy, family: CHART_FONT.family}},
+      margin: {l: 20, t: 45, r: 40, b: 40}, font: CHART_FONT, hoverlabel: CHART_HOVERLABEL, showlegend: false,
+      xaxis: {title: 'Real point estimate + 95% bootstrap CI', gridcolor: '#9FADDB'}, yaxis: {showticklabels: false},
+      plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+    }, {responsive: true, displaylogo: false}));
+  }
+
+  // ---------- Category-level findings table ----------
+  const categoryState = {outcome: 'ALL', search: ''};
+  function applyCategoryFilters() {
+    let rows = DATA.category_findings;
+    if (categoryState.outcome !== 'ALL') {
+      rows = rows.filter(r => r.outcome_short === categoryState.outcome);
+    }
+    if (categoryState.search) {
+      const q = categoryState.search.toLowerCase();
+      rows = rows.filter(r => String(r.driver_field).toLowerCase().includes(q) || String(r.category).toLowerCase().includes(q));
+    }
+    return rows;
+  }
+  function renderCategoryTable() {
+    const filtered = applyCategoryFilters();
+    const tbody = document.querySelector('#category-table tbody');
+    tbody.innerHTML = '';
+    filtered.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><span class="pill outcome-' + r.outcome_short + '">' + r.outcome_short + '</span></td>' +
+        '<td>' + r.driver_field + '</td>' +
+        '<td>' + r.category + '</td>' +
+        '<td>' + r.n_rows.toLocaleString() + '</td>' +
+        '<td>' + Number(r.odds_ratio_vs_reference).toFixed(2) + '</td>' +
+        '<td>' + Number(r.log_odds_ratio).toFixed(3) + '</td>';
+      tbody.appendChild(tr);
+    });
+    document.getElementById('category-count-label').textContent =
+      filtered.length.toLocaleString() + ' real category-level finding(s) match this filter (of ' + DATA.category_findings.length.toLocaleString() + ' total)';
+  }
+  document.querySelectorAll('.outcome-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.outcome-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      categoryState.outcome = pill.dataset.outcome;
+      renderCategoryTable();
+    });
+  });
+  document.getElementById('category-search').addEventListener('input', (e) => {
+    categoryState.search = e.target.value.trim();
+    renderCategoryTable();
+  });
+  document.querySelectorAll('#category-table th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      const rows = Array.from(document.querySelectorAll('#category-table tbody tr'));
+      // simple re-sort of the currently filtered dataset
+      const filtered = applyCategoryFilters().slice().sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0));
+      const tbody = document.querySelector('#category-table tbody');
+      tbody.innerHTML = '';
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><span class="pill outcome-' + r.outcome_short + '">' + r.outcome_short + '</span></td>' +
+          '<td>' + r.driver_field + '</td>' +
+          '<td>' + r.category + '</td>' +
+          '<td>' + r.n_rows.toLocaleString() + '</td>' +
+          '<td>' + Number(r.odds_ratio_vs_reference).toFixed(2) + '</td>' +
+          '<td>' + Number(r.log_odds_ratio).toFixed(3) + '</td>';
+        tbody.appendChild(tr);
+      });
+    });
+  });
+
+  // ---------- Gate 1 detail (real, from policy.json) ----------
+  function renderGate1() {
+    const g1 = DATA.gate1;
+    const el = document.getElementById('gate1-detail');
+    let html = '<div class="detail-grid">';
+    html += '<div class="assumption-row"><span class="a-label">' + (g1.target_definition && g1.target_definition.scoping_note ? g1.target_definition.scoping_note : '') + '</span></div>';
+    html += '</div>';
+    html += '<div class="detail-heading">Leakage rules (real)</div><div class="detail-grid">';
+    (g1.leakage_rules || []).forEach(r => { html += '<div class="assumption-row"><span class="a-label">' + r + '</span></div>'; });
+    html += '</div>';
+    html += '<div class="detail-heading">Assumptions documented at Gate 1 (real)</div><div class="detail-grid">';
+    (g1.assumptions || []).forEach(a => { html += '<div class="assumption-row"><span class="a-label">' + a + '</span></div>'; });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- Gate 6 detail (real governance status) ----------
+  function renderGate6() {
+    const g6 = DATA.gate6_detail;
+    const el = document.getElementById('gate6-detail');
+    const rows = [
+      ['pytest suite', g6.pytest_summary_line],
+      ['Notebook syntax audit', g6.notebook_syntax_check_n_passed + '/' + (g6.notebook_syntax_check_n_passed + g6.notebook_syntax_check_n_failed) + ' passed'],
+      ['Gate 4 reconfirms Gate 3 — Outcome 1', String(g6.gate4_reconfirms_gate3_per_outcome.outcome_1_intervention_required)],
+      ['Gate 4 reconfirms Gate 3 — Outcome 2', String(g6.gate4_reconfirms_gate3_per_outcome.outcome_2_timely_response_failure)],
+      ['Open item — negligible-strength fields', String(g6.n_negligible_strength_fields_detected)],
+      ['Open item — near-zero-precision outcomes', String(g6.n_near_zero_precision_outcomes_detected) + (g6.near_zero_precision_outcomes && g6.near_zero_precision_outcomes.length ? ' (' + g6.near_zero_precision_outcomes.join(', ') + ')' : '')],
+      ['Barred-fields bar relaxed', String(g6.barred_fields_bar_relaxed)],
+      ['Model card', g6.model_card_path],
+      ['Changelog', g6.changelog_path],
+    ];
+    let html = '<div class="detail-grid">';
+    rows.forEach(([label, val]) => {
+      html += '<div class="assumption-row"><span class="a-label">' + label + '</span><span class="a-value">' + val + '</span></div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- SMART suggestions ----------
+  function renderSuggestions() {
+    const grid = document.getElementById('suggestion-grid');
+    DATA.suggestions.forEach((s, i) => {
+      const card = document.createElement('div');
+      const accentColor = CAT_SEQ[i % CAT_SEQ.length];
+      card.className = 'suggestion-card';
+      card.style.setProperty('--accent-color', accentColor);
+      card.innerHTML =
+        '<h3><span class="panel-dot" style="background:' + accentColor + '"></span>' + s.title + '</h3>' +
+        '<div class="smart-row"><span class="smart-tag">Specific:</span>' + s.specific + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Measurable:</span>' + s.measurable + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Time-bound:</span>' + s.timebound + '</div>' +
+        '<div class="smart-row"><span class="smart-tag">Owner:</span>' + s.owner_placeholder + '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- section panel accent dots ----------
+  function applyPanelDots() {
+    document.querySelectorAll('section.panel h2').forEach((h2, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'panel-dot';
+      dot.style.background = CAT_SEQ[i % CAT_SEQ.length];
+      h2.prepend(dot);
+    });
+  }
+
+  // ---------- initial render ----------
+  applyPanelDots();
+  renderCramersV('chart-cramers-o1', DATA.field_ranking.outcome_1);
+  renderCramersV('chart-cramers-o2', DATA.field_ranking.outcome_2);
+  renderShap('chart-shap-o1', DATA.shap_findings.outcome_1);
+  renderShap('chart-shap-o2', DATA.shap_findings.outcome_2);
+  renderCalibration('chart-calibration-o1', DATA.calibration.outcome_1, 'Calibration — Outcome 1');
+  renderCalibration('chart-calibration-o2', DATA.calibration.outcome_2, 'Calibration — Outcome 2');
+  renderCiChart('chart-ci-roc-o1', DATA.kpis.bootstrap_roc_auc_ci_95_outcome_1_obj, 'Outcome 1');
+  renderCiChart('chart-ci-roc-o2', DATA.kpis.bootstrap_roc_auc_ci_95_outcome_2_obj, 'Outcome 2');
+  renderCategoryTable();
+  renderGate1();
+  renderGate6();
+  renderSuggestions();
+
+  // fade-in panels on scroll
+  const panels = document.querySelectorAll('section.panel');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = (idx * 0.05) + 's';
+        entry.target.style.opacity = 1;
+        io.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.08});
+  panels.forEach(p => io.observe(p));
+})();
+</script>
+</body>
+</html>

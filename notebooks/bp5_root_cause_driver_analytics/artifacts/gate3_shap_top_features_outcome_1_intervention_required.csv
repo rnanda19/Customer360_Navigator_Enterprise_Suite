@@ -1,0 +1,21 @@
+feature,mean_abs_shap
+Company_freq_zscored,1.6236153841018677
+Issue_Incorrect information on your report,0.649043083190918
+Issue_Improper use of your report,0.5993242859840393
+"Product_Credit reporting, credit repair services, or other personal consumer reports",0.28423288464546204
+Product_Debt collection,0.2534340023994446
+Sub-product_Credit reporting,0.19167734682559967
+Sub-issue_Investigation took more than 30 days,0.15342310070991516
+Sub-issue_Their investigation did not fix an error on your report,0.1337267905473709
+Sub-issue_Credit inquiries on your report that you don't recognize,0.12549854815006256
+Sub-issue_Personal information incorrect,0.10291207581758499
+Sub-issue_Account status incorrect,0.08285554498434067
+Sub-issue_Information belongs to someone else,0.06809920817613602
+Issue_Problem with a credit reporting company's investigation into an existing problem,0.06690861284732819
+Product_Credit card or prepaid card,0.05870648846030235
+Issue_Problem with a company's investigation into an existing problem,0.05465621128678322
+Product_Credit reporting or other personal consumer reports,0.03993361443281174
+Sub-product_I do not know,0.03196418285369873
+Sub-issue_Account information incorrect,0.028938716277480125
+Sub-issue_Was not notified of investigation status or results,0.022479476407170296
+Product_Checking or savings account,0.022403603419661522

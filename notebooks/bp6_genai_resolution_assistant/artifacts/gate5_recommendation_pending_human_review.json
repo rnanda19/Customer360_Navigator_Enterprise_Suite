@@ -1,0 +1,333 @@
+{
+  "bp_id": "bp6",
+  "gate": 5,
+  "compliance_touchpoint": "UDAAP language review on customer-facing text; NIST AI RMF Measure/Manage check on BP6",
+  "customer_message_context": {
+    "real_source": "notebooks/bp6_genai_resolution_assistant/artifacts/gate2_pii_screened_narrative_text.csv (Gate 2's own real, PII-screened row)",
+    "category": "cash_withdrawal_not_recognised",
+    "common_taxonomy_bucket": "ATM_CASH_WITHDRAWAL"
+  },
+  "generated_recommendation_text": "To address this unrecognized withdrawal report, we should review BP4, which utilizes a polars_lazy_streaming champion pipeline [EV-BP4-1] and is currently recommended for the production tier [EV-BP4-2]. Additionally, we should note that BP4 represents two slow but correct candidates from gate 3 [EV-BP4-5] and embeds 7,204 high and medium tier clusters [EV-BP4-6]. Please verify these system specifications before initiating the standard investigation process for the customer's transaction.",
+  "model_used": "gemini-3.5-flash",
+  "input_tokens": 1032,
+  "output_tokens": 113,
+  "finish_reason": "FinishReason.STOP",
+  "citation_table": [
+    {
+      "evidence_id": "EV-BP1-1",
+      "source_bp": "bp1",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "champion_model",
+      "extracted_value": "logistic_regression",
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'champion_model' in notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP1-2",
+      "source_bp": "bp1",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_financial_impact_section",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_financial_impact_section' in notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP1-3",
+      "source_bp": "bp1",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_assumption_based_content",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_assumption_based_content' in notebooks/bp1_customer_intent_classification/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP2-1",
+      "source_bp": "bp2",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "champion_model",
+      "extracted_value": "xgboost",
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'champion_model' in notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP2-2",
+      "source_bp": "bp2",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_financial_impact_section",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_financial_impact_section' in notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP2-3",
+      "source_bp": "bp2",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_assumption_based_content",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_assumption_based_content' in notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP2-4",
+      "source_bp": "bp2",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "n_gate3_failed_candidates_represented",
+      "extracted_value": 0,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'n_gate3_failed_candidates_represented' in notebooks/bp2_customer_friction_classification/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP3-1",
+      "source_bp": "bp3",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "champion_model",
+      "extracted_value": "xgboost",
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'champion_model' in notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP3-2",
+      "source_bp": "bp3",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "recommended_for_production_tier",
+      "extracted_value": "CONDITIONAL - GOVERNANCE REVIEW REQUIRED",
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'recommended_for_production_tier' in notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP3-3",
+      "source_bp": "bp3",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_financial_impact_section",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_financial_impact_section' in notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP3-4",
+      "source_bp": "bp3",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_assumption_based_content",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_assumption_based_content' in notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP3-5",
+      "source_bp": "bp3",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "n_gate3_near_zero_recall_anomalies_represented",
+      "extracted_value": 2,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'n_gate3_near_zero_recall_anomalies_represented' in notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP3-6",
+      "source_bp": "bp3",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "disparate_impact_flagged",
+      "extracted_value": true,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'disparate_impact_flagged' in notebooks/bp3_complaint_escalation_prediction/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP4-1",
+      "source_bp": "bp4",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "champion_pipeline",
+      "extracted_value": "polars_lazy_streaming",
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'champion_pipeline' in notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP4-2",
+      "source_bp": "bp4",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "recommended_for_production_tier",
+      "extracted_value": "RECOMMENDED FOR PRODUCTION",
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'recommended_for_production_tier' in notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP4-3",
+      "source_bp": "bp4",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_financial_impact_section",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_financial_impact_section' in notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP4-4",
+      "source_bp": "bp4",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_assumption_based_content",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_assumption_based_content' in notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP4-5",
+      "source_bp": "bp4",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "n_gate3_slow_but_correct_candidates_represented",
+      "extracted_value": 2,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'n_gate3_slow_but_correct_candidates_represented' in notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP4-6",
+      "source_bp": "bp4",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "n_high_and_medium_tier_clusters_embedded",
+      "extracted_value": 7204,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'n_high_and_medium_tier_clusters_embedded' in notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP4-7",
+      "source_bp": "bp4",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "tier_2_reachable_for_this_bp",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'tier_2_reachable_for_this_bp' in notebooks/bp4_customer_journey_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP5-1",
+      "source_bp": "bp5",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "production_recommendation_tier",
+      "extracted_value": "Recommended for Decision-Support Use, With Monitoring",
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'production_recommendation_tier' in notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP5-2",
+      "source_bp": "bp5",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "production_recommendation_tier_code",
+      "extracted_value": 2,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'production_recommendation_tier_code' in notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP5-3",
+      "source_bp": "bp5",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "ecoa_reg_b_disparate_impact_applicability",
+      "extracted_value": "NOT_APPLICABLE",
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'ecoa_reg_b_disparate_impact_applicability' in notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP5-4",
+      "source_bp": "bp5",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_financial_impact_section",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_financial_impact_section' in notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP5-5",
+      "source_bp": "bp5",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "contains_assumption_based_content",
+      "extracted_value": false,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'contains_assumption_based_content' in notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP5-6",
+      "source_bp": "bp5",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "n_negligible_strength_fields_detected",
+      "extracted_value": 2,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'n_negligible_strength_fields_detected' in notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP5-7",
+      "source_bp": "bp5",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "n_near_zero_precision_outcomes_detected",
+      "extracted_value": 1,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'n_near_zero_precision_outcomes_detected' in notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"
+    },
+    {
+      "evidence_id": "EV-BP5-8",
+      "source_bp": "bp5",
+      "source_gate": 7,
+      "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json",
+      "source_field_or_metric": "association_not_causation_disclaimer_carried_forward",
+      "extracted_value": true,
+      "retrieval_timestamp_utc": "2026-09-24T15:44:07.528616+00:00",
+      "verification_method": "read directly from JSON key path 'association_not_causation_disclaimer_carried_forward' in notebooks/bp5_root_cause_driver_analytics/artifacts/executive_rollup_manifest.json"
+    }
+  ],
+  "citation_check": {
+    "passed": true,
+    "n_citations_referenced": 4,
+    "cited_evidence_ids": [
+      "EV-BP4-1",
+      "EV-BP4-2",
+      "EV-BP4-5",
+      "EV-BP4-6"
+    ],
+    "invalid_evidence_ids_referenced": [],
+    "zero_citations_used": false
+  },
+  "udaap_check": {
+    "passed": true,
+    "n_sentences_scanned": 3,
+    "n_sentences_failing": 0,
+    "failing_sentences": [],
+    "banned_terms_found": []
+  },
+  "nist_ai_rmf_risk_category": {
+    "risk_category_value": "MEDIUM",
+    "mitigations_checked": {
+      "citation_check_passed": true,
+      "udaap_check_passed": true,
+      "human_in_the_loop_enforced": true,
+      "auto_apply_forbidden": true,
+      "pii_masking_applied_upstream": true
+    },
+    "all_mitigations_passed": true,
+    "rationale": "This project's own documented risk-tiering judgment, informed by NIST AI RMF's Govern/Map/Measure/Manage functions - not an official NIST-published category enum (no such enum exists in the framework). A live, real, customer-facing external LLM call is never categorized LOW here, regardless of how many mitigations pass; MEDIUM requires every real structural mitigation above to hold, computed fresh from this gate's own actual run, never assumed."
+  },
+  "approval_status": "PENDING_HUMAN_REVIEW",
+  "auto_applied": false,
+  "human_in_the_loop_required": true,
+  "human_in_the_loop_auto_apply_allowed": false,
+  "generated_at_utc": "2026-09-24T15:44:11.451308+00:00"
+}

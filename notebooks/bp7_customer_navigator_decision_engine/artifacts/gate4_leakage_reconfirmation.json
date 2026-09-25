@@ -1,0 +1,19 @@
+{
+  "barred_columns_checked": [
+    "Company response to consumer",
+    "Timely response?",
+    "Date received",
+    "Date sent to company",
+    "Tags"
+  ],
+  "presence_in_scoring_gold_layer": {
+    "Company response to consumer": false,
+    "Timely response?": false,
+    "Date received": false,
+    "Date sent to company": false,
+    "Tags": false
+  },
+  "any_barred_column_present_in_scoring_gold_layer": false,
+  "leakage_reconfirmed_clean": true,
+  "disclosure": "Live re-check of BP7 Gate 1's own BARRED_COLUMNS against the real scoring Gold layer's own column list, fresh at Gate 4, never trusted from Gate 1/2/3's own prior claim. 'Tags' is correctly absent here - it re-enters BP7 Gate 4 only via a separate, audit-only join (load_bp3_gold_tags_group / attach_tags_group_for_audit below) onto an already-scored DataFrame, strictly AFTER priority_score/intervention_flag/recommended_action are computed, and is never merged back into this scoring Gold layer or re-used as a scoring input."
+}

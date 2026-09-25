@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "customer360-navigator-enterprise-suite"
+version = "0.1.0"
+description = "Customer360 Navigator Enterprise Suite - Enterprise AI-Driven Customer Experience, Complaint Resolution & Financial Intelligence Platform (independent professional portfolio project)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+
+# Dependencies below are the real, direct imports of the src/ package code itself
+# (grep-verified against src/*/*.py, 2026-09-22) - not the full notebook-execution
+# requirements.txt, which is intentionally broader (BP-specific libraries such as
+# xgboost, catboost, lightgbm, shap, spacy, etc. that individual notebooks import
+# directly, never through src/). Version floors below match requirements.txt's
+# existing floors for the same packages, for consistency across the two files.
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "polars>=1.9",
+    "scikit-learn>=1.5",
+    "scipy>=1.13",
+    "matplotlib>=3.9",
+    # PyYAML: src/utils/bp1_config_sync.py and src/models/bp1_intent_classifier.py both
+    # `import yaml`, but PyYAML is not currently listed in requirements.txt at all (verified
+    # via grep - genuinely absent, not just unpinned). Floor chosen independently here since
+    # there's no existing project convention to match; flagged to the user for requirements.txt.
+    "PyYAML>=6.0",
+    # joblib: src/models/model_persistence.py (Hardening Step 2, 2026-09-22) directly imports
+    # joblib for model-bundle save/load. Already an installed transitive dependency of
+    # scikit-learn/every notebook's CV backend, but now a REAL direct import of src/ itself, so
+    # it belongs in this package's own declared dependencies too.
+    "joblib>=1.3",
+    # fastapi / pydantic: src/services/service_common.py, bp1_inference_service.py, and
+    # bp2_inference_service.py (Hardening Step 3, 2026-09-22) directly import both to build the
+    # BP1/BP2 inference services. fastapi's own floor matches requirements.txt's existing
+    # "Service layer" entry for consistency across the two files; pydantic was previously only an
+    # undeclared transitive dependency of fastapi - now a REAL direct import (BaseModel,
+    # ConfigDict, Field, create_model, field_validator - all require pydantic v2), so it is
+    # declared explicitly here too. uvicorn is deliberately NOT listed here: it is the ASGI
+    # server invoked from the command line to run these services, never imported by src/ code
+    # itself, so it stays in requirements.txt's "Service layer" section only.
+    "fastapi>=0.115",
+    "pydantic>=2.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Hardening Step 6 (CI wiring, 2026-09-22): line-length = 110 is NOT black's own 88 default - it
+# is the real, already-observed maximum line length across this project's own pre-existing,
+# real-run-confirmed src/ files (109 chars in taxonomy_mapper.py and bp1_intent_classifier.py,
+# both predating this hardening pass) plus a small buffer. Chosen this way, not as an arbitrary
+# round number, specifically so black does not force a rewrite of this project's established
+# dense, heavily-commented documentation style. .flake8's max-line-length is set to match exactly.
+[tool.black]
+line-length = 110
+
+# profile = "black" resolves the one real, well-documented isort/black conflict (import-wrapping
+# style) without any manual per-file fixing - the standard pairing, not a project-specific tweak.
+[tool.isort]
+profile = "black"
+line_length = 110
+
+# skips = ["B101"]: this project deliberately uses `assert` as its own "raise AssertionError,
+# never silently pass" integrity-check convention throughout notebooks and src/ alike (see e.g.
+# performance_setup.py's WARP ceiling check, and every notebook's own Section-N structural
+# integrity checks) - a documented project convention, not a defensive/security-relevant assert
+# bandit's B101 rule is meant to catch. skips = ["B404"]: subprocess is a real, deliberate,
+# documented import in src/deployment/readiness_verdict.py (see that module's own docstring) -
+# the actual call site is separately verified safe (no shell=True, args built from this project's
+# own fixed BP registry, never external/untrusted input) and marked with an inline `# nosec B603`
+# there, so flagging the bare `import subprocess` itself a second time is pure noise.
+[tool.bandit]
+skips = ["B101", "B404"]

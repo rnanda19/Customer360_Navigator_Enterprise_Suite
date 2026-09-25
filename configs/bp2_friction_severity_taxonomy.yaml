@@ -1,0 +1,141 @@
+# BP2 friction-severity taxonomy — Customer360 Navigator
+# Master Execution Plan Section 5.1 / Section 7 (BP2 Methodology, Gate 1-2)
+#
+# Source of truth: real, live-enumerated CFPB "Company response to consumer" and
+# "Timely response?" values, captured in notebooks/bp2_customer_friction_classification/
+# artifacts/policy.json by the BP2 Gate 1 notebook's real run on 2026-09-22 (see live_checks in
+# that file). No label string or count below was assumed from memory or from any prior CFPB
+# documentation not specific to this real extract.
+#
+# This is a documented judgment mapping (Gate 2 taxonomy engineering), exactly like
+# configs/taxonomy_mapping.yaml's CFPB<->BANKING77 crosswalk — not a statistical result. Every
+# 'confidence' value is a stated reasoning judgment (HIGH/MEDIUM/LOW), never a computed metric.
+# Do not treat this file as ground truth without Gate 2 human review.
+
+source_artifact: "notebooks/bp2_customer_friction_classification/artifacts/policy.json"
+source_generated_at_utc: "2026-09-22T08:40:12.439074+00:00"
+total_cfpb_rows: 1048575
+
+# ------------------------------------------------------------------------------------------
+# Real, live-enumerated distributions (verbatim from policy.json's live_checks) — restated here
+# so this config is self-contained and diffable against a fresh Gate 1/Gate 2 re-run.
+# ------------------------------------------------------------------------------------------
+company_response_to_consumer_distribution:
+  - value: "Closed with explanation"
+    row_count: 492340
+    fraction_of_total: 0.4695
+  - value: "Closed with non-monetary relief"
+    row_count: 312602
+    fraction_of_total: 0.2981
+  - value: "In progress"
+    row_count: 231856
+    fraction_of_total: 0.2211
+  - value: "Closed with monetary relief"
+    row_count: 10511
+    fraction_of_total: 0.0100
+  - value: "Untimely response"
+    row_count: 1264
+    fraction_of_total: 0.0012
+  - value: null
+    row_count: 2
+    fraction_of_total: 0.0000
+
+timely_response_distribution:
+  - value: "Yes"
+    row_count: 1045348
+    fraction_of_total: 0.9969
+  - value: "No"
+    row_count: 3227
+    fraction_of_total: 0.0031
+
+# ------------------------------------------------------------------------------------------
+# Severity taxonomy: 4 ordinal classes for genuinely resolved complaints, plus 2 excluded
+# (non-ordinal) classes for rows that are not a real resolution outcome. Evaluated in the
+# `precedence_order` sequence below — the FIRST matching rule wins per row. This precedence is
+# itself a documented judgment call: `Timely response? == "No"` is checked before
+# `Company response to consumer`, so a row that is both "Closed with monetary relief" AND
+# untimely is classified HIGH_FRICTION, not LOW_FRICTION - untimeliness is treated as
+# overriding evidence of friction regardless of the eventual resolution type. Gate 2's live
+# crosstab (run by the Gate 2 notebook) checks whether "Untimely response" (Company response to
+# consumer) and Timely response?=="No" ever disagree on the same row - they are two separately
+# recorded real fields and are not assumed to be redundant.
+# ------------------------------------------------------------------------------------------
+precedence_order:
+  - rule: "timely_response_no"
+    condition: "Timely response? == 'No'"
+    severity_class: "HIGH_FRICTION"
+  - rule: "untimely_response_label"
+    condition: "Company response to consumer == 'Untimely response'"
+    severity_class: "HIGH_FRICTION"
+  - rule: "in_progress"
+    condition: "Company response to consumer == 'In progress'"
+    severity_class: "EXCLUDED_PENDING"
+  - rule: "closed_monetary_relief"
+    condition: "Company response to consumer == 'Closed with monetary relief'"
+    severity_class: "LOW_FRICTION"
+  - rule: "closed_non_monetary_relief"
+    condition: "Company response to consumer == 'Closed with non-monetary relief'"
+    severity_class: "MEDIUM_FRICTION"
+  - rule: "closed_with_explanation"
+    condition: "Company response to consumer == 'Closed with explanation'"
+    severity_class: "MEDIUM_HIGH_FRICTION"
+  - rule: "null_company_response"
+    condition: "Company response to consumer is null"
+    severity_class: "EXCLUDED_UNKNOWN"
+
+severity_classes:
+  LOW_FRICTION:
+    ordinal_rank: 0
+    confidence: HIGH
+    rationale: "'Closed with monetary relief' is CFPB's own explicit label for a complaint the
+      company resolved by paying/refunding the consumer, AND the response was timely - the
+      clearest real positive outcome recorded in this field. No judgment is required to identify
+      this as the lowest-friction resolved class."
+  MEDIUM_FRICTION:
+    ordinal_rank: 1
+    confidence: MEDIUM
+    rationale: "'Closed with non-monetary relief' means the company took SOME corrective action
+      (not simply an explanation), but the field does not disclose what kind or how substantial -
+      it could range from a meaningful account correction to a token gesture. Ranked below
+      LOW_FRICTION (no relief was monetary) and above MEDIUM_HIGH_FRICTION (some relief was still
+      given, unlike explanation-only) as a judgment call, not a value the field states directly."
+  MEDIUM_HIGH_FRICTION:
+    ordinal_rank: 2
+    confidence: MEDIUM
+    rationale: "'Closed with explanation' means the company responded but the field records no
+      relief of any kind - the complaint was closed without a corrective action being logged.
+      Ranked as higher friction than either relief class on that basis. This is a judgment call:
+      an explanation-only closure could also mean CFPB/the company genuinely found no fault, which
+      this taxonomy does not have a real field to distinguish from an unresolved grievance -
+      flagged for Gate 2 human review, not resolved here."
+  HIGH_FRICTION:
+    ordinal_rank: 3
+    confidence: HIGH
+    rationale: "Either the real 'Timely response?' field is explicitly 'No', or 'Company response
+      to consumer' is explicitly 'Untimely response' - both are CFPB's own unambiguous negative
+      signal (the company did not respond in time), independent of whatever resolution type was
+      eventually recorded. No judgment is required to identify this as the highest-friction class."
+
+excluded_classes:
+  EXCLUDED_PENDING:
+    reason: "'In progress' (22.11% of the real extract - not a small residual) is not a resolution
+      outcome, it is a right-censored/pending status - the eventual real outcome for these rows is
+      unknown at extraction time. Including it as an ordinal severity class would conflate
+      'unresolved so far' with an actual severity determination. Excluded from the trainable
+      target for Gate 3; RAW_DATA_MANIFEST.md Finding 4 (this extract appears date-ordered
+      most-recent-first) means these rows likely skew toward the most recent complaints, which is
+      flagged as a real assumption/limitation for Gate 3/6 reporting, not silently resolved here."
+  EXCLUDED_UNKNOWN:
+    reason: "2 rows (0.0002% of the extract) have a null 'Company response to consumer' value and
+      a Timely response? that is not 'No' (otherwise the timely_response_no rule above would have
+      already classified them HIGH_FRICTION). Negligible row count - excluded from the trainable
+      target rather than guessed."
+
+open_questions_for_gate2_human_review:
+  - "Whether MEDIUM_FRICTION and MEDIUM_HIGH_FRICTION's relative order (non-monetary relief above
+     explanation-only) should instead be reversed or merged into a single class - both are
+     documented MEDIUM-confidence judgment calls, not derived from a field CFPB scores directly."
+  - "Whether EXCLUDED_PENDING rows should instead be modeled as a separate binary
+     'resolution-status' target in a later BP2 gate, rather than excluded outright, once Gate 3
+     evaluates whether their Product/Issue distribution differs materially from the resolved rows
+     (a recency-confound check, not yet run)."

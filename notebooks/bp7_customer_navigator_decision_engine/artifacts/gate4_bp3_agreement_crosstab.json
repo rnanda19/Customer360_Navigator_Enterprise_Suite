@@ -1,0 +1,9 @@
+{
+  "n_compared": 1048575,
+  "intervention_true_bp3_positive": 63271,
+  "intervention_true_bp3_negative": 742470,
+  "intervention_false_bp3_positive": 6354,
+  "intervention_false_bp3_negative": 236480,
+  "agreement_rate": 0.285865,
+  "disclosure": "Agreement/reference table against BP3's own already-validated bp3_predicted_label, NOT a true confusion matrix - customer360_priority_decision has no labeled ground-truth CFPB column. bp3_predicted_label is a real, already-validated upstream prediction used as a disclosed reference point, not ground truth for BP7's own decision (same limitation this module's own benchmark_candidate() already stated)."
+}

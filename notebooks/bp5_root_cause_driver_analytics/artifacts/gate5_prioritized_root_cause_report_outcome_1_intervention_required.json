@@ -1,0 +1,1054 @@
+{
+  "outcome_field": "outcome_1_intervention_required",
+  "association_not_causation_disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5).",
+  "field_level_ranking": [
+    {
+      "rank": 1,
+      "driver_field": "Sub-issue",
+      "cramers_v": 0.4156422831612538,
+      "association_strength": "moderate",
+      "chi2_statistic": 140876.44325839324,
+      "degrees_of_freedom": 221,
+      "p_value": 0.0,
+      "n_rows_tested": 815453,
+      "n_distinct_levels": 222,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_chi_square_cramers_v.csv",
+        "source_field_or_metric": "cramers_v",
+        "extracted_value": 0.4156422831612538,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.817358+00:00",
+        "verification_method": "direct read from Gate 3's real chi_square_cramers_v.csv, row where driver_field='Sub-issue' and outcome_field='outcome_1_intervention_required'"
+      }
+    },
+    {
+      "rank": 2,
+      "driver_field": "Issue",
+      "cramers_v": 0.4037299250313842,
+      "association_strength": "moderate",
+      "chi2_statistic": 132917.08770528712,
+      "degrees_of_freedom": 95,
+      "p_value": 0.0,
+      "n_rows_tested": 815453,
+      "n_distinct_levels": 96,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_chi_square_cramers_v.csv",
+        "source_field_or_metric": "cramers_v",
+        "extracted_value": 0.4037299250313842,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.817381+00:00",
+        "verification_method": "direct read from Gate 3's real chi_square_cramers_v.csv, row where driver_field='Issue' and outcome_field='outcome_1_intervention_required'"
+      }
+    },
+    {
+      "rank": 3,
+      "driver_field": "Sub-product",
+      "cramers_v": 0.3522929150589172,
+      "association_strength": "moderate",
+      "chi2_statistic": 101206.11483557252,
+      "degrees_of_freedom": 60,
+      "p_value": 0.0,
+      "n_rows_tested": 815453,
+      "n_distinct_levels": 61,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_chi_square_cramers_v.csv",
+        "source_field_or_metric": "cramers_v",
+        "extracted_value": 0.3522929150589172,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.817389+00:00",
+        "verification_method": "direct read from Gate 3's real chi_square_cramers_v.csv, row where driver_field='Sub-product' and outcome_field='outcome_1_intervention_required'"
+      }
+    },
+    {
+      "rank": 4,
+      "driver_field": "Product",
+      "cramers_v": 0.3441502537759628,
+      "association_strength": "moderate",
+      "chi2_statistic": 96581.76174377846,
+      "degrees_of_freedom": 14,
+      "p_value": 0.0,
+      "n_rows_tested": 815453,
+      "n_distinct_levels": 15,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_chi_square_cramers_v.csv",
+        "source_field_or_metric": "cramers_v",
+        "extracted_value": 0.3441502537759628,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.817396+00:00",
+        "verification_method": "direct read from Gate 3's real chi_square_cramers_v.csv, row where driver_field='Product' and outcome_field='outcome_1_intervention_required'"
+      }
+    },
+    {
+      "rank": 5,
+      "driver_field": "Submitted via",
+      "cramers_v": 0.0910814439964457,
+      "association_strength": "negligible",
+      "chi2_statistic": 6764.859004725845,
+      "degrees_of_freedom": 3,
+      "p_value": 0.0,
+      "n_rows_tested": 815453,
+      "n_distinct_levels": 4,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_chi_square_cramers_v.csv",
+        "source_field_or_metric": "cramers_v",
+        "extracted_value": 0.0910814439964457,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.817403+00:00",
+        "verification_method": "direct read from Gate 3's real chi_square_cramers_v.csv, row where driver_field='Submitted via' and outcome_field='outcome_1_intervention_required'"
+      }
+    }
+  ],
+  "category_level_findings_by_field": {
+    "Sub-issue": [
+      {
+        "rank": 1,
+        "driver_field": "Sub-issue",
+        "category": "Problem with fees",
+        "reference_category": "Information belongs to someone else",
+        "n_rows": 1656,
+        "n_outcome_positive": 690,
+        "n_outcome_negative": 966,
+        "odds_ratio_vs_reference": 2038.030888030888,
+        "log_odds_ratio": 7.619739369718303,
+        "ci_95_low": 1590.4872821524018,
+        "ci_95_high": 2611.50777323221,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 7.619739369718303,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.837239+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-issue', category='Problem with fees', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 2,
+        "driver_field": "Sub-issue",
+        "category": "Add-on products and services",
+        "reference_category": "Information belongs to someone else",
+        "n_rows": 88,
+        "n_outcome_positive": 30,
+        "n_outcome_negative": 58,
+        "odds_ratio_vs_reference": 1475.8154706430569,
+        "log_odds_ratio": 7.296965977455252,
+        "ci_95_low": 898.5306826404039,
+        "ci_95_high": 2423.9921301174363,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 7.296965977455252,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.837261+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-issue', category='Add-on products and services', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 3,
+        "driver_field": "Sub-issue",
+        "category": "Charged too much interest",
+        "reference_category": "Information belongs to someone else",
+        "n_rows": 657,
+        "n_outcome_positive": 201,
+        "n_outcome_negative": 456,
+        "odds_ratio_vs_reference": 1257.679587482219,
+        "log_odds_ratio": 7.137023704884205,
+        "ci_95_low": 948.727638168953,
+        "ci_95_high": 1667.241346338598,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 7.137023704884205,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.837271+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-issue', category='Charged too much interest', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 4,
+        "driver_field": "Sub-issue",
+        "category": "Didn't receive terms that were advertised",
+        "reference_category": "Information belongs to someone else",
+        "n_rows": 639,
+        "n_outcome_positive": 193,
+        "n_outcome_negative": 446,
+        "odds_ratio_vs_reference": 1234.6994303720762,
+        "log_odds_ratio": 7.118582843224337,
+        "ci_95_low": 929.778198110951,
+        "ci_95_high": 1639.6197356083965,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 7.118582843224337,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.837280+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-issue', category=\"Didn't receive terms that were advertised\", outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 5,
+        "driver_field": "Sub-issue",
+        "category": "Credit card company isn't resolving a dispute about a purchase on your statement",
+        "reference_category": "Information belongs to someone else",
+        "n_rows": 4886,
+        "n_outcome_positive": 1418,
+        "n_outcome_negative": 3468,
+        "odds_ratio_vs_reference": 1166.637519872814,
+        "log_odds_ratio": 7.061880975531157,
+        "ci_95_low": 921.2851093045938,
+        "ci_95_high": 1477.331055315044,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 7.061880975531157,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.837289+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-issue', category=\"Credit card company isn't resolving a dispute about a purchase on your statement\", outcome_field='outcome_1_intervention_required'"
+        }
+      }
+    ],
+    "Issue": [
+      {
+        "rank": 1,
+        "driver_field": "Issue",
+        "category": "Fees or interest",
+        "reference_category": "Incorrect information on your report",
+        "n_rows": 2555,
+        "n_outcome_positive": 925,
+        "n_outcome_negative": 1630,
+        "odds_ratio_vs_reference": 740.6135624770594,
+        "log_odds_ratio": 6.607478981135301,
+        "ci_95_low": 636.5231919280758,
+        "ci_95_high": 861.725787655103,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 6.607478981135301,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.839023+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Issue', category='Fees or interest', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 2,
+        "driver_field": "Issue",
+        "category": "Problem with a purchase shown on your statement",
+        "reference_category": "Incorrect information on your report",
+        "n_rows": 7090,
+        "n_outcome_positive": 2039,
+        "n_outcome_negative": 5051,
+        "odds_ratio_vs_reference": 526.8383606868066,
+        "log_odds_ratio": 6.266893785530087,
+        "ci_95_low": 458.87785308502873,
+        "ci_95_high": 604.8639227740871,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 6.266893785530087,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.839038+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Issue', category='Problem with a purchase shown on your statement', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 3,
+        "driver_field": "Issue",
+        "category": "Problem caused by your funds being low",
+        "reference_category": "Incorrect information on your report",
+        "n_rows": 1325,
+        "n_outcome_positive": 273,
+        "n_outcome_negative": 1052,
+        "odds_ratio_vs_reference": 338.6760139416984,
+        "log_odds_ratio": 5.825043939310989,
+        "ci_95_low": 281.5297571706075,
+        "ci_95_high": 407.4220912637958,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.825043939310989,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.839047+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Issue', category='Problem caused by your funds being low', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 4,
+        "driver_field": "Issue",
+        "category": "Problem with a purchase or transfer",
+        "reference_category": "Incorrect information on your report",
+        "n_rows": 810,
+        "n_outcome_positive": 152,
+        "n_outcome_negative": 658,
+        "odds_ratio_vs_reference": 301.47772322240405,
+        "log_odds_ratio": 5.708696126944643,
+        "ci_95_low": 242.4160916088948,
+        "ci_95_high": 374.92897850197625,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.708696126944643,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.839057+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Issue', category='Problem with a purchase or transfer', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 5,
+        "driver_field": "Issue",
+        "category": "Problem with a lender or other company charging your account",
+        "reference_category": "Incorrect information on your report",
+        "n_rows": 3284,
+        "n_outcome_positive": 597,
+        "n_outcome_negative": 2687,
+        "odds_ratio_vs_reference": 289.96407679902285,
+        "log_odds_ratio": 5.669757042200795,
+        "ci_95_low": 248.1146736562196,
+        "ci_95_high": 338.8722020947748,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.669757042200795,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.839066+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Issue', category='Problem with a lender or other company charging your account', outcome_field='outcome_1_intervention_required'"
+        }
+      }
+    ],
+    "Sub-product": [
+      {
+        "rank": 1,
+        "driver_field": "Sub-product",
+        "category": "Government benefit card",
+        "reference_category": "Credit reporting",
+        "n_rows": 725,
+        "n_outcome_positive": 211,
+        "n_outcome_negative": 514,
+        "odds_ratio_vs_reference": 784.3112950073985,
+        "log_odds_ratio": 6.664806001501379,
+        "ci_95_low": 647.8999478002489,
+        "ci_95_high": 949.443211972344,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 6.664806001501379,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.840483+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-product', category='Government benefit card', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 2,
+        "driver_field": "Sub-product",
+        "category": "Store credit card",
+        "reference_category": "Credit reporting",
+        "n_rows": 2920,
+        "n_outcome_positive": 742,
+        "n_outcome_negative": 2178,
+        "odds_ratio_vs_reference": 650.9013360234871,
+        "log_odds_ratio": 6.478358073154952,
+        "ci_95_low": 569.6718370701138,
+        "ci_95_high": 743.7133480499157,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 6.478358073154952,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.840498+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-product', category='Store credit card', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 3,
+        "driver_field": "Sub-product",
+        "category": "Savings account",
+        "reference_category": "Credit reporting",
+        "n_rows": 2484,
+        "n_outcome_positive": 391,
+        "n_outcome_negative": 2093,
+        "odds_ratio_vs_reference": 356.92474849094566,
+        "log_odds_ratio": 5.877524971019843,
+        "ci_95_low": 307.22069046707804,
+        "ci_95_high": 414.67023556141794,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.877524971019843,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.840507+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-product', category='Savings account', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 4,
+        "driver_field": "Sub-product",
+        "category": "Checking account",
+        "reference_category": "Credit reporting",
+        "n_rows": 21211,
+        "n_outcome_positive": 3104,
+        "n_outcome_negative": 18107,
+        "odds_ratio_vs_reference": 327.5249161284602,
+        "log_odds_ratio": 5.791564131962945,
+        "ci_95_low": 293.17307346516185,
+        "ci_95_high": 365.9018525031844,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.791564131962945,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.840515+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-product', category='Checking account', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 5,
+        "driver_field": "Sub-product",
+        "category": "General-purpose credit card or charge card",
+        "reference_category": "Credit reporting",
+        "n_rows": 25581,
+        "n_outcome_positive": 3701,
+        "n_outcome_negative": 21880,
+        "odds_ratio_vs_reference": 323.1773388778742,
+        "log_odds_ratio": 5.7782012093307165,
+        "ci_95_low": 289.591517196166,
+        "ci_95_high": 360.6583278937536,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.7782012093307165,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.840523+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Sub-product', category='General-purpose credit card or charge card', outcome_field='outcome_1_intervention_required'"
+        }
+      }
+    ],
+    "Product": [
+      {
+        "rank": 1,
+        "driver_field": "Product",
+        "category": "Credit card",
+        "reference_category": "Credit reporting, credit repair services, or other personal consumer reports",
+        "n_rows": 5011,
+        "n_outcome_positive": 790,
+        "n_outcome_negative": 4221,
+        "odds_ratio_vs_reference": 258.5821959903725,
+        "log_odds_ratio": 5.555213616289273,
+        "ci_95_low": 227.0458469880492,
+        "ci_95_high": 294.4988995404216,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.555213616289273,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.842060+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Product', category='Credit card', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 2,
+        "driver_field": "Product",
+        "category": "Credit card or prepaid card",
+        "reference_category": "Credit reporting, credit repair services, or other personal consumer reports",
+        "n_rows": 25476,
+        "n_outcome_positive": 3988,
+        "n_outcome_negative": 21488,
+        "odds_ratio_vs_reference": 256.4165393289952,
+        "log_odds_ratio": 5.546803228929415,
+        "ci_95_low": 229.51413191253027,
+        "ci_95_high": 286.4723016991207,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.546803228929415,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.842075+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Product', category='Credit card or prepaid card', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 3,
+        "driver_field": "Product",
+        "category": "Checking or savings account",
+        "reference_category": "Credit reporting, credit repair services, or other personal consumer reports",
+        "n_rows": 26423,
+        "n_outcome_positive": 3781,
+        "n_outcome_negative": 22642,
+        "odds_ratio_vs_reference": 230.71656201313704,
+        "log_odds_ratio": 5.441189952863582,
+        "ci_95_low": 206.46991346832897,
+        "ci_95_high": 257.81059861453764,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.441189952863582,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.842084+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Product', category='Checking or savings account', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 4,
+        "driver_field": "Product",
+        "category": "Prepaid card",
+        "reference_category": "Credit reporting, credit repair services, or other personal consumer reports",
+        "n_rows": 347,
+        "n_outcome_positive": 42,
+        "n_outcome_negative": 305,
+        "odds_ratio_vs_reference": 190.2551104775481,
+        "log_odds_ratio": 5.248365858286661,
+        "ci_95_low": 135.4966518825863,
+        "ci_95_high": 267.14318442488377,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 5.248365858286661,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.842092+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Product', category='Prepaid card', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 5,
+        "driver_field": "Product",
+        "category": "Money transfer, virtual currency, or money service",
+        "reference_category": "Credit reporting, credit repair services, or other personal consumer reports",
+        "n_rows": 7750,
+        "n_outcome_positive": 618,
+        "n_outcome_negative": 7132,
+        "odds_ratio_vs_reference": 119.71925918700774,
+        "log_odds_ratio": 4.785149495085364,
+        "ci_95_low": 104.72797277108504,
+        "ci_95_high": 136.8564734048126,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 4.785149495085364,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.842100+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Product', category='Money transfer, virtual currency, or money service', outcome_field='outcome_1_intervention_required'"
+        }
+      }
+    ],
+    "Submitted via": [
+      {
+        "rank": 1,
+        "driver_field": "Submitted via",
+        "category": "Referral",
+        "reference_category": "Web",
+        "n_rows": 3651,
+        "n_outcome_positive": 460,
+        "n_outcome_negative": 3191,
+        "odds_ratio_vs_reference": 12.441598002707734,
+        "log_odds_ratio": 2.521045535870467,
+        "ci_95_low": 11.258700273146951,
+        "ci_95_high": 13.74877713284344,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 2.521045535870467,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.843536+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Submitted via', category='Referral', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 2,
+        "driver_field": "Submitted via",
+        "category": "Phone",
+        "reference_category": "Web",
+        "n_rows": 12201,
+        "n_outcome_positive": 818,
+        "n_outcome_negative": 11383,
+        "odds_ratio_vs_reference": 6.202141998058093,
+        "log_odds_ratio": 1.8248947159431004,
+        "ci_95_low": 5.760396104178942,
+        "ci_95_high": 6.677763936436601,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 1.8248947159431004,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.843551+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Submitted via', category='Phone', outcome_field='outcome_1_intervention_required'"
+        }
+      },
+      {
+        "rank": 3,
+        "driver_field": "Submitted via",
+        "category": "Postal mail",
+        "reference_category": "Web",
+        "n_rows": 2577,
+        "n_outcome_positive": 104,
+        "n_outcome_negative": 2473,
+        "odds_ratio_vs_reference": 3.629563177596828,
+        "log_odds_ratio": 1.2891123042855266,
+        "ci_95_low": 2.9797426744580062,
+        "ci_95_high": 4.42109614802996,
+        "p_value": 0.0,
+        "continuity_correction_applied": false,
+        "citation": {
+          "source_bp": "bp5",
+          "source_gate": "gate3",
+          "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_log_odds_ratio_by_category.csv",
+          "source_field_or_metric": "log_odds_ratio",
+          "extracted_value": 1.2891123042855266,
+          "retrieval_timestamp_utc": "2026-09-24T10:33:33.843560+00:00",
+          "verification_method": "direct read from Gate 3's real log_odds_ratio_by_category.csv, row where driver_field='Submitted via', category='Postal mail', outcome_field='outcome_1_intervention_required'"
+        }
+      }
+    ]
+  },
+  "champion_shap_feature_importance": [
+    {
+      "rank": 1,
+      "feature": "Company_freq_zscored",
+      "driver_field": "Company",
+      "category": null,
+      "encoding": "frequency_zscored",
+      "mean_abs_shap": 1.6236153841018677,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 1.6236153841018677,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857591+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature='Company_freq_zscored'"
+      }
+    },
+    {
+      "rank": 2,
+      "feature": "Issue_Incorrect information on your report",
+      "driver_field": "Issue",
+      "category": "Incorrect information on your report",
+      "encoding": "one_hot",
+      "mean_abs_shap": 0.649043083190918,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 0.649043083190918,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857612+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature='Issue_Incorrect information on your report'"
+      }
+    },
+    {
+      "rank": 3,
+      "feature": "Issue_Improper use of your report",
+      "driver_field": "Issue",
+      "category": "Improper use of your report",
+      "encoding": "one_hot",
+      "mean_abs_shap": 0.5993242859840393,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 0.5993242859840393,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857621+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature='Issue_Improper use of your report'"
+      }
+    },
+    {
+      "rank": 4,
+      "feature": "Product_Credit reporting, credit repair services, or other personal consumer reports",
+      "driver_field": "Product",
+      "category": "Credit reporting, credit repair services, or other personal consumer reports",
+      "encoding": "one_hot",
+      "mean_abs_shap": 0.284232884645462,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 0.284232884645462,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857627+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature='Product_Credit reporting, credit repair services, or other personal consumer reports'"
+      }
+    },
+    {
+      "rank": 5,
+      "feature": "Product_Debt collection",
+      "driver_field": "Product",
+      "category": "Debt collection",
+      "encoding": "one_hot",
+      "mean_abs_shap": 0.2534340023994446,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 0.2534340023994446,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857633+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature='Product_Debt collection'"
+      }
+    },
+    {
+      "rank": 6,
+      "feature": "Sub-product_Credit reporting",
+      "driver_field": "Sub-product",
+      "category": "Credit reporting",
+      "encoding": "one_hot",
+      "mean_abs_shap": 0.1916773468255996,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 0.1916773468255996,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857637+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature='Sub-product_Credit reporting'"
+      }
+    },
+    {
+      "rank": 7,
+      "feature": "Sub-issue_Investigation took more than 30 days",
+      "driver_field": "Sub-issue",
+      "category": "Investigation took more than 30 days",
+      "encoding": "one_hot",
+      "mean_abs_shap": 0.1534231007099151,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 0.1534231007099151,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857643+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature='Sub-issue_Investigation took more than 30 days'"
+      }
+    },
+    {
+      "rank": 8,
+      "feature": "Sub-issue_Their investigation did not fix an error on your report",
+      "driver_field": "Sub-issue",
+      "category": "Their investigation did not fix an error on your report",
+      "encoding": "one_hot",
+      "mean_abs_shap": 0.1337267905473709,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 0.1337267905473709,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857648+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature='Sub-issue_Their investigation did not fix an error on your report'"
+      }
+    },
+    {
+      "rank": 9,
+      "feature": "Sub-issue_Credit inquiries on your report that you don't recognize",
+      "driver_field": "Sub-issue",
+      "category": "Credit inquiries on your report that you don't recognize",
+      "encoding": "one_hot",
+      "mean_abs_shap": 0.1254985481500625,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 0.1254985481500625,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857653+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature=\"Sub-issue_Credit inquiries on your report that you don't recognize\""
+      }
+    },
+    {
+      "rank": 10,
+      "feature": "Sub-issue_Personal information incorrect",
+      "driver_field": "Sub-issue",
+      "category": "Personal information incorrect",
+      "encoding": "one_hot",
+      "mean_abs_shap": 0.1029120758175849,
+      "citation": {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_shap_top_features_outcome_1_intervention_required.csv",
+        "source_field_or_metric": "mean_abs_shap",
+        "extracted_value": 0.1029120758175849,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.857658+00:00",
+        "verification_method": "direct read from Gate 3's real SHAP top-features artifact for 'outcome_1_intervention_required', row where feature='Sub-issue_Personal information incorrect'"
+      }
+    }
+  ],
+  "company_process_field_finding": {
+    "driver_field": "Company",
+    "encoding": "frequency_zscored",
+    "odds_ratio_per_1sd": 0.075545492331616,
+    "ci_95_low_odds_ratio_per_1sd": 0.06949143527416339,
+    "ci_95_high_odds_ratio_per_1sd": 0.08212697563534331,
+    "p_value": 0.0,
+    "converged": true,
+    "citation": {
+      "source_bp": "bp5",
+      "source_gate": "gate3",
+      "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_company_freq_univariate_logistic.json",
+      "source_field_or_metric": "odds_ratio_per_1sd",
+      "extracted_value": 0.075545492331616,
+      "retrieval_timestamp_utc": "2026-09-24T10:33:33.870334+00:00",
+      "verification_method": "direct read from Gate 3's real company_freq_univariate_logistic.json, key='outcome_1_intervention_required'"
+    }
+  },
+  "champion_validation_snapshot": {
+    "held_out_roc_auc": 0.9705232858366627,
+    "held_out_pr_auc": 0.2532549265056703,
+    "bootstrap_roc_auc_ci_95": [
+      0.9690502151226196,
+      0.9719741813515705
+    ],
+    "bootstrap_pr_auc_ci_95": [
+      0.2376201787793393,
+      0.2701852141894841
+    ],
+    "brier_score": 0.07267583780063618,
+    "confusion_matrix_at_0_5": {
+      "recall": 0.9486203615604186,
+      "precision": 0.11531343974092066,
+      "false_positive_rate": 0.09502512594028163,
+      "selection_rate": 0.10602669675211998
+    },
+    "interpretation_note": "Reported as supporting model-quality context for the SHAP-based findings above, not as a root-cause finding itself. The 0.5 confusion-matrix threshold is a real diagnostic only (Gate 4's own disclosed caveat) - both outcomes' real, extreme class imbalance yields a high-recall/low-precision operating point at 0.5, reported honestly rather than tuned.",
+    "citations": [
+      {
+        "source_bp": "bp5",
+        "source_gate": "gate3",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate3_champion_held_out_performance.json",
+        "source_field_or_metric": "held_out_roc_auc",
+        "extracted_value": 0.9705232858366627,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.870673+00:00",
+        "verification_method": "direct read from Gate 3's real champion_held_out_performance.json, key='outcome_1_intervention_required'"
+      },
+      {
+        "source_bp": "bp5",
+        "source_gate": "gate4",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate4_bootstrap_ci.json",
+        "source_field_or_metric": "roc_auc.ci_95",
+        "extracted_value": [
+          0.9690502151226196,
+          0.9719741813515705
+        ],
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.870678+00:00",
+        "verification_method": "direct read from Gate 4's real gate4_bootstrap_ci.json, key='outcome_1_intervention_required'.roc_auc"
+      },
+      {
+        "source_bp": "bp5",
+        "source_gate": "gate4",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate4_calibration_curve.json",
+        "source_field_or_metric": "brier_score",
+        "extracted_value": 0.07267583780063618,
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.870681+00:00",
+        "verification_method": "direct read from Gate 4's real gate4_calibration_curve.json, key='outcome_1_intervention_required'"
+      },
+      {
+        "source_bp": "bp5",
+        "source_gate": "gate4",
+        "source_artifact_relative_path": "notebooks/bp5_root_cause_driver_analytics/artifacts/gate4_confusion_matrix.json",
+        "source_field_or_metric": "recall_precision_at_0.5",
+        "extracted_value": {
+          "recall": 0.9486203615604186,
+          "precision": 0.11531343974092066
+        },
+        "retrieval_timestamp_utc": "2026-09-24T10:33:33.870683+00:00",
+        "verification_method": "direct read from Gate 4's real gate4_confusion_matrix.json, key='outcome_1_intervention_required'"
+      }
+    ]
+  },
+  "barred_field_governance_disclosures": {
+    "timely_response_vs_outcome_1": {
+      "driver_field": "Timely response?",
+      "outcome_field": "outcome_1_intervention_required",
+      "reference_category": "Yes",
+      "reference_n_rows": 813490,
+      "reference_n_outcome_positive": 10427,
+      "n_categories_reported": 1,
+      "method": "closed-form per-category log-odds-ratio vs reference category, equivalent to a saturated single-predictor logistic regression coefficient",
+      "categories": [
+        {
+          "category": "No",
+          "n_rows": 1963,
+          "n_outcome_positive": 84,
+          "n_outcome_negative": 1879,
+          "odds_ratio_vs_reference": 3.443045399442731,
+          "log_odds_ratio": 1.2363563702824438,
+          "ci_95_low": 2.7646745512047795,
+          "ci_95_high": 4.287868753831375,
+          "std_error_log_odds": 0.11195583940600363,
+          "z_statistic": 11.043250417683387,
+          "p_value": 0.0,
+          "continuity_correction_applied": false
+        }
+      ],
+      "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+    },
+    "response_duration_days_vs_outcomes": {
+      "outcome_1_intervention_required": {
+        "driver_field": "_response_duration_days",
+        "outcome_field": "outcome_1_intervention_required",
+        "n_rows_tested": 815453,
+        "encoding": "z-scored (real mean=0.5702, real std=4.6999) prior to fitting",
+        "coefficient_per_1sd": 0.12399589272740302,
+        "odds_ratio_per_1sd": 1.1320112215109572,
+        "ci_95_low_odds_ratio_per_1sd": 1.1219887940405702,
+        "ci_95_high_odds_ratio_per_1sd": 1.14212317666017,
+        "p_value": 1.9868891536518794e-164,
+        "converged": true,
+        "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+      },
+      "outcome_2_timely_response_failure": {
+        "driver_field": "_response_duration_days",
+        "outcome_field": "outcome_2_timely_response_failure",
+        "n_rows_tested": 1048575,
+        "encoding": "z-scored (real mean=0.4652, real std=4.2866) prior to fitting",
+        "coefficient_per_1sd": 0.15936701039821102,
+        "odds_ratio_per_1sd": 1.1727682858620136,
+        "ci_95_low_odds_ratio_per_1sd": 1.1618086505045082,
+        "ci_95_high_odds_ratio_per_1sd": 1.1838313062365933,
+        "p_value": 1.1248468394822499e-242,
+        "converged": true,
+        "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+      }
+    },
+    "company_response_to_consumer_vs_outcome_2": {
+      "driver_field": "Company response to consumer",
+      "outcome_field": "outcome_2_timely_response_failure",
+      "n_rows_tested": 1048573,
+      "n_distinct_levels": 5,
+      "chi2_statistic": 411128.75392432953,
+      "degrees_of_freedom": 4,
+      "p_value": 0.0,
+      "cramers_v": 0.6261661561560302,
+      "association_strength": "strong",
+      "disclaimer": "This is a statistical ASSOCIATION finding between a real candidate driver field and a real outcome field - never a causal claim. Per BP5 Gate 1's own policy.json structural disclaimer (Master Plan Section 5.1/7, Section 9 UDAAP mapping for BP5)."
+    },
+    "bar_relaxed_by_this_notebook": false,
+    "disclosure": "This is a real Gate 3 diagnostic test of a field BP5 Gate 1 barred from the candidate driver set as a conservative default (see Gate 1's policy.json assumptions/leakage_rules). It does NOT relax that bar - the bar stays in place regardless of this real result; any change to it is a human governance decision for a later gate, never auto-applied here. Identical posture to src/models/bp3_fairness_mitigation.py's simulate_equalized_fpr_thresholds() disclosure."
+  },
+  "narrative_text": {
+    "field_level": [
+      "Field 'Sub-issue' shows a real moderate statistical association with outcome_1_intervention_required (Cramer's V=0.4156, chi-square p=0, n=815,453).",
+      "Field 'Issue' shows a real moderate statistical association with outcome_1_intervention_required (Cramer's V=0.4037, chi-square p=0, n=815,453).",
+      "Field 'Sub-product' shows a real moderate statistical association with outcome_1_intervention_required (Cramer's V=0.3523, chi-square p=0, n=815,453).",
+      "Field 'Product' shows a real moderate statistical association with outcome_1_intervention_required (Cramer's V=0.3442, chi-square p=0, n=815,453).",
+      "Field 'Submitted via' shows a real negligible statistical association with outcome_1_intervention_required (Cramer's V=0.0911, chi-square p=0, n=815,453)."
+    ],
+    "category_level": {
+      "Sub-issue": [
+        "Within 'Sub-issue', category 'Problem with fees' shows an odds ratio of 2038x versus reference category 'Information belongs to someone else' for outcome_1_intervention_required (95% CI: 1590-2612, n=1,656).",
+        "Within 'Sub-issue', category 'Add-on products and services' shows an odds ratio of 1476x versus reference category 'Information belongs to someone else' for outcome_1_intervention_required (95% CI: 898.5-2424, n=88).",
+        "Within 'Sub-issue', category 'Charged too much interest' shows an odds ratio of 1258x versus reference category 'Information belongs to someone else' for outcome_1_intervention_required (95% CI: 948.7-1667, n=657).",
+        "Within 'Sub-issue', category 'Didn't receive terms that were advertised' shows an odds ratio of 1235x versus reference category 'Information belongs to someone else' for outcome_1_intervention_required (95% CI: 929.8-1640, n=639).",
+        "Within 'Sub-issue', category 'Credit card company isn't resolving a dispute about a purchase on your statement' shows an odds ratio of 1167x versus reference category 'Information belongs to someone else' for outcome_1_intervention_required (95% CI: 921.3-1477, n=4,886)."
+      ],
+      "Issue": [
+        "Within 'Issue', category 'Fees or interest' shows an odds ratio of 740.6x versus reference category 'Incorrect information on your report' for outcome_1_intervention_required (95% CI: 636.5-861.7, n=2,555).",
+        "Within 'Issue', category 'Problem with a purchase shown on your statement' shows an odds ratio of 526.8x versus reference category 'Incorrect information on your report' for outcome_1_intervention_required (95% CI: 458.9-604.9, n=7,090).",
+        "Within 'Issue', category 'Problem caused by your funds being low' shows an odds ratio of 338.7x versus reference category 'Incorrect information on your report' for outcome_1_intervention_required (95% CI: 281.5-407.4, n=1,325).",
+        "Within 'Issue', category 'Problem with a purchase or transfer' shows an odds ratio of 301.5x versus reference category 'Incorrect information on your report' for outcome_1_intervention_required (95% CI: 242.4-374.9, n=810).",
+        "Within 'Issue', category 'Problem with a lender or other company charging your account' shows an odds ratio of 290x versus reference category 'Incorrect information on your report' for outcome_1_intervention_required (95% CI: 248.1-338.9, n=3,284)."
+      ],
+      "Sub-product": [
+        "Within 'Sub-product', category 'Government benefit card' shows an odds ratio of 784.3x versus reference category 'Credit reporting' for outcome_1_intervention_required (95% CI: 647.9-949.4, n=725).",
+        "Within 'Sub-product', category 'Store credit card' shows an odds ratio of 650.9x versus reference category 'Credit reporting' for outcome_1_intervention_required (95% CI: 569.7-743.7, n=2,920).",
+        "Within 'Sub-product', category 'Savings account' shows an odds ratio of 356.9x versus reference category 'Credit reporting' for outcome_1_intervention_required (95% CI: 307.2-414.7, n=2,484).",
+        "Within 'Sub-product', category 'Checking account' shows an odds ratio of 327.5x versus reference category 'Credit reporting' for outcome_1_intervention_required (95% CI: 293.2-365.9, n=21,211).",
+        "Within 'Sub-product', category 'General-purpose credit card or charge card' shows an odds ratio of 323.2x versus reference category 'Credit reporting' for outcome_1_intervention_required (95% CI: 289.6-360.7, n=25,581)."
+      ],
+      "Product": [
+        "Within 'Product', category 'Credit card' shows an odds ratio of 258.6x versus reference category 'Credit reporting, credit repair services, or other personal consumer reports' for outcome_1_intervention_required (95% CI: 227-294.5, n=5,011).",
+        "Within 'Product', category 'Credit card or prepaid card' shows an odds ratio of 256.4x versus reference category 'Credit reporting, credit repair services, or other personal consumer reports' for outcome_1_intervention_required (95% CI: 229.5-286.5, n=25,476).",
+        "Within 'Product', category 'Checking or savings account' shows an odds ratio of 230.7x versus reference category 'Credit reporting, credit repair services, or other personal consumer reports' for outcome_1_intervention_required (95% CI: 206.5-257.8, n=26,423).",
+        "Within 'Product', category 'Prepaid card' shows an odds ratio of 190.3x versus reference category 'Credit reporting, credit repair services, or other personal consumer reports' for outcome_1_intervention_required (95% CI: 135.5-267.1, n=347).",
+        "Within 'Product', category 'Money transfer, virtual currency, or money service' shows an odds ratio of 119.7x versus reference category 'Credit reporting, credit repair services, or other personal consumer reports' for outcome_1_intervention_required (95% CI: 104.7-136.9, n=7,750)."
+      ],
+      "Submitted via": [
+        "Within 'Submitted via', category 'Referral' shows an odds ratio of 12.44x versus reference category 'Web' for outcome_1_intervention_required (95% CI: 11.26-13.75, n=3,651).",
+        "Within 'Submitted via', category 'Phone' shows an odds ratio of 6.202x versus reference category 'Web' for outcome_1_intervention_required (95% CI: 5.76-6.678, n=12,201).",
+        "Within 'Submitted via', category 'Postal mail' shows an odds ratio of 3.63x versus reference category 'Web' for outcome_1_intervention_required (95% CI: 2.98-4.421, n=2,577)."
+      ]
+    },
+    "shap_level": [
+      "Feature 'Company_freq_zscored' from field 'Company' ranks #1 by mean absolute SHAP value (1.6236) in the outcome_1_intervention_required champion model.",
+      "Feature 'Issue_Incorrect information on your report' from field 'Issue' (category 'Incorrect information on your report') ranks #2 by mean absolute SHAP value (0.6490) in the outcome_1_intervention_required champion model.",
+      "Feature 'Issue_Improper use of your report' from field 'Issue' (category 'Improper use of your report') ranks #3 by mean absolute SHAP value (0.5993) in the outcome_1_intervention_required champion model.",
+      "Feature 'Product_Credit reporting, credit repair services, or other personal consumer reports' from field 'Product' (category 'Credit reporting, credit repair services, or other personal consumer reports') ranks #4 by mean absolute SHAP value (0.2842) in the outcome_1_intervention_required champion model.",
+      "Feature 'Product_Debt collection' from field 'Product' (category 'Debt collection') ranks #5 by mean absolute SHAP value (0.2534) in the outcome_1_intervention_required champion model.",
+      "Feature 'Sub-product_Credit reporting' from field 'Sub-product' (category 'Credit reporting') ranks #6 by mean absolute SHAP value (0.1917) in the outcome_1_intervention_required champion model.",
+      "Feature 'Sub-issue_Investigation took more than 30 days' from field 'Sub-issue' (category 'Investigation took more than 30 days') ranks #7 by mean absolute SHAP value (0.1534) in the outcome_1_intervention_required champion model.",
+      "Feature 'Sub-issue_Their investigation did not fix an error on your report' from field 'Sub-issue' (category 'Their investigation did not fix an error on your report') ranks #8 by mean absolute SHAP value (0.1337) in the outcome_1_intervention_required champion model.",
+      "Feature 'Sub-issue_Credit inquiries on your report that you don't recognize' from field 'Sub-issue' (category 'Credit inquiries on your report that you don't recognize') ranks #9 by mean absolute SHAP value (0.1255) in the outcome_1_intervention_required champion model.",
+      "Feature 'Sub-issue_Personal information incorrect' from field 'Sub-issue' (category 'Personal information incorrect') ranks #10 by mean absolute SHAP value (0.1029) in the outcome_1_intervention_required champion model."
+    ]
+  },
+  "min_n_per_category_threshold_used": 30,
+  "top_k_fields": 5,
+  "top_k_categories_per_field": 5,
+  "top_k_shap_features": 10
+}

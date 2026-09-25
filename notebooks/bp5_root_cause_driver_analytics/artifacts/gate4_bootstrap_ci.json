@@ -1,0 +1,38 @@
+{
+  "outcome_1_intervention_required": {
+    "roc_auc": {
+      "point_estimate": 0.9705232858366627,
+      "n_bootstrap_requested": 1000,
+      "n_bootstrap_used": 1000,
+      "n_skipped_single_class_resample": 0,
+      "ci_95_low": 0.9690502151226196,
+      "ci_95_high": 0.9719741813515705
+    },
+    "pr_auc": {
+      "point_estimate": 0.2532549265056703,
+      "n_bootstrap_requested": 1000,
+      "n_bootstrap_used": 1000,
+      "n_skipped_single_class_resample": 0,
+      "ci_95_low": 0.2376201787793393,
+      "ci_95_high": 0.2701852141894841
+    }
+  },
+  "outcome_2_timely_response_failure": {
+    "roc_auc": {
+      "point_estimate": 0.9525777650228792,
+      "n_bootstrap_requested": 1000,
+      "n_bootstrap_used": 1000,
+      "n_skipped_single_class_resample": 0,
+      "ci_95_low": 0.9473764730738571,
+      "ci_95_high": 0.9571796344226857
+    },
+    "pr_auc": {
+      "point_estimate": 0.07031748355716386,
+      "n_bootstrap_requested": 1000,
+      "n_bootstrap_used": 1000,
+      "n_skipped_single_class_resample": 0,
+      "ci_95_low": 0.057847902269922966,
+      "ci_95_high": 0.08801238503243264
+    }
+  }
+}

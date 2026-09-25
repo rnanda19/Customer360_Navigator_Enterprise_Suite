@@ -1,0 +1,129 @@
+{
+  "bp_id": "bp3",
+  "bp_name": "bp3_complaint_escalation_prediction",
+  "gate": 1,
+  "generated_at_utc": "2026-09-23T06:43:07.078848+00:00",
+  "target_definition": {
+    "primary_target": "intervention_required",
+    "primary_target_description": "Binary: 1 if the real `Company response to consumer` value is 'Closed with monetary relief' (CFPB's own explicit observed intervention outcome, the Master Plan's own named example proxy); 0 if 'Closed with explanation' or 'Closed with non-monetary relief'. 'In progress', 'Untimely response', and null-response rows are excluded from the trainable set - see exclusion_reasons below and this notebook's markdown cell for the full reasoning.",
+    "exclusion_reasons": {
+      "In progress": "Unresolved - no real observed outcome to label yet (mirrors BP2's own EXCLUDED_PENDING class).",
+      "Untimely response": "Excluded deliberately, not for lack of a defensible outcome: this CFPB label is already BP2's own primary friction-severity signal on this same field. Including it in BP3's target too would define two BPs' targets from the same rows on the same field. Open design choice, flagged for Gate 3 review, not proven necessary.",
+      "null Company response to consumer": "Unknown outcome, 2 rows in the whole real extract per DATA_PROFILE_REPORT.md (mirrors BP2's own EXCLUDED_UNKNOWN class)."
+    },
+    "disputed_flag_not_used": "The Master Plan's other named example target ('a disputed flag') is not buildable: the real 15-column CFPB schema (re-verified live in Section 4) has no `Consumer disputed?` column or equivalent - CFPB dropped that field from its public dataset in 2017 and this extract post-dates that change. Not substituted with an invented proxy.",
+    "feature_variable_candidates": "Structured CFPB fields only: Product, Sub-product, Issue, Sub-issue, State, Submitted via, Company (frequency-encoded, HYPER-reusing BP2's own pattern in src/features/bp2_friction_features.py). Final feature set is a Gate 2/3 decision. No BANKING77 field (BP3 does not integrate BANKING77 per the Master Plan's BP table).",
+    "train_test_split_source": "CFPB ships no pre-defined train/test split - BP3 will use a fresh random split of the real, trainable-only CFPB rows, stratified by intervention_required, random_state=42."
+  },
+  "leakage_rules": [
+    "'Company response to consumer' defines the target and must NEVER also be used as an input feature - it is not traditional train/test leakage, it is the label itself.",
+    "'Timely response?' is NOT used to define this target (only 'Company response to consumer' is), but is barred from the feature set anyway as a conservative default - it is conceptually close to 'escalation' and BP2 Gate 2 already found real rows where it disagrees with 'Company response to consumer' (1,963 rows), so its true leakage risk for THIS target is unverified. Deferred to Gate 3 for an explicit test before any relaxation, the same pattern BP2 Gate 3 used for 'Company public response.'",
+    "'Date received' and 'Date sent to company' are barred from the feature set - a computed response-time duration was found to leak the timeliness-derived half of BP2's own target on this identical data (BP2 Gate 3 finding); the same risk is assumed to apply here until Gate 3 tests it directly, not assumed safe by default.",
+    "'Tags' is barred from the feature set - live-re-checked in Section 5 rather than trusting BP1/BP2 Gate 1's now-superseded 'no protected-class field' claim, and found (or re-confirmed found, matching BP2 Gate 3's real finding) to contain demographic-adjacent values. BP3 is ECOA/Reg B-mapped (Master Plan Section 9); excluding 'Tags' outright avoids needing disparate-impact-style testing before Gate 6.",
+    "'Complaint ID' and 'ZIP code' are barred as a pure identifier and a fine-grained quasi-identifier respectively - never used as model features, matching BP2's own BARRED_COLUMNS precedent (HYPER-consistent).",
+    "No BANKING77 data is used for BP3 at all (Master Plan BP table: Integrates BANKING77? = NO) - not loaded in this notebook.",
+    "No CFPB row may appear in both the train and test split of BP3's fresh random split - enforced structurally at Gate 3 (single stratified split call, not a manual/ad hoc merge)."
+  ],
+  "assumptions": [
+    "No 'disputed' flag exists in this real CFPB extract (re-verified live in Section 4); BP3's target therefore uses the Master Plan's other named example, 'company response = closed with monetary relief', not a disputed-flag proxy.",
+    "'Untimely response' rows are excluded from BP3's binary target as an explicit, disclosed design choice (not a data limitation) to keep BP2's and BP3's targets separable on the same source field - open to Gate 3 review if this makes the trainable class balance unworkable.",
+    "'In progress' and null-response rows are excluded as having no observed/resolved outcome yet, mirroring BP2's own EXCLUDED_PENDING / EXCLUDED_UNKNOWN precedent on the same field.",
+    "'Timely response?' and the two Date fields are barred from BP3's feature set at Gate 1 as a conservative default, not yet proven necessary - deferred to Gate 3 for an explicit leakage/ablation test before any relaxation, the same practice BP2 Gate 3 used for 'Company public response.'",
+    "src/utils/bp1_config_sync.py is reused unmodified for BP3's own config file - already fully generic, parameterized by config_path, no BP1-specific logic (already reused unmodified by BP2 too)."
+  ],
+  "compliance_touchpoint": {
+    "requirement": "ECOA / Regulation B - Fair Lending & Adverse Action (Master Plan Section 9; BP3 is one of the four BPs this section explicitly maps to ECOA/Reg B)",
+    "statement": "The real CFPB extract's 15 named columns carry no demographic or protected-class field by name. However, 'Tags' (one of those 15 columns) was found - live, in Section 5 above, re-confirming BP2 Gate 3's own real finding on the same data - to contain demographic-adjacent values. Per Master Plan Section 9's own rule ('if any demographic-adjacent field is present, disparate-impact-style testing runs before Gate 6'), BP3 excludes 'Tags' from its feature set outright at this Gate rather than deferring that compliance burden. With 'Tags' excluded, no remaining candidate feature is demographic-adjacent, so disparate-impact-style testing is not required for the feature set BP3 actually uses - stated as a scoping decision, not a claim that no protected-class-adjacent data exists anywhere in the source file."
+  },
+  "live_checks": {
+    "cfpb_row_count": 1048575,
+    "cfpb_columns": [
+      "Date received",
+      "Product",
+      "Sub-product",
+      "Issue",
+      "Sub-issue",
+      "Company public response",
+      "Company",
+      "State",
+      "ZIP code",
+      "Tags",
+      "Submitted via",
+      "Date sent to company",
+      "Company response to consumer",
+      "Timely response?",
+      "Complaint ID"
+    ],
+    "cfpb_columns_match_manifest": true,
+    "suspected_customer_id_columns": [],
+    "company_response_to_consumer_distribution": [
+      {
+        "Company response to consumer": "Closed with explanation",
+        "n": 492340
+      },
+      {
+        "Company response to consumer": "Closed with non-monetary relief",
+        "n": 312602
+      },
+      {
+        "Company response to consumer": "In progress",
+        "n": 231856
+      },
+      {
+        "Company response to consumer": "Closed with monetary relief",
+        "n": 10511
+      },
+      {
+        "Company response to consumer": "Untimely response",
+        "n": 1264
+      },
+      {
+        "Company response to consumer": null,
+        "n": 2
+      }
+    ],
+    "timely_response_distribution": [
+      {
+        "Timely response?": "Yes",
+        "n": 1045348
+      },
+      {
+        "Timely response?": "No",
+        "n": 3227
+      }
+    ],
+    "tags_distribution": [
+      {
+        "Tags": null,
+        "n": 995094
+      },
+      {
+        "Tags": "Servicemember",
+        "n": 36094
+      },
+      {
+        "Tags": "Older American",
+        "n": 13713
+      },
+      {
+        "Tags": "Older American, Servicemember",
+        "n": 3674
+      }
+    ],
+    "demographic_adjacent_tags_found": [
+      "Servicemember",
+      "Older American",
+      "Older American, Servicemember"
+    ],
+    "target_class_balance": {
+      "n_intervention_required": 10511,
+      "n_no_intervention_required": 804942,
+      "n_trainable_total": 815453,
+      "n_excluded_in_progress": 231856,
+      "n_excluded_untimely_response": 1264,
+      "n_excluded_null_response": 2,
+      "n_excluded_total": 233122,
+      "positive_class_ratio_of_trainable": 0.0129
+    }
+  }
+}

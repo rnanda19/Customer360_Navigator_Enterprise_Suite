@@ -1,0 +1,240 @@
+{
+  "bp_id": "bp7",
+  "bp_name": "bp7_customer_navigator_decision_engine",
+  "gate": 1,
+  "generated_at_utc": "2026-09-25T06:12:08.692639+00:00",
+  "target_definition": {
+    "primary_target": "customer360_priority_decision",
+    "primary_target_description": "NOT a single trained ML target. Per Master Plan Section 5.1/7, BP7 is a transparent, auditable decision-rule layer that combines BP1-BP5's own already-computed prediction fields into three output fields per in-scope complaint: priority_score, intervention_flag, and recommended_action - every row also carrying reason_codes and the exact thresholds applied. See this notebook's markdown cell 'The transparent-scoring-vs-model tension, resolved' for the full reasoning.",
+    "output_fields": {
+      "priority_score": "Deterministic weighted combination of BP2's friction tier, BP3's intervention probability, and BP4's cluster tier (BP1 optional context, BP5 pending) - weights/thresholds are a Gate 3/4 decision, recorded in policy.json once set, never a raw upstream model score passed through unmodified.",
+      "intervention_flag": "Boolean, from a documented threshold applied to priority_score - threshold value is a Gate 3/4 decision.",
+      "recommended_action": "Deterministic, reason-code-keyed lookup text - never GenAI (GenAI-drafted customer-facing text stays scoped to BP6 per every upstream BP's own Gate 5 disclosure; UDAAP Section 9 does not map BP7).",
+      "reason_codes": "Every output row records which upstream BP fields and thresholds drove its priority_score/intervention_flag - Section 5.1/7's explicit requirement."
+    },
+    "combining_methodology": "A documented, deterministic weighted rule, never a retrained black-box classifier producing the final score directly. A Gate 3/4 scope decision MAY evaluate an interpretable model (logistic regression specifically) as one additional reason-coded input field into the rule framework - the framework, its weights, its thresholds, and the final decision stay the deterministic, auditable layer regardless.",
+    "upstream_input_contract": {
+      "bp1_customer_intent_classification": {
+        "status": "REAL_GATE6_ARTIFACTS_PRESENT",
+        "fields_used": [
+          "predicted_label",
+          "confidence_top1"
+        ],
+        "role": "OPTIONAL_CONTEXT_ONLY - real BANKING77-derived CFPB coverage is only 6.55% (BP4 Gate 1's own live-verified figure); never a required, always-populated weighted input, to avoid silently nulling 93.45% of rows on a 'required' field."
+      },
+      "bp2_customer_friction_classification": {
+        "status": "REAL_GATE6_ARTIFACTS_PRESENT",
+        "fields_used": [
+          "predicted_label",
+          "confidence_top1"
+        ],
+        "role": "CORE_INPUT - ordinal friction-severity tier (LOW_FRICTION..HIGH_FRICTION), mapped to a numeric weight at Gate 3/4. NEVER true_label (see leakage_rules)."
+      },
+      "bp3_complaint_escalation_prediction": {
+        "status": "REAL_GATE6_ARTIFACTS_PRESENT",
+        "fields_used": [
+          "predicted_probability",
+          "predicted_label"
+        ],
+        "role": "CORE_INPUT - real intervention-risk probability, the Master Plan's own named BP7 ingredient ('intervention risk'). NEVER true_label (see leakage_rules). Carries forward BP3's own real, already-flagged ECOA disparate-impact monitoring result (see compliance_touchpoint below) rather than dropping it silently."
+      },
+      "bp4_customer_journey_analytics": {
+        "status": "REAL_GATE6_ARTIFACTS_PRESENT",
+        "fields_used": [
+          "review_priority_tier",
+          "recurring_flag",
+          "high_volume_flag"
+        ],
+        "role": "CORE_INPUT, DIFFERENT GRAIN - issue-cluster level (Company, Product, Sub-product, Issue, Sub-issue), joined onto each complaint row via that real, always-present CFPB key at Gate 2. Never presented alone as BP7's decision (BP4 Gate 5's own explicit disclosure, carried forward verbatim)."
+      },
+      "bp5_root_cause_driver_analytics": {
+        "status": "PENDING_NOT_YET_DELIVERED",
+        "fields_used": null,
+        "role": "PENDING - no field name invented. Expected qualitative contribution per Master Plan Section 7 ('associations... distinguish association from causation'): driver-association context, not a numeric weight, finalized only once BP5's own real Gate 1 exists. BP7's config carries this as an explicit placeholder."
+      }
+    },
+    "grain_and_join_strategy": "BP1/BP2/BP3 outputs are per-complaint (row-level); BP4's output is per-issue-cluster. BP4's tier is joined onto each complaint via the real, always-present (Company, Product, Sub-product, Issue, Sub-issue) key - a Gate 2 join, not a Gate 1 assumption.",
+    "known_dependency_gaps": [
+      "BP1/BP2/BP3's real gate5_decision_records.csv artifacts are held-out TEST-SPLIT predictions (each BP's own independent random split), keyed only by a row_index local to that BP - live-verified below to carry no 'Complaint ID' column. Three independently-split BPs cannot be joined row-for-row from today's artifacts alone. Resolution (backward-compatible artifact addition, or a BP7-owned common re-scoring pass) is deferred to Gate 2/3, not worked around here.",
+      "BP5 has no real Gate 1 yet; its eligible field names are unknown until it does."
+    ]
+  },
+  "leakage_rules": [
+    "Raw CFPB 'Company response to consumer' is never read or used directly by BP7 - it is the exact field BP2's friction taxonomy and BP3's intervention_required target are both defined from; reading it directly here would let BP7 re-derive BP2/BP3's own targets circularly instead of combining their already-computed, already-validated outputs.",
+    "No upstream BP's 'true_label' column (in its own gate5_decision_records.csv) is ever used by BP7 - only each BP's 'predicted_*' fields. Using a true/realized label would make BP7 trivially non-predictive for exactly the open/unresolved complaints it exists to help prioritize.",
+    "'Tags' is barred from every BP7 priority-score input - live re-checked in Section 4 above (not trusted from BP1-4's own prior findings alone) and confirmed to contain demographic-adjacent values. Matches BP1-4's own precedent.",
+    "'Timely response?', 'Date received', 'Date sent to company' stay barred as direct BP7 inputs, for the same reasons BP2/BP3 barred them (they leak the fields those BPs' own targets are built from) - BP7 only touches them indirectly through BP2/BP3's already-validated predictions, never by reading the raw columns itself.",
+    "BP4's review_priority_score/tier may be combined into BP7's own score only as one input among several - never presented alone as BP7's decision (BP4 Gate 5's own explicit disclosure, carried forward verbatim, not re-litigated here).",
+    "No BP7 output row may be produced for a complaint outside the real join coverage (Section 5's live column/coverage checks) - an unjoinable row is reported as UNSCORED_MISSING_UPSTREAM_INPUT, never silently defaulted to a score.",
+    "No field name for BP5's eventual output is hardcoded anywhere in this policy or the written config - BP5 is carried as an explicit PENDING placeholder only."
+  ],
+  "assumptions": [
+    "BP2's LOW_FRICTION class and BP3's positive class (intervention_required=1) are both defined on the identical real CFPB value 'Closed with monetary relief' - not leakage between BP2/BP3 (each already disclosed this at its own Gate 1), but BP7 must not assume their predicted outputs are independent, additively-combinable signals; Gate 3/4 must empirically check this correlation before finalizing weights.",
+    "BP1's real BANKING77-derived intent coverage is only 6.55% of CFPB rows (BP4 Gate 1's own live-verified figure) - used as optional context only, never a required weighted input.",
+    "BP5 has not yet real-run its Gate 1 (live-verified config status: 'gate1_confirmed', real_artifact_status: 'PENDING_NOT_YET_DELIVERED' - both checked live in Section 5, never hardcoded); BP7's policy is written forward-compatible and will be amended via write_front_matter (non-destructive to Gates 2+ once they exist) once BP5 clears its own real Gate 1.",
+    "Final numeric weights and the intervention_flag threshold are a Gate 3/4 decision, not fixed here - Gate 1 defines which real fields are eligible inputs and the transparency constraint they must satisfy (Section 5.1/7's 'no black-box scoring'), not their coefficients.",
+    "BP4's cluster-level tier is joined onto complaint-level rows via the real (Company, Product, Sub-product, Issue, Sub-issue) key present on every real CFPB row, not just BP4's own artifact rows.",
+    "src/utils/bp1_config_sync.py is reused unmodified for BP7's own config file - already fully generic, no BP1-specific logic (its fifth reuse, after BP2/BP3/BP4).",
+    "random_state=42 reused for consistency with every other BP in this suite, though BP7's rule-based core has no stochastic fitting step of its own at Gate 1."
+  ],
+  "compliance_touchpoint": {
+    "data_minimization_purpose_limitation": "GLBA/GDPR-aligned (Master Plan Section 8's Gate 1 exit-criteria compliance touchpoint, applies to every BP). BP7 processes only already-computed BP1-BP5 output fields (already governed under each BP's own Gate 1 policy) plus the real CFPB product-taxonomy join key (Company, Product, Sub-product, Issue, Sub-issue) - no new raw customer data, and no narrative/PII-bearing field, is read by BP7 beyond what BP1-BP5 already processed under their own policies.",
+    "ecoa_reg_b": "Applicable (Master Plan Section 9 maps BP7 alongside BP1/BP2/BP3). The real CFPB extract carries no demographic field by name, but 'Tags' (re-checked live in Section 4) contains real demographic-adjacent values (Servicemember, Older American) - matching BP1-4's own finding; barred from every BP7 input, same as upstream precedent. This is NOT stated as a bare 'Not Applicable', because BP7 combines BP3's own output, and BP3's Gate 4/5 already ran a real disparate-impact check on that output and found 'adverse_impact_ratio_recomputed = 0.139, flagged: true' across the real tags_group breakdown (re-read live from BP3's own policy.json in Section 5 above). BP7 Gate 1 commits to carrying that real, already-flagged finding forward explicitly when it ingests BP3's output, and to re-running a disparate-impact-style check on BP7's own final priority_score/intervention_flag, grouped by the same tags_group dimension, at BP7's own Gate 4 - not a legal determination of ECOA/Reg B compliance, a monitoring signal for a human reviewer, exactly BP3's own stated limitation.",
+    "udaap": "Not Applicable to BP7 - Master Plan Section 9's UDAAP row maps only BP2 (friction), BP5 (root-cause), and BP6 (GenAI resolution text); BP7 is not listed. recommended_action is a deterministic, reason-code-keyed lookup, never a GenAI call.",
+    "genai_api_used": false
+  },
+  "live_checks": {
+    "cfpb_row_count": 1048575,
+    "cfpb_columns": [
+      "Date received",
+      "Product",
+      "Sub-product",
+      "Issue",
+      "Sub-issue",
+      "Company public response",
+      "Company",
+      "State",
+      "ZIP code",
+      "Tags",
+      "Submitted via",
+      "Date sent to company",
+      "Company response to consumer",
+      "Timely response?",
+      "Complaint ID"
+    ],
+    "cfpb_columns_match_manifest": true,
+    "tags_distribution": [
+      {
+        "Tags": null,
+        "n": 995094
+      },
+      {
+        "Tags": "Servicemember",
+        "n": 36094
+      },
+      {
+        "Tags": "Older American",
+        "n": 13713
+      },
+      {
+        "Tags": "Older American, Servicemember",
+        "n": 3674
+      }
+    ],
+    "demographic_adjacent_tags_found": [
+      "Servicemember",
+      "Older American",
+      "Older American, Servicemember"
+    ],
+    "upstream_bp_status": {
+      "bp1": {
+        "artifacts_dir_exists": true,
+        "policy_json_exists": true,
+        "config_yaml_status": "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+        "decision_records_exists": true,
+        "decision_records_columns": [
+          "row_index",
+          "true_label",
+          "predicted_label",
+          "correct",
+          "confidence_top1",
+          "rank2_label",
+          "rank2_confidence",
+          "rank3_label",
+          "rank3_confidence",
+          "in_shap_sample",
+          "reason_codes",
+          "text"
+        ],
+        "decision_records_has_complaint_id": false,
+        "decision_layer_summary_exists": true,
+        "real_artifact_status": "REAL_GATE6_ARTIFACTS_PRESENT"
+      },
+      "bp2": {
+        "artifacts_dir_exists": true,
+        "policy_json_exists": true,
+        "config_yaml_status": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+        "decision_records_exists": true,
+        "decision_records_columns": [
+          "row_index",
+          "true_label",
+          "predicted_label",
+          "correct",
+          "confidence_top1",
+          "rank2_label",
+          "rank2_confidence",
+          "rank3_label",
+          "rank3_confidence",
+          "in_shap_sample",
+          "reason_codes",
+          "feature_summary"
+        ],
+        "decision_records_has_complaint_id": false,
+        "decision_layer_summary_exists": true,
+        "real_artifact_status": "REAL_GATE6_ARTIFACTS_PRESENT"
+      },
+      "bp3": {
+        "artifacts_dir_exists": true,
+        "policy_json_exists": true,
+        "config_yaml_status": "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed",
+        "decision_records_exists": true,
+        "decision_records_columns": [
+          "row_index",
+          "true_label",
+          "predicted_label",
+          "predicted_probability",
+          "correct",
+          "predicted_label_at_best_f1_threshold",
+          "tags_group",
+          "in_shap_sample",
+          "reason_codes",
+          "feature_summary"
+        ],
+        "decision_records_has_complaint_id": false,
+        "decision_layer_summary_exists": true,
+        "real_artifact_status": "REAL_GATE6_ARTIFACTS_PRESENT"
+      },
+      "bp4": {
+        "artifacts_dir_exists": true,
+        "policy_json_exists": true,
+        "config_yaml_status": "gate6_complete",
+        "decision_records_exists": true,
+        "decision_records_columns": [
+          "Company",
+          "Product",
+          "Sub-product",
+          "Issue",
+          "Sub-issue",
+          "n_complaints_total",
+          "first_complaint_date",
+          "last_complaint_date",
+          "n_active_months",
+          "avg_response_lag_days",
+          "banking77_coverage_fraction",
+          "is_recurring_cluster",
+          "recurring_flag",
+          "elevated_lag_flag",
+          "high_volume_flag",
+          "review_priority_score",
+          "review_priority_tier",
+          "reason_codes",
+          "reason_evidence"
+        ],
+        "decision_records_has_complaint_id": false,
+        "decision_layer_summary_exists": true,
+        "real_artifact_status": "REAL_GATE6_ARTIFACTS_PRESENT"
+      },
+      "bp5": {
+        "artifacts_dir_exists": true,
+        "policy_json_exists": true,
+        "config_yaml_status": "gate1_confirmed",
+        "decision_records_exists": false,
+        "decision_records_columns": null,
+        "decision_records_has_complaint_id": null,
+        "decision_layer_summary_exists": false,
+        "real_artifact_status": "PENDING_NOT_YET_DELIVERED"
+      }
+    },
+    "bp3_ecoa_statement_reread_live": "The real CFPB extract's 15 named columns carry no demographic or protected-class field by name. However, 'Tags' (one of those 15 columns) was found - live, in Section 5 above, re-confirming BP2 Gate 3's own real finding on the same data - to contain demographic-adjacent values. Per Master Plan Section 9's own rule ('if any demographic-adjacent field is present, disparate-impact-style testing runs before Gate 6'), BP3 excludes 'Tags' from its feature set outright at this Gate rather than deferring that compliance burden. With 'Tags' excluded, no remaining candidate feature is demographic-adjacent, so disparate-impact-style testing is not required for the feature set BP3 actually uses - stated as a scoping decision, not a claim that no protected-class-adjacent data exists anywhere in the source file."
+  }
+}

@@ -1,0 +1,114 @@
+# Per-BP config - filled in at Gate 1 (Business Understanding & Policy)
+# Gate 1 owns bp_id through random_state below via write_front_matter() (src/utils/bp1_config_sync.py,
+# reused as-is from BP1 - fully generic, parameterized by config_path); Gates 2-5 each own exactly one
+# marker-delimited block appended after it via write_gate_block() - do not hand-edit either section,
+# re-run the owning notebook instead.
+bp_id: "bp2"
+bp_name: "bp2_customer_friction_classification"
+status: "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed"
+target_definition:
+  primary_target: "friction_severity_class"
+  primary_target_description: "Ordinal friction-severity class derived from real CFPB
+    'Company response to consumer' + 'Timely response?' fields. Bucket-to-class mapping deferred to
+    Gate 2 (taxonomy engineering) - see notebook Section 7 / policy.json for the live-enumerated
+    real values this must be built against."
+  scoped_out_signals:
+    sentiment_proxy: "NOT built as literally named - no CFPB narrative text, no BANKING77 sentiment
+      annotation. 'Company public response' is the nearest real structured substitute, deferred to
+      Gate 2 human review."
+    repeat_contact_signal: "NOT built - no persistent customer/consumer identifier in the real CFPB
+      schema (Complaint ID identifies the complaint, not the person). Same resolution as BP4's
+      'do not invent customer IDs' rule."
+  feature_variable_candidates: "Structured CFPB fields (Product, Sub-product, Issue, Sub-issue,
+    State, Submitted via) plus the Gate-2/BP1 common_taxonomy_bucket for BANKING77 integration."
+  train_test_split_source: "Fresh random split of the real CFPB extract (CFPB ships no pre-defined
+    split), stratified by the derived target, random_state=42."
+leakage_rules:
+  - "'Company response to consumer' and 'Timely response?' define the target and must never also be
+     used as input features."
+  - "'Company public response' is not pre-cleared as a safe feature (~54% null, live-checked) -
+     Gate 2/3 must test it for leakage before use."
+  - "No CFPB row may appear in both train and test splits - enforced structurally at Gate 3."
+  - "BANKING77 is never a source of friction/severity training labels (schema verified live: text,
+     category only) - contributes only the Gate-2/BP1 taxonomy-bucket feature."
+assumptions:
+  - "BP2's friction taxonomy is honestly narrowed to severity only - sentiment proxy and
+     repeat-contact signal are scoped out for documented real-data reasons, not substituted
+     silently."
+  - "Severity bucket-to-class mapping is deferred to Gate 2, built as a documented judgment mapping
+     (HIGH/MEDIUM/LOW confidence, same pattern as configs/taxonomy_mapping.yaml) against the real
+     live-enumerated values, with explicit human review before Gate 3 trains on it."
+  - "src/utils/bp1_config_sync.py is reused unmodified for this config file - already fully generic,
+     parameterized by config_path, no BP1-specific logic."
+random_state: 42
+
+# --- Gate 2 (Data Verification & Taxonomy Engineering) results (appended, idempotent overwrite) ---
+severity_taxonomy_config: "configs/bp2_friction_severity_taxonomy.yaml"
+drift_vs_gate1_live_check: none
+untimely_response_label_vs_timely_no_agreement_rows: 1264
+untimely_response_label_total_rows: 1264
+severity_class_row_counts:
+  MEDIUM_HIGH_FRICTION: 490537
+  MEDIUM_FRICTION: 312526
+  EXCLUDED_PENDING: 231856
+  LOW_FRICTION: 10427
+  HIGH_FRICTION: 3227
+  EXCLUDED_UNKNOWN: 2
+trainable_rows_4_ordinal_classes: 816717
+excluded_rows_pending_and_unknown: 231858
+banking77_taxonomy_bucket_in_scope_rows: 68710
+cfpb_severity_gold_path: "data/processed/cfpb_friction_severity_gold.parquet"
+cfpb_severity_gold_rows_written: 1048575
+
+# --- Gate 3 (Model/Classifier Benchmark) results (appended, idempotent overwrite) ---
+gate3_model_benchmark:
+  champion_model: "xgboost"
+  cv_mean_f1_macro: 0.4584
+  held_out_test_f1_macro: 0.4559
+  held_out_test_f1_weighted: 0.7355
+  held_out_test_accuracy: 0.7558
+  class_imbalance_ratio: 152.0
+  candidates_evaluated: ['logistic_regression', 'random_forest', 'hist_gradient_boosting', 'xgboost', 'lightgbm']
+  candidates_failed: []
+  demographic_adjacent_tags_found: ['servicemember', 'older american', 'older american, servicemember']
+  open_item_company_public_response_ablation_not_run: true
+  generated_at_utc: "2026-09-22T14:58:50.743122+00:00"
+
+# --- Gate 4 (Statistical Validation & Explainability) results (appended, idempotent overwrite) ---
+gate4_statistical_validation:
+  champion_model: "xgboost"
+  runner_up_model: "hist_gradient_boosting"
+  paired_ttest_pvalue: 0.2371
+  held_out_test_f1_macro_bootstrap_ci_95: [0.4452, 0.4666]
+  roc_auc_ovr_macro: 0.8857
+  generated_at_utc: "2026-09-22T15:35:22.101518+00:00"
+
+# --- Gate 5 (Decision Layer & Reporting) results (appended, idempotent overwrite) ---
+gate5_decision_layer:
+  champion_model: "xgboost"
+  n_decision_records: 163344
+  n_with_reason_codes: 150
+  overall_test_accuracy_recomputed: 0.755773
+  genai_api_used: false
+  generated_at_utc: "2026-09-22T15:38:17.757030+00:00"
+
+# --- Gate 6 (Productization, Monitoring & Governance) results (appended, idempotent overwrite) ---
+gate6_governance:
+  champion_model: "xgboost"
+  pytest_all_passed: true
+  pytest_passed: 105
+  pytest_failed: 0
+  pytest_skipped: 1
+  notebook_syntax_all_passed: true
+  n_gate3_failed_candidates: 0
+  generated_at_utc: "2026-09-22T15:38:48.420509+00:00"
+
+# --- Model Persistence (Hardening Step 2) results (appended, idempotent overwrite) ---
+model_persistence:
+  champion_model: "xgboost"
+  joblib_relative_path: "models/bp2_customer_friction_classification/bp2_champion_bundle.joblib"
+  joblib_sha256: "e067dbfa94124cf8d6145ddfd3fee0eaaa3d4572c7d83df454caa611b2c4aba1"
+  fresh_refit_test_accuracy: 0.755773
+  reload_verified_accuracy: 0.755773
+  reload_accuracy_diff: 0.0
+  generated_at_utc: "2026-09-25T16:05:36.314557+00:00"

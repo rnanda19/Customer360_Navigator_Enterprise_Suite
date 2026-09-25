@@ -1,0 +1,51 @@
+{
+  "bp_id": "bp3",
+  "gate": 4,
+  "champion_model": "xgboost",
+  "runner_up_model": "lightgbm",
+  "champion_fold_average_precision": [
+    0.3515,
+    0.3581,
+    0.3518,
+    0.3265,
+    0.3457
+  ],
+  "runner_up_fold_average_precision": [
+    0.3559,
+    0.3611,
+    0.3466,
+    0.3221,
+    0.3437
+  ],
+  "recomputed_champion_mean_cv_average_precision": 0.3467,
+  "gate3_recorded_champion_mean_cv_average_precision": 0.3467,
+  "consistency_check_diff": 3e-06,
+  "paired_ttest_statistic": 0.4148,
+  "paired_ttest_pvalue": 0.6995,
+  "wilcoxon_statistic": 6.0,
+  "wilcoxon_pvalue": 0.8125,
+  "statistical_test_limitation": "n=5 CV folds is a small sample - treat p-values as directional evidence, not a high-powered statistical claim.",
+  "held_out_test_pr_auc_point_estimate": 0.3496,
+  "held_out_test_pr_auc_bootstrap_ci_95": [
+    0.3299,
+    0.3709
+  ],
+  "held_out_test_roc_auc_point_estimate": 0.9762,
+  "held_out_test_roc_auc_bootstrap_ci_95": [
+    0.974,
+    0.978
+  ],
+  "held_out_test_recall_default_threshold": 0.9424,
+  "bootstrap_n_iterations": 1000,
+  "bootstrap_n_valid_resamples": 1000,
+  "best_f1_threshold_in_grid": 0.9,
+  "best_f1_at_that_threshold": 0.3704,
+  "brier_score": 0.0533,
+  "adverse_impact_ratio_tags": 0.139,
+  "disparate_impact_limitation": "Monitoring signal for a human reviewer, not a legal determination of ECOA/Reg B compliance.",
+  "gate3_failed_candidates_excluded": [],
+  "shap_sample_size": 150,
+  "shap_background_size": 50,
+  "shap_error": null,
+  "generated_at_utc": "2026-09-23T08:44:28.367140+00:00"
+}

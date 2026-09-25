@@ -1,0 +1,55 @@
+{
+  "bp_id": "bp1",
+  "gate": 5,
+  "champion_model": "logistic_regression",
+  "n_decision_records": 3080,
+  "n_with_reason_codes": 150,
+  "shap_sample_size_bound": 150,
+  "n_reason_codes_per_record": 5,
+  "shap_error": null,
+  "overall_test_accuracy_recomputed": 0.822403,
+  "gate3_recorded_test_accuracy": 0.8224,
+  "accuracy_consistency_diff": 3e-06,
+  "mean_confidence_correct_predictions": 0.5282,
+  "mean_confidence_incorrect_predictions": 0.2419,
+  "gate5_aggregated_top_reason_code_terms": [
+    "card",
+    "transfer",
+    "exchange",
+    "charged",
+    "currency",
+    "app",
+    "money",
+    "account",
+    "currencies",
+    "pending"
+  ],
+  "gate4_global_top10_terms": [
+    "card",
+    "transfer",
+    "account",
+    "pin",
+    "payment",
+    "transaction",
+    "cash",
+    "pending",
+    "fee",
+    "atm"
+  ],
+  "overlap_terms_with_gate4": [
+    "account",
+    "card",
+    "pending",
+    "transfer"
+  ],
+  "overlap_count_with_gate4": 4,
+  "reason_code_grounding_failures": 0,
+  "reason_code_grounding_method": "A reason code is only ever reported for a row if that term's TF-IDF weight in that row's own vectorized text is nonzero - i.e. the term is present in that specific complaint's real text by construction of the TF-IDF vectorizer, not asserted after the fact.",
+  "compliance_touchpoint": {
+    "udaap_language_review": "Not Applicable to BP1 Gate 5 - this gate generates no GenAI or customer-facing text; reason codes and confidence scores are deterministic outputs of the champion classifier and real per-instance SHAP values. Real GenAI-drafted customer-facing text (subject to UDAAP review) is scoped to BP6 (GenAI Resolution Assistant) per the Master Execution Plan's own Section 24 Sprint 5 mapping.",
+    "nist_ai_rmf_measure_manage": "Not Applicable to BP1 Gate 5 for the same reason - no GenAI output is produced here. Applies at BP6.",
+    "genai_api_used": false,
+    "scope_decision_confirmed_by_user_utc": "2026-09-22"
+  },
+  "generated_at_utc": "2026-09-22T06:07:25.491973+00:00"
+}

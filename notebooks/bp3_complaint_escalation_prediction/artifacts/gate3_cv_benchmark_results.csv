@@ -1,0 +1,6 @@
+model,status,elapsed_seconds,cv_n_jobs_used,ram_headroom_gb_before_candidate,mean_average_precision,std_average_precision,mean_roc_auc,mean_recall,mean_precision,mean_f1
+logistic_regression,OK,4.85,4,11.81,0.0425,0.0009,0.862,0.0,0.0,0.0
+random_forest,OK,325.27,2,12.95,0.271,0.0125,0.9713,0.9453,0.12,0.213
+hist_gradient_boosting,OK,91.83,1,12.9,0.3449,0.0105,0.9777,0.0734,0.5418,0.1286
+xgboost,OK,13.16,4,14.08,0.3467,0.0109,0.9774,0.9383,0.1517,0.2612
+lightgbm,OK,13.1,4,14.07,0.3459,0.0134,0.9784,0.9623,0.1407,0.2455

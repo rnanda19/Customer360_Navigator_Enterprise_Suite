@@ -1,0 +1,209 @@
+# Per-BP config - filled in at Gate 1 (Business Understanding & Policy)
+# Gate 1 owns bp_id through random_state below via write_front_matter() (src/utils/bp1_config_sync.py,
+# reused as-is from BP1/BP2 - fully generic, parameterized by config_path); Gates 2-5 each own exactly
+# one marker-delimited block appended after it via write_gate_block() - do not hand-edit either
+# section, re-run the owning notebook instead.
+bp_id: "bp3"
+bp_name: "bp3_complaint_escalation_prediction"
+status: "gate1_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed_gate6_confirmed"
+target_definition:
+  primary_target: "intervention_required"
+  primary_target_description: "Binary: 1 if real 'Company response to consumer' == 'Closed with
+    monetary relief' (CFPB's own explicit observed outcome, Master Plan's named example proxy);
+    0 if 'Closed with explanation' or 'Closed with non-monetary relief'. 'In progress', 'Untimely
+    response', and null-response rows excluded from the trainable set - see policy.json
+    exclusion_reasons for the full live-computed row accounting."
+  disputed_flag_not_used: "No 'Consumer disputed?' column exists in this real CFPB extract
+    (CFPB dropped it from the public dataset in 2017) - re-verified live, not assumed."
+  feature_variable_candidates: "Structured CFPB fields only: Product, Sub-product, Issue,
+    Sub-issue, State, Submitted via, Company (frequency-encoded). No BANKING77 field (BP3 does
+    not integrate BANKING77 per the Master Plan's BP table)."
+  train_test_split_source: "Fresh random split of the real, trainable-only CFPB rows, stratified
+    by intervention_required, random_state=42."
+leakage_rules:
+  - "'Company response to consumer' defines the target and must never also be used as an input
+     feature."
+  - "'Timely response?' barred from the feature set as a conservative default - real disagreement
+     with 'Company response to consumer' found on this data by BP2 Gate 2 (1,963 rows); deferred
+     to Gate 3 for an explicit leakage test."
+  - "'Date received' and 'Date sent to company' barred - a computed response-time duration leaked
+     BP2's own target on this identical data (BP2 Gate 3 finding); assumed to apply here until
+     Gate 3 tests it directly."
+  - "'Tags' barred - live-re-checked (not assumed from BP1/BP2 Gate 1's now-superseded claim) and
+     found to contain demographic-adjacent values, matching BP2 Gate 3's real finding. BP3 is
+     ECOA/Reg B-mapped (Master Plan Section 9)."
+  - "'Complaint ID' and 'ZIP code' barred as identifier / quasi-identifier, matching BP2's
+     BARRED_COLUMNS precedent."
+  - "No BANKING77 data used at all for BP3 (Master Plan BP table: Integrates BANKING77? = NO)."
+  - "No CFPB row may appear in both train and test splits - enforced structurally at Gate 3."
+assumptions:
+  - "No 'disputed' flag exists in this real CFPB extract (re-verified live); the Master Plan's
+     other named example target ('closed with monetary relief') is used instead."
+  - "'Untimely response' rows are excluded from BP3's binary target as an explicit, disclosed
+     design choice to keep BP2's and BP3's targets separable on the same source field - open to
+     Gate 3 review, not proven necessary."
+  - "'In progress' and null-response rows excluded as having no observed/resolved outcome yet,
+     mirroring BP2's own EXCLUDED_PENDING / EXCLUDED_UNKNOWN precedent."
+  - "'Timely response?' and the two Date fields barred from the feature set at Gate 1 as a
+     conservative default, deferred to Gate 3 for an explicit leakage/ablation test."
+  - "src/utils/bp1_config_sync.py reused unmodified for BP3's own config file - already fully
+     generic, no BP1-specific logic."
+random_state: 42
+
+# --- Gate 2 (Data Verification & Feature/Taxonomy Engineering) results (appended, idempotent overwrite) ---
+drift_vs_gate1_live_check: none
+null_count_drift_vs_data_profile_report: none
+narrative_text_column_found: False
+candidate_feature_null_counts:
+  Product: 0
+  Sub-product: 21
+  Issue: 0
+  Sub-issue: 25808
+  State: 2193
+  Submitted via: 0
+  Company: 0
+n_intervention_required: 10511
+n_no_intervention_required: 804942
+n_trainable_total: 815453
+n_excluded_in_progress: 231856
+n_excluded_untimely_response: 1264
+n_excluded_null_response: 2
+n_excluded_total: 233122
+target_balance_matches_gate1_policy_json: True
+feature_lineage_path: "notebooks/bp3_complaint_escalation_prediction/artifacts/gate2_feature_lineage.csv"
+no_barred_column_used_as_feature: True
+cfpb_escalation_gold_path: "data/processed/cfpb_intervention_escalation_gold.parquet"
+cfpb_escalation_gold_rows_written: 1048575
+
+# --- Gate 3 (Model/Classifier Benchmark) results (appended, idempotent overwrite) ---
+gate3_model_benchmark:
+  champion_model: "xgboost"
+  cv_mean_average_precision: 0.3467
+  cv_mean_roc_auc: 0.9774
+  held_out_test_pr_auc: 0.3496
+  held_out_test_roc_auc: 0.9762
+  held_out_test_recall: 0.9424
+  held_out_test_precision: 0.151
+  held_out_test_f1: 0.2603
+  positive_class_ratio_of_trainable: 0.0129
+  candidates_evaluated: ['logistic_regression', 'random_forest', 'hist_gradient_boosting', 'xgboost', 'lightgbm']
+  candidates_failed: []
+  generated_at_utc: "2026-09-23T07:43:50.261150+00:00"
+
+# --- Gate 4 (Statistical Validation & Explainability) results (appended, idempotent overwrite) ---
+gate4_statistical_validation:
+  champion_model: "xgboost"
+  runner_up_model: "lightgbm"
+  paired_ttest_pvalue: 0.6995
+  held_out_test_pr_auc_bootstrap_ci_95: [0.3299, 0.3709]
+  held_out_test_roc_auc_bootstrap_ci_95: [0.974, 0.978]
+  brier_score: 0.0533
+  best_f1_threshold_in_grid: 0.9
+  adverse_impact_ratio_tags: 0.139
+  generated_at_utc: "2026-09-23T08:44:28.387362+00:00"
+
+# --- Gate 5 (Decision Layer & Reporting) results (appended, idempotent overwrite) ---
+gate5_decision_layer:
+  champion_model: "xgboost"
+  n_decision_records: 163091
+  n_with_reason_codes: 150
+  held_out_test_pr_auc_recomputed: 0.349569
+  adverse_impact_ratio_recomputed: 0.139
+  genai_api_used: false
+  generated_at_utc: "2026-09-23T09:13:17.731365+00:00"
+
+# --- Gate 6 (Productization, Monitoring & Governance) results (appended, idempotent overwrite) ---
+gate6_governance:
+  champion_model: "xgboost"
+  pytest_all_passed: true
+  pytest_passed: 189
+  pytest_failed: 0
+  pytest_skipped: 4
+  notebook_syntax_all_passed: true
+  n_gate3_failed_candidates: 0
+  adverse_impact_ratio_tags_carried_forward: 0.139
+  generated_at_utc: "2026-09-23T10:52:03.150028+00:00"
+
+# --- Disparate-Impact Mitigation Investigation (governance addendum, appended, idempotent overwrite) ---
+disparate_impact_mitigation_investigation:
+  champion_model: "xgboost"
+  source_adverse_impact_ratio_tags: 0.139
+  recall_ratio_min_over_max: 0.95621
+  false_positive_rate_ratio_min_over_max: 0.132381
+  recall_balanced_four_fifths_style: true
+  false_positive_rate_balanced_four_fifths_style: false
+  driver_verdict_category: "MODEL-DRIVEN"
+  independent_direct_cross_check_all_within_tolerance: true
+  disparate_treatment_disclosure_included: true
+  auto_applied_to_production_model: false
+  output_artifact: "notebooks/bp3_complaint_escalation_prediction/artifacts/gate4_disparate_impact_investigation.json"
+  generated_at_utc: "2026-09-23T18:07:20.916881+00:00"
+
+# --- Disparate-Impact Proxy-Feature Audit (governance addendum, Tier C, appended, idempotent overwrite) ---
+disparate_impact_proxy_feature_audit:
+  champion_model: "xgboost"
+  row_index_alignment_mismatches: 0
+  max_categorical_feature_cramers_v: 0.187164
+  residual_model_auc_delta_from_adding_tags: -0.000121
+  residual_model_tags_adds_meaningful_information: false
+  stratified_fpr_levels_evaluated_total: 14
+  stratified_fpr_levels_balanced_total: 4
+  auto_applied_to_production_model: false
+  output_artifact: "notebooks/bp3_complaint_escalation_prediction/artifacts/gate4_disparate_impact_proxy_audit.json"
+  generated_at_utc: "2026-09-23T18:11:03.674397+00:00"
+
+# --- Fairness-Aware Retraining Candidate (Tier A, governance addendum, appended, idempotent overwrite) ---
+fairness_aware_retraining_candidate:
+  original_champion_model: "xgboost"
+  candidate_model: "xgboost_fpr_targeted_reweighted"
+  original_held_out_test_pr_auc: 0.3496
+  candidate_held_out_test_pr_auc: 0.3432
+  real_pr_auc_cost_vs_original: 0.0064
+  candidate_adverse_impact_ratio_tags: 0.1434
+  candidate_false_positive_rate_ratio_min_over_max: 0.139087
+  candidate_recall_ratio_min_over_max: 0.925479
+  adopted_as_champion: false
+  output_artifact: "notebooks/bp3_complaint_escalation_prediction/artifacts/gate3_fairness_aware_retraining_candidate.json"
+  generated_at_utc: "2026-09-23T23:09:04.271053+00:00"
+
+# --- Fairness-Aware Retraining Candidate v2, amplified (Tier A, governance addendum, appended, idempotent overwrite) ---
+fairness_aware_retraining_candidate_v2:
+  original_champion_model: "xgboost"
+  candidate_model: "xgboost_fpr_targeted_reweighted_v2_amplified"
+  amplification_exponent: 2.0
+  original_held_out_test_pr_auc: 0.3496
+  v1_held_out_test_pr_auc: 0.3432
+  candidate_held_out_test_pr_auc: 0.3046
+  real_pr_auc_cost_vs_original: 0.045
+  real_pr_auc_cost_vs_v1: 0.0386
+  candidate_adverse_impact_ratio_tags: 0.1517
+  candidate_false_positive_rate_ratio_min_over_max: 0.151622
+  candidate_recall_ratio_min_over_max: 0.861642
+  adopted_as_champion: false
+  output_artifact: "notebooks/bp3_complaint_escalation_prediction/artifacts/gate3_fairness_aware_retraining_candidate_v2.json"
+  generated_at_utc: "2026-09-24T03:11:31.884280+00:00"
+
+# --- BP3 Disparate-Impact Governance Decision (final, appended, idempotent overwrite) ---
+disparate_impact_governance_decision:
+  decision: "ACCEPT_TIER_D"
+  decision_description: "Original real xgboost champion (Gate 3) retained as BP3 production model. Tier A fairness-aware retraining (v1 linear and v2 amplified sample reweighting) both real-run confirmed and evaluated; neither adopted as champion - v1 missed the fairness bar, v2 made the real recall-ratio (equal opportunity) metric worse while barely moving the real FPR ratio. Tier B (post-processing per-group thresholds) not pursued (requires real legal/compliance sign-off, never unilaterally implemented). User decision: accept and document the real disparate-impact finding (adverse_impact_ratio_tags=0.139, driver=MODEL-DRIVEN) as-is, no model-side mitigation adopted."
+  candidates_evaluated:
+    - "fairness_aware_retraining_candidate (v1, linear FPR-ratio reweighting)"
+    - "fairness_aware_retraining_candidate_v2 (amplified, squared FPR-ratio reweighting)"
+  candidates_adopted: []
+  production_model_unchanged: "xgboost (Gate 3 champion)"
+  decided_by: user
+  decided_at_utc: "2026-09-24T00:00:00+00:00"
+
+# --- Model Persistence (Hardening Step 2) results (appended, idempotent overwrite) ---
+model_persistence:
+  champion_model: "xgboost"
+  joblib_relative_path: "models\bp3_complaint_escalation_prediction\bp3_champion_bundle.joblib"
+  joblib_sha256: "5b6ab2437a0fe0d2cf816de0fc149735eb7ee6d4f074c9bd99c6d9e368f4e6bd"
+  fresh_refit_test_pr_auc: 0.349569
+  fresh_refit_test_recall: 0.942436
+  reload_verified_pr_auc: 0.349569
+  reload_verified_recall: 0.942436
+  reload_pr_auc_diff: 0.0
+  reload_recall_diff: 0.0
+  generated_at_utc: "2026-09-24T04:36:04.840783+00:00"
