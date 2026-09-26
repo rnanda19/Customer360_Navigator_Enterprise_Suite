@@ -1,0 +1,17 @@
+# Customer360 Navigator - Activation Layer Dockerfile.dockerignore
+# Named `Dockerfile.dockerignore` (not `.dockerignore`) so BuildKit applies it to THIS Dockerfile
+# only, matching every other service's own precedent. This image needs only two files from src/ -
+# everything else is excluded.
+
+data/
+**/*.csv
+**/*.parquet
+notebooks/
+models/
+**/*.ipynb
+**/*.ipynb_checkpoints/
+reports/
+docs/
+powerbi/
+tests/
+.git/

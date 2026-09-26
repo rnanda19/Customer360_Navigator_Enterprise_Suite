@@ -739,12 +739,14 @@ def load_bp8_summary(project_root: Path) -> dict:
         # dashboard even though the real data one field over was fully populated. Compute these
         # three counts directly from that real data instead of trusting a field that was never
         # written. (Falls back to an explicit field if a future gate2 run starts writing one.)
-        "n_kpi_categories_ready": gate2.get("n_kpi_categories_ready", sum(
-            1 for v in gate2.get("kpi_category_scope", {}).values() if v.get("ready")
-        )),
-        "n_kpi_categories_deferred": gate2.get("n_kpi_categories_deferred", sum(
-            1 for v in gate2.get("kpi_category_scope", {}).values() if not v.get("ready")
-        )),
+        "n_kpi_categories_ready": gate2.get(
+            "n_kpi_categories_ready",
+            sum(1 for v in gate2.get("kpi_category_scope", {}).values() if v.get("ready")),
+        ),
+        "n_kpi_categories_deferred": gate2.get(
+            "n_kpi_categories_deferred",
+            sum(1 for v in gate2.get("kpi_category_scope", {}).values() if not v.get("ready")),
+        ),
         "gold_tables_written_count": gate2.get(
             "gold_tables_written_count", len(gate2.get("gold_tables_written", gate2.get("gold_tables", [])))
         ),

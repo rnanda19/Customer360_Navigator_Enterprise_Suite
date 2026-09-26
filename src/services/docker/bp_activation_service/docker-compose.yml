@@ -1,0 +1,27 @@
+# Customer360 Navigator - Activation Layer (SIMULATED) service
+# Run from the project ROOT:
+#   docker compose -f src/services/docker/bp_activation_service/docker-compose.yml up --build
+# Then: curl http://localhost:8010/health
+#
+# C360_API_KEY is REQUIRED at run time (same shared key as every other service - see
+# SECURITY.md). / and /health stay open with no key; every other endpoint needs it,
+# e.g.: curl -H "X-API-Key: $C360_API_KEY" http://localhost:8010/activation/log
+
+services:
+  bp-activation-service:
+    build:
+      context: ../../../..
+      dockerfile: src/services/docker/bp_activation_service/Dockerfile
+    image: c360-activation-service:latest
+    container_name: c360-activation-service
+    ports:
+      - "8010:8010"
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8010/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
