@@ -23,7 +23,7 @@ jobs:
       run:
         working-directory: docs/secrets_management_demo
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Start Vault (dev mode) via docker compose
         run: docker compose -f docker-compose.vault.yml up -d

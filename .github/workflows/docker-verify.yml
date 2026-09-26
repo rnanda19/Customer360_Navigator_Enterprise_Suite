@@ -19,7 +19,7 @@ jobs:
   docker-validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Validate docker-compose configs (BP1 + BP2 + BP3 inference services + BP4 decision service + BP5 driver-reporting service + BP6 resolution-assistant service + BP7 decision-engine service)
         run: |
           # C360_API_KEY is a required-at-config-time var in every one of these 7 compose files
