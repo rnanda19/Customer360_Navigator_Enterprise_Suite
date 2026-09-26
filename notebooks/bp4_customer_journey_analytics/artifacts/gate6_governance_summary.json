@@ -26,7 +26,7 @@
   ],
   "slow_candidate_multiplier": 2.0,
   "model_inventory_applicability": "NOT_APPLICABLE - BP4 registers no trained model",
-  "model_card_path": "reports\\bp4_customer_journey_analytics\\MODEL_CARD.md",
-  "changelog_path": "reports\\bp4_customer_journey_analytics\\CHANGELOG.md",
+  "model_card_path": "reports/bp4_customer_journey_analytics/MODEL_CARD.md",
+  "changelog_path": "reports/bp4_customer_journey_analytics/CHANGELOG.md",
   "generated_at_utc": "2026-09-23T15:18:29.558475+00:00"
 }

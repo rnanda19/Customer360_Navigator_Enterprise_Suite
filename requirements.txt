@@ -56,6 +56,7 @@ google-genai>=1.0
 pytest>=8.3
 black>=24.8
 flake8>=7.1
+ruff>=0.16
 # httpx: required by fastapi.testclient.TestClient (Starlette's TestClient wraps httpx) - needed
 # to run tests/services/test_bp1_inference_service.py and test_bp2_inference_service.py
 # (Hardening Step 3, 2026-09-22). Not a runtime dependency of src/ itself - testing-only, so it
@@ -71,6 +72,9 @@ httpx>=0.27
 black==24.10.0
 flake8==7.4.1
 isort==9.0.1
+# ruff: added 2026-09-26 as a second, independent lint gate (see pyproject.toml's [tool.ruff]
+# for exact scope/rationale) - pinned exactly, same reasoning as the other tools above.
+ruff==0.16.9
 # mypy pinned below 2.x deliberately: mypy 2.3.1 (the version an unpinned install would currently
 # resolve to) crashes with an INTERNAL ERROR against this codebase (verified directly, 2026-09-26)
 # - not a real type-checking finding, a genuine mypy regression on this combination of files.

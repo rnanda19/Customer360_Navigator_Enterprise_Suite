@@ -27,7 +27,7 @@
     "outcome_2_timely_response_failure"
   ],
   "barred_fields_bar_relaxed": false,
-  "model_card_path": "reports\\bp5_root_cause_driver_analytics\\MODEL_CARD.md",
-  "changelog_path": "reports\\bp5_root_cause_driver_analytics\\CHANGELOG.md",
+  "model_card_path": "reports/bp5_root_cause_driver_analytics/MODEL_CARD.md",
+  "changelog_path": "reports/bp5_root_cause_driver_analytics/CHANGELOG.md",
   "generated_at_utc": "2026-09-24T11:15:03.634508+00:00"
 }

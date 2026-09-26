@@ -17,7 +17,7 @@
     "bp3_agreement_rate": 0.285865,
     "bp1_optional_context_coverage_pct": 6.5527
   },
-  "model_card_path": "reports\\bp7_customer_navigator_decision_engine\\MODEL_CARD.md",
-  "changelog_path": "reports\\bp7_customer_navigator_decision_engine\\CHANGELOG.md",
+  "model_card_path": "reports/bp7_customer_navigator_decision_engine/MODEL_CARD.md",
+  "changelog_path": "reports/bp7_customer_navigator_decision_engine/CHANGELOG.md",
   "generated_at_utc": "2026-09-25T06:49:02.757522+00:00"
 }

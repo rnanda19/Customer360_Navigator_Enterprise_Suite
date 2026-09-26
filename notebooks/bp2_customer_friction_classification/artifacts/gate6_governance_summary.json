@@ -21,7 +21,7 @@
   "n_gate3_high_variance_anomalies_detected": 0,
   "n_gate3_failed_candidates_detected": 0,
   "gate3_failed_candidates": [],
-  "model_card_path": "reports\\bp2_customer_friction_classification\\MODEL_CARD.md",
-  "changelog_path": "reports\\bp2_customer_friction_classification\\CHANGELOG.md",
+  "model_card_path": "reports/bp2_customer_friction_classification/MODEL_CARD.md",
+  "changelog_path": "reports/bp2_customer_friction_classification/CHANGELOG.md",
   "generated_at_utc": "2026-09-22T15:38:48.420509+00:00"
 }

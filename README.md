@@ -183,9 +183,15 @@ auto-apply code path exists. Details: [`notebooks/bp6_genai_resolution_assistant
 <details>
 <summary><b>BP7 — Customer Navigator Decision Engine</b> (click to expand)</summary>
 
-Deterministic, transparent weighted-rule triage layer over BP2/BP3/BP4 — no trained classifier, no GenAI
-call. Full-population real scoring (1,048,575 rows). Adverse impact ratio **0.908127** — passes the
-four-fifths floor. Details: [`notebooks/bp7_customer_navigator_decision_engine/README.md`](notebooks/bp7_customer_navigator_decision_engine/README.md).
+This suite's Next-Best-Action layer: a deterministic, transparent weighted-rule policy
+(`src/features/bp7_decision_engine_features.py::score_priority_rule`/`_recommended_action_expr`)
+converting BP2/BP3/BP4's real predictions into one of four fixed business actions per complaint —
+`ESCALATE_ROOT_CAUSE_REVIEW_RECURRING_CLUSTER`, `ESCALATE_SENIOR_REVIEWER`, `PRIORITY_QUEUE_REVIEW`,
+`STANDARD_QUEUE` — plus a `priority_score` and reason codes, never a trained classifier and never a
+GenAI call (by design — see the module's own docstring on why UDAAP Section 9 rules that out here).
+Full-population real scoring (1,048,575 rows). Adverse impact ratio **0.908127** — passes the
+four-fifths floor. Served live at `GET /decide/{complaint_id}` (`src/services/bp7_decision_engine_service.py`).
+Details: [`notebooks/bp7_customer_navigator_decision_engine/README.md`](notebooks/bp7_customer_navigator_decision_engine/README.md).
 </details>
 
 <details>
@@ -244,18 +250,24 @@ per-BP gate-by-gate status table - see [`docs/architecture/README.md`](docs/arch
 
 `notebooks/` — one folder per BP, one notebook per gate, each with a real README. `src/{taxonomy,features,
 models,reporting,services,deployment,genai,utils}` — the shared component library, imported from BP1
-onward. `configs/` — per-BP YAML, gate results appended as marker-delimited blocks. `reports/` —
+onward: `taxonomy`/`features` are the data-preparation layer (raw CFPB/BANKING77 columns in,
+engineered features out), `models` is the modeling layer (training + persistence), `deployment` +
+`services` are the decisioning layer (readiness gates, the 7 live FastAPI services, and BP7's
+deterministic Next-Best-Action rule engine — see [BP7](#bp7--customer-navigator-decision-engine)
+below), and `reporting` is this suite's presentation layer (dashboards/reports/workbooks/decks —
+there is no separate web frontend; BP8's Power BI layer plays that role, see Business problems
+above). `configs/` — per-BP YAML, gate results appended as marker-delimited blocks. `reports/` —
 MODEL_CARD.md, CHANGELOG.md, and each BP's executive rollup (dashboard/report/workbook/deck).
 `powerbi/gold_tables/` — BP8's Python-built Gold/semantic layer (the interactive `.pbix` itself is a
 human, Power BI Desktop step — never a notebook deliverable). `tests/` — 1,000+ tests, mirroring `src/`
 1:1. `docs/` — architecture notes, BRD/FRD, data dictionary, and `evidence_ledger/EVIDENCE_LEDGER.md`,
 the append-only record of every real run. `scripts/` — the notebook-syntax and structural-check tooling
-every gate uses. `.github/workflows/ci.yml` — lint, security (bandit), pytest, notebook-syntax, and
-Docker-compose-validate, generic across all 8 BPs, plus `.github/dependabot.yml`,
-`.github/ISSUE_TEMPLATE/`, and `.github/PULL_REQUEST_TEMPLATE.md`. `docker-compose.yml` (repo root) —
-one-command aggregator of all 7 per-BP compose files under `src/services/docker/`. `.env.example` —
-every real environment variable this codebase reads (`C360_PROJECT_ROOT`, `GEMINI_API_KEY`,
-`GEMINI_MODEL`), nothing illustrative.
+every gate uses. `.github/workflows/ci.yml` — lint (black, flake8, isort, ruff), security (bandit),
+pytest, notebook-syntax, and Docker-compose-validate, generic across all 8 BPs, plus
+`.github/dependabot.yml`, `.github/ISSUE_TEMPLATE/`, and `.github/PULL_REQUEST_TEMPLATE.md`.
+`docker-compose.yml` (repo root) — one-command aggregator of all 7 per-BP compose files under
+`src/services/docker/`. `.env.example` — every real environment variable this codebase reads
+(`C360_PROJECT_ROOT`, `C360_API_KEY`, `GEMINI_API_KEY`, `GEMINI_MODEL`), nothing illustrative.
 
 <br>
 
@@ -293,22 +305,17 @@ endpoint. That's an honest, disclosed gap, not an implied claim.
 
 <br>
 
-## Methodology lineage
+## Methodology
 
-AMEX RiskIQ Enterprise Credit Risk Platform → Home Credit RiskIQ Enterprise Suite → Customer360
-Navigator (this project). Standing rules carried across all three: zero-fabrication, the execution
-boundary above, WARP (runtime performance discipline), the 6-gate governance cycle, and the Evidence
-Ledger.
-
-The 6-gate cycle ([Business problems](#business-problems), above) is this suite's concrete
-implementation of three named, external, industry-standard delivery frameworks — made explicit so
-the suite is auditable against those frameworks, not just an internal checklist. Full detail:
+This suite's 6-gate governance cycle ([Business problems](#business-problems), above) is a concrete
+implementation of three named, industry-standard delivery frameworks — made explicit here so the
+suite is auditable against those frameworks, not just an internal checklist. Full detail:
 [`docs/master_plan/Customer360_Navigator_Master_Execution_Plan_v2.docx`](docs/master_plan/Customer360_Navigator_Master_Execution_Plan_v2.docx),
 Section 10.
 
 **CRISP-DM.** Each gate is one CRISP-DM phase: Gate 1 (Business Understanding & Policy) → *Business
 Understanding*; Gate 2's first half (real column-by-column CFPB/BANKING77 verification before any
-code is written) → *Data Understanding*; Gate 2's second half (WARP-vectorized taxonomy mapping and
+code is written) → *Data Understanding*; Gate 2's second half (vectorized taxonomy mapping and
 feature engineering in the shared `src/features/` module) → *Data Preparation*; Gate 3
 (classifier/model benchmark, champion selection by mean CV metric) → *Modeling*; Gate 4 (bootstrap
 CI, calibration, confusion matrix, explainability) → *Evaluation*; Gates 5–6 (decision/GenAI layer +
@@ -324,17 +331,18 @@ executive rollup (dashboard + report + workbook + deck) includes data-grounded "
 see `src/reporting/bp1_rollup_helpers.py` through `bp7_rollup_helpers.py` and
 `suite_rollup_helpers.py` — never a templated recommendation dropped in after the fact.
 
-**WARP.** The standing runtime-performance discipline across all three projects in this lineage:
+**WARP.** The standing runtime-performance discipline applied throughout this suite's own build:
 vectorization and zero-copy I/O (Polars over Python-level row loops), `category`/`float32` dtypes,
 Parquet over CSV for any reused data, Numba `@njit(parallel=True)` for a loop that genuinely can't
-be vectorized, resource ceilings capped at 92% RAM / 95% CPU — never 100% (a real incident on a
-prior project in this lineage hung the machine at full utilization, see `BENCHMARKS.md`) — and
-reused thread/process pools with `psutil` core-affinity pinning. Extended here with NLP-specific
-levers (batched inference through every classifier and the GenAI assistant, `nlp.pipe` for spaCy,
-fast Rust-backed tokenizers, embedding caching keyed by complaint ID + model-version hash) not
-needed on the tabular-only prior platforms. Real numbers and the actual ceilings: `BENCHMARKS.md`,
+be vectorized, resource ceilings capped at 92% RAM / 95% CPU — never 100% (a hard safety ceiling: a
+full-utilization run has hung a machine before, so this is enforced as a cap, never an aspirational
+target) — and reused thread/process pools with `psutil` core-affinity pinning. Extended with
+NLP-specific levers this suite needed for the first time: batched inference through every classifier
+and the GenAI assistant, `nlp.pipe` for spaCy, fast Rust-backed tokenizers, and embedding caching
+keyed by complaint ID + model-version hash. Real numbers and the actual ceilings: `BENCHMARKS.md`,
 `configs/resource_limits.yaml`, `src/utils/performance_setup.py`.
 
-Also carried forward: the execution boundary above and the Evidence Ledger. See `ROADMAP.md` for
-the build history and `BENCHMARKS.md` for real hardware/runtime numbers.
+Also standing throughout this build: zero-fabrication and the execution boundary above, plus the
+Evidence Ledger tracking every real, verified run. See `ROADMAP.md` for the build history and
+`BENCHMARKS.md` for real hardware/runtime numbers.
 </content>

@@ -11,10 +11,13 @@ jobs:
       # see that file's comment) - an unversioned install here silently drifted to
       # whatever each tool's newest PyPI release was at run time and broke this job with
       # no code change on this project's side at all.
-      - run: pip install black==24.10.0 flake8==7.4.1 isort==9.0.1 mypy==1.11.2
+      - run: pip install black==24.10.0 flake8==7.4.1 isort==9.0.1 mypy==1.11.2 ruff==0.16.9
       - run: black --check src/ tests/
       - run: flake8 src/ tests/
       - run: isort --check-only src/ tests/
+      # Added 2026-09-26: a second, independent lint gate alongside flake8 (see pyproject.toml's
+      # [tool.ruff] for exact scope/rationale - E/F/W only, mirroring flake8's own rule families).
+      - run: ruff check src/ tests/
       # Hygiene pass (2026-09-26): mypy was pip-installed above but never actually invoked - wired
       # in now as a real, non-blocking check (`|| true`, matching notebook-syntax-check's own
       # precedent below) so CI reports the REAL error count from every real run rather than

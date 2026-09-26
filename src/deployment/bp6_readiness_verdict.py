@@ -141,6 +141,7 @@ Usage (from the project root, after `pip install -e .`):
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
 import importlib
 import json
@@ -725,24 +726,49 @@ def _check_gate7_rollup_manifest(project_root: Path) -> tuple:
     return checks, all_ready
 
 
+@contextlib.contextmanager
+def _isolated_service_import(project_root: Path, module_name: str):
+    """Temporarily import `module_name` from `project_root/src`, then restore sys.path AND
+    sys.modules to their prior state on exit - success or failure alike. Forces a fresh import
+    (popping the module and its parent package from sys.modules first) so a different
+    project_root's service module is never served from a stale cache, but - unlike the version of
+    this block that shipped before - never leaves that fresh state behind afterward: a cached
+    parent "services" package left pointing at a synthetic project_root's (often since-deleted)
+    tmp directory broke every later, unrelated `services.*` import in the same process - a real
+    bug this module's own test suite caught when several different project_roots were checked
+    back to back against the same long-lived pytest process (and, transitively, that a full
+    `pytest tests/` run hit whenever tests/deployment/ ran before tests/services/).
+    """
+    src_dir = str(project_root / "src")
+    path_was_absent = src_dir not in sys.path
+    if path_was_absent:
+        sys.path.insert(0, src_dir)
+    parent_name = module_name.split(".")[0]
+    saved_modules = {name: sys.modules.get(name) for name in (module_name, parent_name)}
+    for name in (module_name, parent_name):
+        sys.modules.pop(name, None)
+    importlib.invalidate_caches()
+    try:
+        yield importlib.import_module(module_name)
+    finally:
+        for name, mod in saved_modules.items():
+            if mod is not None:
+                sys.modules[name] = mod
+            else:
+                sys.modules.pop(name, None)
+        if path_was_absent:
+            try:
+                sys.path.remove(src_dir)
+            except ValueError:
+                pass
+        importlib.invalidate_caches()
+
+
 def _check_service_importable(project_root: Path) -> list:
     checks = []
-    src_dir = str(project_root / "src")
-    if src_dir not in sys.path:
-        sys.path.insert(0, src_dir)
     try:
-        # Drop BOTH the submodule AND its parent "services" package from sys.modules before
-        # re-importing, then invalidate import caches. A stale cached parent package would keep
-        # resolving "services.bp6_resolution_service" against whichever src/ directory "services"
-        # was FIRST imported from in this process, silently ignoring a freshly-inserted sys.path
-        # entry for a different project_root - a real cross-call caching gap found and fixed in
-        # bp5_readiness_verdict.py's own equivalent function (via that module's own test suite
-        # exercising several different project roots against the same long-lived pytest process),
-        # copied here verbatim rather than re-discovered the hard way a second time.
-        for mod_name in (BP6_SERVICE_MODULE, BP6_SERVICE_MODULE.split(".")[0]):
-            sys.modules.pop(mod_name, None)
-        importlib.invalidate_caches()
-        module = importlib.import_module(BP6_SERVICE_MODULE)
+        with _isolated_service_import(project_root, BP6_SERVICE_MODULE) as module:
+            pass
     except Exception as exc:  # a broken service import is a real, concrete FAIL - never swallowed
         checks.append(
             CheckResult(

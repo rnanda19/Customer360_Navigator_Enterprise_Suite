@@ -23,7 +23,7 @@
   "gate3_failed_candidates": [],
   "adverse_impact_ratio_tags_carried_forward": 0.139,
   "adverse_impact_flagged": true,
-  "model_card_path": "reports\\bp3_complaint_escalation_prediction\\MODEL_CARD.md",
-  "changelog_path": "reports\\bp3_complaint_escalation_prediction\\CHANGELOG.md",
+  "model_card_path": "reports/bp3_complaint_escalation_prediction/MODEL_CARD.md",
+  "changelog_path": "reports/bp3_complaint_escalation_prediction/CHANGELOG.md",
   "generated_at_utc": "2026-09-23T10:52:03.150028+00:00"
 }

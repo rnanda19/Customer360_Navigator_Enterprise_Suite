@@ -17,7 +17,7 @@
     "gemini_model_env_override_at_gate6_runtime": "gemini-3.6-flash",
     "model_drift_vs_gate5_saved_artifact": true
   },
-  "model_card_path": "reports\\bp6_genai_resolution_assistant\\MODEL_CARD.md",
-  "changelog_path": "reports\\bp6_genai_resolution_assistant\\CHANGELOG.md",
+  "model_card_path": "reports/bp6_genai_resolution_assistant/MODEL_CARD.md",
+  "changelog_path": "reports/bp6_genai_resolution_assistant/CHANGELOG.md",
   "generated_at_utc": "2026-09-24T16:45:52.155603+00:00"
 }

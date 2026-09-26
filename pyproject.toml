@@ -100,3 +100,20 @@ skips = ["B101", "B404"]
 python_version = "3.10"
 ignore_missing_imports = true
 exclude = ["^tests/"]
+
+# Added 2026-09-26 as a second, independent lint gate alongside flake8==7.4.1 (ci.yml's lint job
+# runs both - see that job for why: real gap-analysis feedback specifically asked for ruff).
+# Scoped to E/F/W (pycodestyle errors/warnings + pyflakes) - the exact same rule families
+# flake8==7.4.1 already enforces here (see .flake8's own comment on line-length/E203/W503).
+# Ruff's much larger default rule set (bugbear, pyupgrade, flake8-executable, and more) reports
+# 385 findings against this codebase as of this pass (`ruff check` with no --select) - a real,
+# disclosed number, not silently hidden by narrowing scope with no explanation. Widening this
+# selection is a real, separate future pass, not something to do inside an "add ruff to CI"
+# change - each new rule family needs its own review of whether a flagged pattern is a genuine
+# issue or this project's own deliberate convention (the way E203/W503 already were for flake8).
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]

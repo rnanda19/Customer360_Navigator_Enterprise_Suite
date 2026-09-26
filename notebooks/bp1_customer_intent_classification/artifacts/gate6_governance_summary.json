@@ -19,7 +19,7 @@
   "notebook_syntax_all_passed": true,
   "n_gate3_near_random_anomalies_detected": 1,
   "n_gate3_high_variance_anomalies_detected": 2,
-  "model_card_path": "reports\\bp1_customer_intent_classification\\MODEL_CARD.md",
-  "changelog_path": "reports\\bp1_customer_intent_classification\\CHANGELOG.md",
+  "model_card_path": "reports/bp1_customer_intent_classification/MODEL_CARD.md",
+  "changelog_path": "reports/bp1_customer_intent_classification/CHANGELOG.md",
   "generated_at_utc": "2026-09-22T06:25:18.547134+00:00"
 }
