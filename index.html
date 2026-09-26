@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer360 Navigator Enterprise Suite — Executive Landing Page</title>
+<meta name="description" content="Executive landing page for the Customer360 Navigator Enterprise Suite: 8 real CFPB/BANKING77 business problems, real Gate 7 executive rollups, live dashboards, zero fabricated numbers.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%231E2761'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%A7%AD%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --navy: #1E2761;
+    --blue: #4C6EF5;
+    --ice: #CADCFC;
+    --green: #1B998B;
+    --amber: #E8A33D;
+    --red: #C1292E;
+    --gray: #6B7280;
+    --surface: #F7F8FC;
+    --ink: #101828;
+    --ink-muted: #4B5468;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  a { color: var(--blue); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+  .hero {
+    background: linear-gradient(120deg, var(--navy) 0%, #2A3A8C 55%, var(--blue) 100%);
+    color: #fff;
+    padding: 56px 0 44px;
+  }
+  .hero h1 { font-size: clamp(28px, 4vw, 42px); margin: 0 0 8px; }
+  .hero .tagline { font-size: 18px; color: var(--ice); max-width: 760px; margin: 0 0 22px; }
+  .hero .meta-line { font-size: 13px; color: var(--ice); opacity: .85; margin-bottom: 26px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+  .btn {
+    display: inline-block; padding: 12px 22px; border-radius: 8px; font-weight: 600;
+    text-decoration: none; font-size: 15px; transition: transform .15s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: #fff; color: var(--navy); }
+  .btn-secondary { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+  .badges img { height: 20px; display: block; }
+
+  section { padding: 44px 0; }
+  h2 { font-size: 24px; margin: 0 0 6px; }
+  .section-sub { color: var(--ink-muted); font-size: 14.5px; margin: 0 0 26px; max-width: 860px; }
+
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px;
+  }
+  .kpi-card {
+    background: #fff; border-radius: 12px; padding: 20px 18px; text-align: center;
+    box-shadow: 0 1px 3px rgba(16,24,40,.08); border-top: 4px solid var(--navy);
+    opacity: 0; animation: fadeUp .5s ease forwards;
+  }
+  .kpi-card:nth-child(1){animation-delay:.02s}.kpi-card:nth-child(2){animation-delay:.08s}
+  .kpi-card:nth-child(3){animation-delay:.14s}.kpi-card:nth-child(4){animation-delay:.2s}
+  .kpi-card:nth-child(5){animation-delay:.26s}.kpi-card:nth-child(6){animation-delay:.32s}
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+  .kpi-card .value { font-size: 30px; font-weight: 800; color: var(--navy); }
+  .kpi-card.good { border-top-color: var(--green); }
+  .kpi-card.warn { border-top-color: var(--amber); }
+  .kpi-card .label { font-size: 12.5px; color: var(--ink-muted); margin-top: 4px; }
+
+  .provenance {
+    background: #fff; border-radius: 14px; padding: 26px 28px; box-shadow: 0 1px 3px rgba(16,24,40,.08);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+  .provenance h3 { margin: 0 0 8px; font-size: 15px; color: var(--navy); }
+  .provenance p { margin: 3px 0; font-size: 14px; color: var(--ink-muted); }
+  .provenance code { background: var(--surface); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  .provenance .note { margin-top: 10px; font-size: 12.5px; font-style: italic; }
+  @media (max-width: 720px) { .provenance { grid-template-columns: 1fr; } }
+
+  .bp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .bp-card {
+    background: #fff; border-radius: 12px; padding: 20px 22px; box-shadow: 0 1px 3px rgba(16,24,40,.08);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .bp-card .bp-key { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--blue); }
+  .bp-card h3 { margin: 0; font-size: 17px; }
+  .bp-card .champion { font-size: 13px; color: var(--ink-muted); }
+  .tier-badge {
+    display: inline-block; font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+    color: #fff; width: fit-content; margin: 4px 0;
+  }
+  .tier-good { background: var(--green); }
+  .tier-warn { background: var(--amber); }
+  .tier-info { background: var(--blue); }
+  .tier-neutral { background: var(--gray); }
+  .bp-card .extra { font-size: 12.5px; color: var(--ink-muted); }
+  .bp-card .ts { font-size: 11.5px; color: var(--gray); margin-top: 2px; }
+  .bp-card .cta { margin-top: 10px; font-size: 13.5px; font-weight: 600; text-decoration: none; }
+
+  footer {
+    background: var(--navy); color: var(--ice); padding: 30px 0 40px; font-size: 13px;
+  }
+  footer a { color: #fff; }
+  footer .foot-links { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; }
+  footer .disclosure { opacity: .8; font-size: 12px; max-width: 900px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <h1>🧭 Customer360 Navigator Enterprise Suite</h1>
+    <p class="tagline">Eight real business problems, one shared CFPB + BANKING77 dataset, zero fabricated numbers — including the one time the fairness audit didn't come back clean.</p>
+    <p class="meta-line">Suite rollup last generated: 2026-09-25T17:56:56 UTC &nbsp;·&nbsp; Hosted live on GitHub Pages from the <code style="background:rgba(255,255,255,.15);padding:1px 5px;border-radius:4px;">main</code> branch</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="reports/00_suite_executive_rollup/00_suite_executive_rollup_dashboard.html">🗺️ Open the Live Suite Dashboard</a>
+      <a class="btn btn-secondary" href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite#readme">📖 Read the Full Technical README</a>
+      <a class="btn btn-secondary" href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite">💻 View Source on GitHub</a>
+    </div>
+    <div class="badges">
+      <a href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/ci.yml?branch=main&label=CI&labelColor=2563EB" alt="CI"></a>
+      <a href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/code-quality.yml"><img src="https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/code-quality.yml?branch=main&label=Lint%20%26%20Format&labelColor=0D9488" alt="Lint & Format"></a>
+      <a href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/codeql.yml"><img src="https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/codeql.yml?branch=main&label=CodeQL%20Security%20Scan&labelColor=7C3AED" alt="CodeQL"></a>
+      <a href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/docker-verify.yml"><img src="https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/docker-verify.yml?branch=main&label=Docker%20Build%20%26%20Run%20Verification&labelColor=B45309" alt="Docker Build & Run Verification"></a>
+      <a href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/vault-verify.yml"><img src="https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/vault-verify.yml?branch=main&label=Secrets%20Management%20Verification&labelColor=4F46E5" alt="Secrets Management Verification"></a>
+      <img src="https://img.shields.io/badge/python-3.11-blue.svg?labelColor=0891B2" alt="Python 3.11">
+      <img src="https://img.shields.io/badge/license-MIT-lightgrey.svg?labelColor=475569" alt="License: MIT">
+      <img src="https://img.shields.io/badge/policy-zero--fabrication-blueviolet" alt="Zero Fabrication">
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <h2>Suite at a Glance</h2>
+    <p class="section-sub">Real, disclosed figures pulled directly from the suite's own Gate 7 rollup manifest — nothing here is estimated or illustrative.</p>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="value">8</div><div class="label">Business problems in the suite</div></div>
+      <div class="kpi-card good"><div class="value">7 / 8</div><div class="label">With a completed Gate 7 executive rollup</div></div>
+      <div class="kpi-card good"><div class="value">5</div><div class="label">Recommended for production</div></div>
+      <div class="kpi-card warn"><div class="value">1</div><div class="label">Flagged for disparate impact (BP3)</div></div>
+      <div class="kpi-card"><div class="value">157</div><div class="label">pytest passed (BP1 + BP2 disclosed scope)</div></div>
+      <div class="kpi-card"><div class="value">1,048,575</div><div class="label">Decision records scored (BP7, 100% Gate 5 coverage)</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dataset &amp; Model Provenance</h2>
+    <p class="section-sub">This project doesn't publish semantic version tags for the dataset or the models — what it publishes instead is the real snapshot stats and the exact UTC generation timestamp of every artifact, which together are the real, reproducible version record.</p>
+    <div class="provenance">
+      <div>
+        <h3>Dataset snapshot</h3>
+        <p><strong>CFPB Consumer Complaint Database</strong> — <code>1,048,575</code> rows × <code>15</code> columns</p>
+        <p>Date range: <code>1/10/2026</code> – <code>9/9/2026</code> &nbsp;·&nbsp; 0 duplicate Complaint IDs</p>
+        <p><strong>BANKING77</strong> — <code>13,083</code> rows (10,003 train / 3,080 test), 77 / 77 categories present, 0 duplicate text rows</p>
+        <p class="note">Profiled 2026-09-22T04:53:04 UTC — see <code>notebooks/01_data_acquisition_profiling</code>.</p>
+      </div>
+      <div>
+        <h3>Model / decision-artifact identity</h3>
+        <p>Each business problem discloses its own real champion (or, where there is no trained model, the deterministic scheme it uses instead) and the exact UTC timestamp its Gate 7 rollup was generated — shown on every card below.</p>
+        <p class="note">Suite-wide rollup last regenerated 2026-09-25T17:56:56 UTC from all 8 BPs' own already-produced artifacts.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The 8 Business Problems</h2>
+    <p class="section-sub">Each card links straight to that BP's own live, real-run-confirmed executive dashboard.</p>
+    <div class="bp-grid">
+
+      <div class="bp-card">
+        <div class="bp-key">BP1</div>
+        <h3>Customer Intent Classification</h3>
+        <div class="champion">Champion: <strong>logistic_regression</strong> (77-class BANKING77)</div>
+        <span class="tier-badge tier-good">RECOMMENDED FOR PRODUCTION</span>
+        <div class="ts">Gate 7 generated 2026-09-24T04:02:03 UTC</div>
+        <a class="cta" href="reports/bp1_customer_intent_classification/executive_rollup/bp1_executive_rollup_dashboard.html">View live dashboard →</a>
+      </div>
+
+      <div class="bp-card">
+        <div class="bp-key">BP2</div>
+        <h3>Customer Friction Classification</h3>
+        <div class="champion">Champion: <strong>xgboost</strong> (4-class ordinal severity)</div>
+        <span class="tier-badge tier-good">RECOMMENDED FOR PRODUCTION</span>
+        <div class="ts">Gate 7 generated 2026-09-24T04:04:26 UTC</div>
+        <a class="cta" href="reports/bp2_customer_friction_classification/executive_rollup/bp2_executive_rollup_dashboard.html">View live dashboard →</a>
+      </div>
+
+      <div class="bp-card">
+        <div class="bp-key">BP3</div>
+        <h3>Complaint Escalation Prediction</h3>
+        <div class="champion">Champion: <strong>xgboost</strong></div>
+        <span class="tier-badge tier-warn">CONDITIONAL — GOVERNANCE REVIEW REQUIRED</span>
+        <div class="extra">Disparate-impact check flagged (adverse_impact_ratio_tags = 0.139, below the four-fifths line) — disclosed, not suppressed.</div>
+        <div class="ts">Gate 7 generated 2026-09-23T11:19:24 UTC</div>
+        <a class="cta" href="reports/bp3_complaint_escalation_prediction/executive_rollup/bp3_executive_rollup_dashboard.html">View live dashboard →</a>
+      </div>
+
+      <div class="bp-card">
+        <div class="bp-key">BP4</div>
+        <h3>Customer Journey Analytics</h3>
+        <div class="champion">Champion pipeline: <strong>polars_lazy_streaming</strong> (aggregation benchmark, no classifier)</div>
+        <span class="tier-badge tier-good">RECOMMENDED FOR PRODUCTION</span>
+        <div class="ts">Gate 7 generated 2026-09-23T16:02:14 UTC</div>
+        <a class="cta" href="reports/bp4_customer_journey_analytics/executive_rollup/bp4_executive_rollup_dashboard.html">View live dashboard →</a>
+      </div>
+
+      <div class="bp-card">
+        <div class="bp-key">BP5</div>
+        <h3>Root-Cause &amp; Driver Analytics</h3>
+        <div class="champion">No trained model — SHAP / statistical association study</div>
+        <span class="tier-badge tier-info">RECOMMENDED FOR DECISION-SUPPORT USE, WITH MONITORING</span>
+        <div class="extra">Association, not causation — carried forward explicitly from this BP's own Gate 4/5 disclosure.</div>
+        <div class="ts">Gate 7 generated 2026-09-24T11:23:27 UTC</div>
+        <a class="cta" href="reports/bp5_root_cause_driver_analytics/executive_rollup/bp5_executive_rollup_dashboard.html">View live dashboard →</a>
+      </div>
+
+      <div class="bp-card">
+        <div class="bp-key">BP6</div>
+        <h3>GenAI Resolution Assistant</h3>
+        <div class="champion">Champion pipeline: <strong>taxonomy_bucket_match</strong></div>
+        <span class="tier-badge tier-good">RECOMMENDED FOR PRODUCTION</span>
+        <div class="extra">Human-in-the-loop required; recommendations are never auto-applied.</div>
+        <div class="ts">Gate 7 generated 2026-09-24T17:09:55 UTC</div>
+        <a class="cta" href="reports/bp6_genai_resolution_assistant/executive_rollup/bp6_executive_rollup_dashboard.html">View live dashboard →</a>
+      </div>
+
+      <div class="bp-card">
+        <div class="bp-key">BP7</div>
+        <h3>Customer Navigator Decision Engine</h3>
+        <div class="champion">Deterministic rule scheme: <strong>correlation_aware_plus_lr_diagnostic</strong> (no trained model)</div>
+        <span class="tier-badge tier-good">RECOMMENDED FOR PRODUCTION</span>
+        <div class="extra">Adverse impact ratio 0.908127 (passes the four-fifths rule) · 1,048,575 decision records scored · 100% Gate 5 coverage</div>
+        <div class="ts">Gate 7 generated 2026-09-25T07:45:24 UTC</div>
+        <a class="cta" href="reports/bp7_customer_navigator_decision_engine/executive_rollup/bp7_executive_rollup_dashboard.html">View live dashboard →</a>
+      </div>
+
+      <div class="bp-card">
+        <div class="bp-key">BP8</div>
+        <h3>Executive Product Analytics</h3>
+        <div class="champion">Power BI Gold-layer aggregation — no trained model, no Gate 7 by design</div>
+        <span class="tier-badge tier-neutral">GATE 1–3 REAL-RUN CONFIRMED</span>
+        <div class="extra">4 Gold tables written for downstream Power BI consumption. Gates 4–7 are out of scope for this BP (Gold-table-only design), disclosed rather than left to look unfinished.</div>
+        <div class="ts">Gate 3 generated 2026-09-25T09:38:29 UTC</div>
+        <a class="cta" href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/notebooks/bp8_executive_product_analytics/README.md">View Gate 1–3 documentation (GitHub) →</a>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite">GitHub Repository</a>
+      <a href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite#readme">Full README</a>
+      <a href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/LICENSE">License (MIT)</a>
+      <a href="docs/architecture/c360_architecture_diagram.svg">Architecture Diagram</a>
+      <a href="https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/SECURITY.md">Security</a>
+    </div>
+    <p class="disclosure">This landing page is a hand-built static portal, not a Gate deliverable — it links out to the 7 real, Gate-7-signed-off executive dashboards and BP8's real Gate 1–3 documentation rather than recomputing or restating any of their numbers. Every figure above is read directly from a real, already-produced artifact (the suite's own <code>suite_executive_rollup_manifest.json</code> and each BP's own <code>executive_rollup_manifest.json</code>).</p>
+  </div>
+</footer>
+
+</body>
+</html>

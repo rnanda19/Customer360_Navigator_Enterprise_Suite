@@ -308,25 +308,25 @@
     <h2>Suite KPI Summary</h2>
     <div class="kpi-grid">
       <div class="kpi-card" id="kpi-total">
-        <div class="value" data-count="{{N_BPS_TOTAL}}">0</div>
+        <div class="value" data-count="{{N_BPS_TOTAL}}">{{N_BPS_TOTAL}}</div>
         <div class="label">Business problems in the suite</div>
       </div>
       <div class="kpi-card" id="kpi-complete">
-        <div class="value"><span data-count="{{N_BPS_FULLY_COMPLETE_GATE7}}">0</span> / 7</div>
+        <div class="value"><span data-count="{{N_BPS_FULLY_COMPLETE_GATE7}}">{{N_BPS_FULLY_COMPLETE_GATE7}}</span> / 7</div>
         <div class="label">BP1&ndash;BP7 with a completed Gate 7 rollup</div>
       </div>
       <div class="kpi-card" id="kpi-recommended" style="border-left-color: var(--good);">
         <span class="click-hint">CLICK TO FILTER</span>
-        <div class="value" data-count="{{N_BPS_RECOMMENDED_FOR_PRODUCTION}}">0</div>
+        <div class="value" data-count="{{N_BPS_RECOMMENDED_FOR_PRODUCTION}}">{{N_BPS_RECOMMENDED_FOR_PRODUCTION}}</div>
         <div class="label">BPs recommended for production</div>
       </div>
       <div class="kpi-card" id="kpi-flagged" style="border-left-color: var(--warn);">
         <span class="click-hint">CLICK TO FILTER</span>
-        <div class="value" data-count="{{N_BPS_DISPARATE_IMPACT_FLAGGED}}">0</div>
+        <div class="value" data-count="{{N_BPS_DISPARATE_IMPACT_FLAGGED}}">{{N_BPS_DISPARATE_IMPACT_FLAGGED}}</div>
         <div class="label">BPs flagged for disparate impact</div>
       </div>
       <div class="kpi-card" id="kpi-pytest">
-        <div class="value" data-count="{{TOTAL_PYTEST_PASSED}}">0</div>
+        <div class="value" data-count="{{TOTAL_PYTEST_PASSED}}">{{TOTAL_PYTEST_PASSED}}</div>
         <div class="label">Total pytest passed across suite</div>
         <div class="footnote">summed over {{N_PYTEST_CONTRIBUTING_BPS}} BP(s) with a readable Gate 6 block</div>
       </div>
@@ -482,6 +482,15 @@
   var PALETTE_SEQ = DATA.categorical_sequence;
 
   /* ---------------- Animated KPI counters ---------------- */
+/* animateCount is a pure progressive-enhancement count-up: the template above already
+     renders each KPI's real value as its initial static textContent (data-count and the
+     element's own text are now the SAME real number substituted at generation time), so a
+     visitor sees the correct real number immediately even if this animation never runs at
+     all (JS disabled, an error elsewhere in this file, or - the real, reproduced case found
+     2026-09-26 - a browser tab that loads this page in the background/hidden and never gets
+     a requestAnimationFrame callback delivered). Previously this element's initial text was
+     a literal "0" with the real number ONLY in data-count, so any of those cases left a
+     recruiter looking at a dashboard that appeared to say every KPI was zero. */
   function animateCount(el) {
     var target = parseFloat(el.getAttribute("data-count")) || 0;
     var start = 0;
