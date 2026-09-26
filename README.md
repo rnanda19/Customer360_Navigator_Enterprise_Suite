@@ -227,25 +227,68 @@ Recommended for Decision-Support Use With Monitoring (BP5); BP8 has no productio
 
 <br>
 
-## Beyond the 8 Business Problems: Identity Resolution and Activation
+## Beyond the 8 Business Problems: Identity Resolution, Golden Profile, Activation, and Observability
 
-Two more layers exist on top of BP1-8, deliberately kept **out** of the 8-BP numbering because
-neither is a modeling problem over real CFPB data — both are disclosed, working demonstrations of
-the two pieces a full enterprise Customer 360 platform needs beyond prediction and decisioning.
+Four more layers exist on top of BP1-8, deliberately kept **out** of the 8-BP numbering because
+none is a modeling problem over real CFPB data — each is a disclosed, working demonstration of a
+piece a full enterprise Customer 360 platform needs beyond prediction and decisioning.
 
 **Identity Resolution → Golden Customer Record** (`src/identity_resolution/`,
-[full disclosure](data/synthetic_identity_demo/README.md)). The real CFPB extract this suite is
-built on has no customer identifier at all (BP4's own architecture doc states this — it's why BP4
-does event/issue-cluster journey analytics instead of inventing one). So this is a real
-deterministic-then-probabilistic entity resolver (union-find on exact email/phone, then a
-disclosed weighted `difflib` similarity blend past a calibrated threshold), run against a
-small, hand-authored, **entirely fictional** 14-row/3-source fixture that models what a
+[full disclosure](data/synthetic_identity_demo/README.md)).
+
+```
+CRM        Bank        Card        Service        Marketing
+   \          \           |            /              /
+    \----------\----------+-----------/--------------/
+                           v
+                 Identity Resolution
+          (deterministic -> probabilistic/fuzzy)
+                           v
+                   customer_360_id
+                           v
+                 Golden Customer Record
+```
+
+The real CFPB extract this suite is built on has no customer identifier at all (BP4's own
+architecture doc states this — it's why BP4 does event/issue-cluster journey analytics instead of
+inventing one). So this is a real deterministic-then-probabilistic entity resolver: exact-match
+**deterministic matching** (union-find on email/phone) followed by a disclosed weighted `difflib`
+**fuzzy matching** blend that produces a **match confidence** score per candidate pair, run
+against a small, hand-authored, **entirely fictional** 14-row/3-source fixture that models what a
 core-banking system, a CRM, and a web-signup flow would each say about the same overlapping
-customers. On a real run it resolves 14 source rows to 9 golden `customer_360_id` records —
-correctly chaining one fictional customer across all 3 sources, correctly matching two more
-probabilistically, and correctly **declining** to merge a deliberate near-miss pair (proven by its
-own test suite, 11/11 passing). Never joined to, or run against, any real CFPB row anywhere in
-this project.
+customers. Every resolved record carries **source lineage** (which source system and source id
+contributed which field) and a disclosed **survivorship rule** (most-recently-updated source wins
+per field, ties broken deterministically) for the merged golden record.
+
+**Duplicate detection** is a distinct, disclosed tier from the merge decision itself: pairs scoring above a calibrated review threshold but below the merge threshold are never silently auto-merged and never silently dropped — they're written to their own `duplicate_review_queue.csv` for a human to adjudicate. On a real run: 14 source rows resolve to 9 golden `customer_360_id` records — correctly chaining one fictional customer across all 3 sources, correctly matching two more probabilistically, correctly **declining** to merge a deliberate near-miss pair (score 0.6978), and correctly routing that exact pair to the duplicate-review queue instead of dropping it silently — all proven by the module's own test suite, 23/23 passing. Never joined to, or run against, any real CFPB row anywhere in this project.
+
+**Golden Customer 360 Profile** (`src/identity_resolution/customer_360_profile_demo.py`, [full disclosure](data/synthetic_identity_demo/customer_360_profile/README.md)).
+
+```
+                    customer_360_id
+                          |
+   +----------+-----------+-----------+----------+----------+------------------+
+   |          |           |           |          |          |                  |
+profile  interactions complaints  risk signals products  journey   recommended actions
+```
+
+Each golden `customer_360_id` from the resolver above is expanded into a full profile: real computed `risk_signals` (interaction count, active/total product count, complaint-example count, days since last interaction against a fixed, disclosed reference date) and a real merged-and-sorted `journey` timeline, over 3 new hand-authored **disclosed synthetic** CSVs — interactions, products, and illustrative complaint examples — joined only to the synthetic identity fixture above, never to real CFPB data. Every illustrative complaint example's own `summary` field carries an explicit "FICTIONAL EXAMPLE ONLY" disclosure string, checked by its own test. The `recommended_action` per profile reuses BP7's real 4-value action vocabulary (verified in sync with BP7's real feature module by a drift-guard test) but is explicitly an illustrative demo rule, not BP7's actual trained decision engine run on synthetic data. On a real run: 9 golden profiles assembled, each with its real interaction/product/complaint-example counts and an illustrative recommended action — 10/10 tests passing (counted in the identity_resolution suite's 23/23 above).
+
+**Production API** (`src/services/bp7_decision_engine_service.py`, port 8007). BP7 is the one BP deployed first.
+
+```
+Client -> HTTPS -> Authentication -> BP7 FastAPI -> Decision Engine -> Audit
+```
+
+Real, tested, Docker-packaged, API-key-authenticated (`C360_API_KEY`), and runnable locally today. **Not currently behind a public URL** — no BP in this suite is; a one-click Render deploy is prepared and ready (see the BP7 section above and [`RENDER_DEPLOYMENT.md`](RENDER_DEPLOYMENT.md)) but genuinely blocked on the repo owner's own Render account/approval action, which this project cannot and does not perform on anyone's behalf.
+
+**Observability / MLOps** (`src/monitoring/`, [full disclosure](MLOPS_OBSERVABILITY.md)).
+
+```
+API -> Metrics -> Monitoring -> Drift -> Fairness -> Alert
+```
+
+Four real, tested, on-demand modules sitting above BP7's already-real `/metrics` instrumentation: `drift_detection.py` (a real Population Stability Index implementation, demonstrated against this repo's own committed BP8 Gold parquet — a real, disclosed finding that the raw `Product` field's PSI is dominated by a CFPB label rename rather than genuine drift, while the stable `common_taxonomy_bucket` field correctly shows no significant shift); `fairness_monitor.py` (consolidates BP3's and BP7's already-real disparate-impact numbers into one four-fifths-rule view); `model_registry.py` (reads each BP's real champion model/strategy identifier live from its own config, honestly reporting `None` + a note for BP5/BP8 rather than guessing); and `alerting.py` (real threshold-evaluation logic against thresholds already used elsewhere in this suite). 23 pytest cases, all passing. Explicitly **not** built: a live-running monitoring loop, a live alert channel, or an MLflow-style tracking server / approval workflow / rollback pipeline — `MLOPS_OBSERVABILITY.md` explains why standing up hollow, unexercised versions of those would be worse than not having them.
 
 **Activation — Decision → Action** (`src/services/bp_activation_service.py`, port 8010). BP7
 already turns predictions into a decision; this layer demonstrates the next real step — routing
@@ -256,7 +299,7 @@ plainly which real systems are never contacted — this is a pattern demonstrati
 live CRM/banking-system integration. 9/9 tests passing, Docker-packaged like every other service
 in this suite.
 
-Both layers, plus every other row in this repo, are in the
+All four layers, plus every other row in this repo, are in the
 [Production Readiness Matrix](docs/PRODUCTION_READINESS_MATRIX.md) with the same real/synthetic
 disclosure repeated there.
 
