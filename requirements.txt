@@ -22,7 +22,7 @@ catboost>=1.2
 lightgbm>=4.5
 
 # Explainability / stats
-shap>=0.46
+shap>=0.49.1
 scipy>=1.13
 statsmodels>=0.14
 
