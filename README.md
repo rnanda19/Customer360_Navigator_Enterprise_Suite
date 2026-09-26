@@ -298,5 +298,43 @@ endpoint. That's an honest, disclosed gap, not an implied claim.
 AMEX RiskIQ Enterprise Credit Risk Platform → Home Credit RiskIQ Enterprise Suite → Customer360
 Navigator (this project). Standing rules carried across all three: zero-fabrication, the execution
 boundary above, WARP (runtime performance discipline), the 6-gate governance cycle, and the Evidence
-Ledger. See `ROADMAP.md` for the build history and `BENCHMARKS.md` for real hardware/runtime numbers.
+Ledger.
+
+The 6-gate cycle ([Business problems](#business-problems), above) is this suite's concrete
+implementation of three named, external, industry-standard delivery frameworks — made explicit so
+the suite is auditable against those frameworks, not just an internal checklist. Full detail:
+[`docs/master_plan/Customer360_Navigator_Master_Execution_Plan_v2.docx`](docs/master_plan/Customer360_Navigator_Master_Execution_Plan_v2.docx),
+Section 10.
+
+**CRISP-DM.** Each gate is one CRISP-DM phase: Gate 1 (Business Understanding & Policy) → *Business
+Understanding*; Gate 2's first half (real column-by-column CFPB/BANKING77 verification before any
+code is written) → *Data Understanding*; Gate 2's second half (WARP-vectorized taxonomy mapping and
+feature engineering in the shared `src/features/` module) → *Data Preparation*; Gate 3
+(classifier/model benchmark, champion selection by mean CV metric) → *Modeling*; Gate 4 (bootstrap
+CI, calibration, confusion matrix, explainability) → *Evaluation*; Gates 5–6 (decision/GenAI layer +
+Power BI packaging, then production packaging & governance) → *Deployment*.
+
+**SMART.** Every business problem's objective is Specific, Measurable, Achievable, Relevant and
+Time-bound — e.g. BP1/BP2: classify real CFPB complaints into BANKING77-mapped intents and a
+documented friction taxonomy, measured by F1/precision/recall/confusion matrix on a held-out real
+split; achievable from the confirmed CFPB + BANKING77 schemas; relevant as the foundation every
+downstream BP consumes; time-bound to its sprint (Master Plan Section 10.2 has the per-BP-cluster
+breakdown). The same discipline also drives a real, generated feature of this suite: every BP's
+executive rollup (dashboard + report + workbook + deck) includes data-grounded "SMART Suggestions" —
+see `src/reporting/bp1_rollup_helpers.py` through `bp7_rollup_helpers.py` and
+`suite_rollup_helpers.py` — never a templated recommendation dropped in after the fact.
+
+**WARP.** The standing runtime-performance discipline across all three projects in this lineage:
+vectorization and zero-copy I/O (Polars over Python-level row loops), `category`/`float32` dtypes,
+Parquet over CSV for any reused data, Numba `@njit(parallel=True)` for a loop that genuinely can't
+be vectorized, resource ceilings capped at 92% RAM / 95% CPU — never 100% (a real incident on a
+prior project in this lineage hung the machine at full utilization, see `BENCHMARKS.md`) — and
+reused thread/process pools with `psutil` core-affinity pinning. Extended here with NLP-specific
+levers (batched inference through every classifier and the GenAI assistant, `nlp.pipe` for spaCy,
+fast Rust-backed tokenizers, embedding caching keyed by complaint ID + model-version hash) not
+needed on the tabular-only prior platforms. Real numbers and the actual ceilings: `BENCHMARKS.md`,
+`configs/resource_limits.yaml`, `src/utils/performance_setup.py`.
+
+Also carried forward: the execution boundary above and the Evidence Ledger. See `ROADMAP.md` for
+the build history and `BENCHMARKS.md` for real hardware/runtime numbers.
 </content>
