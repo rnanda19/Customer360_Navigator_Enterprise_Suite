@@ -153,12 +153,10 @@ from typing import Any, Optional
 import pandas as pd
 import polars as pl
 
-from features.bp3_escalation_features import (
-    NULL_SENTINEL_MAP as BP3_NULL_SENTINEL_MAP,
-    FEATURE_COLS_CATEGORICAL as BP3_FEATURE_COLS_CATEGORICAL,
-    COMPANY_COL as BP3_COMPANY_COL,
-    fill_categorical_nulls_expr as bp3_fill_categorical_nulls_expr,
-)
+from features.bp3_escalation_features import COMPANY_COL as BP3_COMPANY_COL
+from features.bp3_escalation_features import FEATURE_COLS_CATEGORICAL as BP3_FEATURE_COLS_CATEGORICAL
+from features.bp3_escalation_features import NULL_SENTINEL_MAP as BP3_NULL_SENTINEL_MAP
+from features.bp3_escalation_features import fill_categorical_nulls_expr as bp3_fill_categorical_nulls_expr
 from features.bp4_journey_features import CLUSTER_KEY
 from models.model_persistence import predict_bp2, predict_bp3
 from services.service_common import ModelBundleHandle

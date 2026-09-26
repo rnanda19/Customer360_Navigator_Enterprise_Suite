@@ -22,11 +22,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate docker-compose configs (BP1 + BP2 + BP3 inference services + BP4 decision service + BP5 driver-reporting service + BP6 resolution-assistant service + BP7 decision-engine service)
         run: |
-          docker compose -f src/services/docker/bp1_inference_service/docker-compose.yml config
-          docker compose -f src/services/docker/bp2_inference_service/docker-compose.yml config
-          docker compose -f src/services/docker/bp3_inference_service/docker-compose.yml config
-          docker compose -f src/services/docker/bp4_decision_service/docker-compose.yml config
-          docker compose -f src/services/docker/bp5_driver_service/docker-compose.yml config
+          # C360_API_KEY is a required-at-config-time var in every one of these 7 compose files
+          # (see SECURITY.md/each Dockerfile header: `${C360_API_KEY:?C360_API_KEY must be set...}`)
+          # - `docker compose ... config` fails interpolation on ANY service missing it, not just
+          # at real `up` time. BP1-BP5 were missing this placeholder here (only BP6/BP7/root had
+          # it below), which is the real, reproduced cause of this job's first CI failure: "error
+          # while interpolating services.bp1-inference-service.environment.[]: required variable
+          # C360_API_KEY is missing a value" (run #1, https://github.com/rnanda19/
+          # Customer360_Navigator_Enterprise_Suite/actions/runs/36222877146).
+          C360_API_KEY=ci-smoke-test-key docker compose -f src/services/docker/bp1_inference_service/docker-compose.yml config
+          C360_API_KEY=ci-smoke-test-key docker compose -f src/services/docker/bp2_inference_service/docker-compose.yml config
+          C360_API_KEY=ci-smoke-test-key docker compose -f src/services/docker/bp3_inference_service/docker-compose.yml config
+          C360_API_KEY=ci-smoke-test-key docker compose -f src/services/docker/bp4_decision_service/docker-compose.yml config
+          C360_API_KEY=ci-smoke-test-key docker compose -f src/services/docker/bp5_driver_service/docker-compose.yml config
           # BP6's compose file requires GEMINI_API_KEY at run time (never at build/config time -
           # see its own Dockerfile header) - a placeholder value here only satisfies the compose
           # file's own required-var interpolation check, never a real key, and is never used to

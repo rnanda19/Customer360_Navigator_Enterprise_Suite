@@ -74,13 +74,12 @@ from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassif
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import OneHotEncoder
 
-from taxonomy.taxonomy_mapper import CFPB_DTYPES  # noqa: F401  (re-exported for callers)
-
 # BP1's already-tested nonzero-weight reason-code grounding rule, reused verbatim (HYPER) - the
 # exact rule Gate 5's own inline nonzero-value masking logic already implements (only report a
 # feature whose value in a given row is nonzero); re-exported here so Gate 6's pytest suite has a
 # single, importable, unit-tested definition to cover, matching bp2_friction_features.py's pattern.
 from models.bp1_intent_classifier import reason_codes_for_row as reason_codes_for_row_shared  # noqa
+from taxonomy.taxonomy_mapper import CFPB_DTYPES  # noqa: F401  (re-exported for callers)
 
 # Barred from the engineered feature set entirely - defines the target, or a leakage/compliance
 # risk documented in BP3 Gate 1's policy.json leakage_rules (see that artifact for the real,
