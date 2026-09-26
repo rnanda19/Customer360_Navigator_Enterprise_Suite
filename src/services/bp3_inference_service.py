@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, create_model
 
 _THIS_FILE_SRC_DIR = Path(__file__).resolve().parents[1]
@@ -47,6 +47,7 @@ from features.bp3_escalation_features import (  # noqa: E402
     FEATURE_COLS_CATEGORICAL,
 )
 from models.model_persistence import predict_bp3  # noqa: E402
+from services.service_auth import require_api_key  # noqa: E402
 from services.service_common import (  # noqa: E402
     HealthResponse,
     ModelBundleHandle,
@@ -63,12 +64,7 @@ _handle: Optional[ModelBundleHandle] = None
 
 def _default_joblib_path() -> Path:
     project_root = resolve_project_root()
-    return (
-        project_root
-        / "models"
-        / "bp3_complaint_escalation_prediction"
-        / "bp3_champion_bundle.joblib"
-    )
+    return project_root / "models" / "bp3_complaint_escalation_prediction" / "bp3_champion_bundle.joblib"
 
 
 def _default_metadata_path() -> Path:
@@ -155,7 +151,12 @@ def health():
     return build_health_response(_handle)
 
 
-@app.post("/predict", response_model=BP3PredictResponse, tags=["inference"])
+@app.post(
+    "/predict",
+    response_model=BP3PredictResponse,
+    tags=["inference"],
+    dependencies=[Depends(require_api_key)],
+)
 def predict(request: BP3PredictRequest):
     if _handle is None or not _handle.is_loaded:
         error = _handle.error if _handle is not None else "Model handle not initialized."

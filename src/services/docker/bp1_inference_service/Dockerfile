@@ -22,6 +22,10 @@
 # notebook-execution requirements.txt (no spacy/transformers/xgboost/catboost/matplotlib/etc. -
 # BP1's real champion is a plain sklearn Pipeline, so none of those are needed to serve it).
 
+# API-key auth added 2026-09-26 (src/services/service_auth.py, see SECURITY.md): this image's
+# dependency list above is UNCHANGED - the new services.service_auth import needs only fastapi
+# (already installed above), nothing new.
+
 FROM python:3.11-slim
 
 LABEL org.opencontainers.image.title="Customer360 Navigator - BP1 Inference Service"

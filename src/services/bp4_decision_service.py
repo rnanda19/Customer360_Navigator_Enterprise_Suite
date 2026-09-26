@@ -37,8 +37,10 @@ from pathlib import Path
 from typing import Any, Optional
 
 import polars as pl
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
+
+from services.service_auth import require_api_key
 
 BP_ID = "bp4"
 CLUSTER_KEY = ["Company", "Product", "Sub-product", "Issue", "Sub-issue"]
@@ -264,7 +266,12 @@ def health():
     )
 
 
-@app.get("/cluster/lookup", response_model=ClusterRecord, tags=["query"])
+@app.get(
+    "/cluster/lookup",
+    response_model=ClusterRecord,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+)
 def lookup_cluster(
     company: str = Query(..., min_length=1, description="Real 'Company' value (exact match)."),
     product: str = Query(..., min_length=1, description="Real 'Product' value (exact match)."),
@@ -290,7 +297,12 @@ def lookup_cluster(
     return _row_to_record(match.row(0, named=True))
 
 
-@app.get("/clusters", response_model=ClusterListResponse, tags=["query"])
+@app.get(
+    "/clusters",
+    response_model=ClusterListResponse,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+)
 def list_clusters(
     tier: Optional[str] = Query(None, description=f"Filter by review_priority_tier, one of {VALID_TIERS}."),
     company: Optional[str] = Query(None, description="Filter by exact real 'Company' value."),
@@ -322,7 +334,12 @@ def list_clusters(
     return ClusterListResponse(total_matching=total_matching, limit=limit, offset=offset, items=items)
 
 
-@app.get("/clusters/tiers/{tier}", response_model=ClusterListResponse, tags=["query"])
+@app.get(
+    "/clusters/tiers/{tier}",
+    response_model=ClusterListResponse,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+)
 def list_clusters_by_tier(
     tier: str,
     limit: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE),

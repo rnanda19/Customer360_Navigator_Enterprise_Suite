@@ -28,6 +28,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 MODULE_PATH = "services.bp7_decision_engine_service"
+TEST_API_KEY = "test-api-key-for-ci"
 
 FINAL_OUTPUT_COLUMNS = [
     "Complaint ID",
@@ -167,7 +168,7 @@ def service_module():
 def configured_client(tmp_path, monkeypatch, service_module):
     _build_synthetic_prerequisites(tmp_path)
     monkeypatch.setattr(service_module, "resolve_project_root", lambda: tmp_path)
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
@@ -175,7 +176,7 @@ def configured_client(tmp_path, monkeypatch, service_module):
 def unconfigured_client(tmp_path, monkeypatch, service_module):
     (tmp_path / "PROJECT_STRUCTURE_LOCKED.md").touch()
     monkeypatch.setattr(service_module, "resolve_project_root", lambda: tmp_path)
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
@@ -351,7 +352,7 @@ def test_real_bp7_health_and_decide_when_gate5_has_run(real_project_root, monkey
         pytest.skip("BP7 Gate 5 has not been run for real yet.")
 
     monkeypatch.setattr(service_module, "resolve_project_root", lambda: real_project_root)
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         health = client.get("/health")
         assert health.status_code == 200
         assert health.json()["status"] == "ok"

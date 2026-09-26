@@ -8,9 +8,10 @@
 #   docker compose up --build            # all 7 services
 #   docker compose up --build bp1-inference-service bp7-decision-engine-service   # a subset
 #
-# BP6 needs GEMINI_API_KEY set in your shell or a real .env (see .env.example) before it will
-# start; every other service needs no secret. BP8 has no service - it is a Gold-layer build only
-# (see docs/architecture/README.md), so it has no entry here.
+# Every service needs C360_API_KEY set in your shell or a real .env (see .env.example) - real
+# API-key auth added to all 7 services (see SECURITY.md): / and /health stay open with no key,
+# every other endpoint needs it. BP6 additionally needs GEMINI_API_KEY. BP8 has no service - it
+# is a Gold-layer build only (see docs/architecture/README.md), so it has no entry here.
 #
 # Every image below COPYs a real, already-persisted model/artifact from models/ or notebooks/**/
 # artifacts/ at build time - run that BP's own hardening/persistence notebook for real first if
@@ -24,6 +25,8 @@ services:
     image: c360-bp1-inference-service:latest
     container_name: c360-bp1-inference-service
     ports: ["8001:8001"]
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
     restart: unless-stopped
 
   bp2-inference-service:
@@ -33,6 +36,8 @@ services:
     image: c360-bp2-inference-service:latest
     container_name: c360-bp2-inference-service
     ports: ["8002:8002"]
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
     restart: unless-stopped
 
   bp3-inference-service:
@@ -42,6 +47,8 @@ services:
     image: c360-bp3-inference-service:latest
     container_name: c360-bp3-inference-service
     ports: ["8003:8003"]
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
     restart: unless-stopped
 
   bp4-decision-service:
@@ -51,6 +58,8 @@ services:
     image: c360-bp4-decision-service:latest
     container_name: c360-bp4-decision-service
     ports: ["8004:8004"]
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
     restart: unless-stopped
 
   bp5-driver-service:
@@ -60,6 +69,8 @@ services:
     image: c360-bp5-driver-service:latest
     container_name: c360-bp5-driver-service
     ports: ["8005:8005"]
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
     restart: unless-stopped
 
   bp6-resolution-service:
@@ -70,6 +81,7 @@ services:
     container_name: c360-bp6-resolution-service
     ports: ["8006:8006"]
     environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
       - GEMINI_API_KEY=${GEMINI_API_KEY:?GEMINI_API_KEY must be set - see .env.example}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash}
     restart: unless-stopped
@@ -81,4 +93,6 @@ services:
     image: c360-bp7-decision-engine-service:latest
     container_name: c360-bp7-decision-engine-service
     ports: ["8007:8007"]
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
     restart: unless-stopped

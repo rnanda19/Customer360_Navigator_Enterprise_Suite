@@ -47,8 +47,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
+
+from services.service_auth import require_api_key
 
 BP_ID = "bp6"
 UPSTREAM_BP_IDS = ("bp1", "bp2", "bp3", "bp4", "bp5")
@@ -333,7 +335,12 @@ def health():
     )
 
 
-@app.post("/resolve", response_model=ResolveResponse, tags=["generation"])
+@app.post(
+    "/resolve",
+    response_model=ResolveResponse,
+    tags=["generation"],
+    dependencies=[Depends(require_api_key)],
+)
 def resolve(req: ResolveRequest):
     """Makes ONE real, live Gemini API call and returns a grounded, PENDING_HUMAN_REVIEW
     recommendation artifact — the exact same shape Gate 5's notebook writes to
@@ -349,7 +356,12 @@ def resolve(req: ResolveRequest):
     return ResolveResponse(recommendation_artifact=artifact)
 
 
-@app.post("/resolve/self-test", response_model=SelfTestResponse, tags=["generation", "governance"])
+@app.post(
+    "/resolve/self-test",
+    response_model=SelfTestResponse,
+    tags=["generation", "governance"],
+    dependencies=[Depends(require_api_key)],
+)
 def resolve_self_test(req: ResolveRequest):
     """Master Plan paragraph 205's required BP6 Gate 6 deliverable: 'a runnable FastAPI service
     with a live self-test proving API output matches direct computation'. Makes exactly ONE real

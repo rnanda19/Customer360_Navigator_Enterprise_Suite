@@ -47,8 +47,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
+
+from services.service_auth import require_api_key
 
 BP_ID = "bp5"
 ARTIFACTS_RELATIVE_DIR = Path("notebooks") / "bp5_root_cause_driver_analytics" / "artifacts"
@@ -291,7 +293,7 @@ def health():
     )
 
 
-@app.get("/outcomes", tags=["meta"])
+@app.get("/outcomes", tags=["meta"], dependencies=[Depends(require_api_key)])
 def list_outcomes():
     handle = _get_handle()
     return {
@@ -307,7 +309,12 @@ def _require_valid_outcome(outcome: str) -> None:
         )
 
 
-@app.get("/report/{outcome}", response_model=PrioritizedRootCauseReport, tags=["query"])
+@app.get(
+    "/report/{outcome}",
+    response_model=PrioritizedRootCauseReport,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+)
 def get_report(outcome: str):
     """Full real Gate 5 prioritized root-cause report for one real BP5 outcome field, served
     verbatim (field-level ranking, per-category log-odds findings, SHAP feature importance, the
@@ -326,7 +333,12 @@ def get_report(outcome: str):
     return PrioritizedRootCauseReport(**report)
 
 
-@app.get("/report/{outcome}/top-drivers", response_model=TopDriversResponse, tags=["query"])
+@app.get(
+    "/report/{outcome}/top-drivers",
+    response_model=TopDriversResponse,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+)
 def get_top_drivers(outcome: str):
     """Convenience subset of `GET /report/{outcome}` - just the real field-level driver ranking
     and its disclaimer, for a caller that only needs the headline association findings."""
@@ -346,7 +358,12 @@ def get_top_drivers(outcome: str):
     )
 
 
-@app.get("/rollup", response_model=ExecutiveRollupResponse, tags=["query"])
+@app.get(
+    "/rollup",
+    response_model=ExecutiveRollupResponse,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+)
 def get_rollup():
     """BP5's real Gate 7 executive rollup manifest, served verbatim."""
     handle = _get_handle()

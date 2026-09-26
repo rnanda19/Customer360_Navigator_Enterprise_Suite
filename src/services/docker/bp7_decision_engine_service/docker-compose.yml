@@ -3,7 +3,9 @@
 #   docker compose -f src/services/docker/bp7_decision_engine_service/docker-compose.yml up --build
 # Then: curl http://localhost:8007/health
 #
-# No API key or other secret is required - BP7 makes no external network call anywhere.
+# BP7 makes no external network call anywhere, but C360_API_KEY IS required at run time
+# (real API-key auth added to all 7 services - see SECURITY.md): it protects every
+# endpoint except / and /health, same as every other service in this suite.
 
 services:
   bp7-decision-engine-service:
@@ -14,6 +16,8 @@ services:
     container_name: c360-bp7-decision-engine-service
     ports:
       - "8007:8007"
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8007/health', timeout=3).status == 200 else 1)"]

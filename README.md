@@ -267,7 +267,7 @@ python -m pip install -r requirements.txt
 jupyter lab                          # or notebook — run notebooks in gate order, G1 through G6/G7
 ```
 
-A root `docker-compose.yml` builds and runs all 7 FastAPI services (BP1-BP7; BP8 has no service, see Structure below) together — `docker compose up --build`. Copy `.env.example` to `.env` first if you're bringing up BP6 (needs a real `GEMINI_API_KEY`).
+A root `docker-compose.yml` builds and runs all 7 FastAPI services (BP1-BP7; BP8 has no service, see Structure below) together — `docker compose up --build`. Copy `.env.example` to `.env` first and set `C360_API_KEY` (all 7 services require it — see [SECURITY.md](SECURITY.md#authentication-added-2026-09-26); `/` and `/health` stay open with no key) — also set a real `GEMINI_API_KEY` if you're bringing up BP6.
 
 Each notebook resolves its own project root (env override, else a bounded upward walk for a directory
 containing both `configs/` and `src/`) rather than assuming a fixed path. `pytest tests/ -v` runs the full

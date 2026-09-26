@@ -24,6 +24,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 MODULE_PATH = "services.bp5_driver_service"
+TEST_API_KEY = "test-api-key-for-ci"
 
 OUTCOME_1 = "outcome_1_intervention_required"
 OUTCOME_2 = "outcome_2_timely_response_failure"
@@ -168,14 +169,14 @@ def service_module():
 def loaded_client(tmp_path, monkeypatch, service_module):
     artifacts_dir = _build_synthetic_artifacts_dir(tmp_path)
     monkeypatch.setattr(service_module, "_default_artifacts_dir", lambda: artifacts_dir)
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
 @pytest.fixture()
 def unloaded_client(tmp_path, monkeypatch, service_module):
     monkeypatch.setattr(service_module, "_default_artifacts_dir", lambda: tmp_path / "missing")
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
@@ -287,7 +288,7 @@ def test_health_partially_loaded_when_only_one_outcome_present(tmp_path, monkeyp
     ) as f:
         json.dump(_synthetic_report(OUTCOME_1), f)
     monkeypatch.setattr(service_module, "_default_artifacts_dir", lambda: artifacts_dir)
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         response = client.get("/health")
     assert response.status_code == 200
     body = response.json()
@@ -324,7 +325,7 @@ def test_real_bp5_reports_serve_queries(real_project_root):
     if MODULE_PATH in importlib.sys.modules:
         del importlib.sys.modules[MODULE_PATH]
     module = importlib.import_module(MODULE_PATH)
-    with TestClient(module.app) as client:
+    with TestClient(module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         health = client.get("/health")
         assert health.status_code == 200
         assert health.json()["status"] == "ok"

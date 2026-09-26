@@ -31,6 +31,10 @@
 # below purely as the ASGI server this image's CMD invokes - the service module itself never
 # imports it.
 
+# API-key auth added 2026-09-26 (src/services/service_auth.py, see SECURITY.md): this image's
+# dependency list above is UNCHANGED - the new services.service_auth import needs only fastapi
+# (already installed above), nothing new.
+
 FROM python:3.11-slim
 
 LABEL org.opencontainers.image.title="Customer360 Navigator - BP6 GenAI Resolution Assistant"

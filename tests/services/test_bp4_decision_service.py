@@ -23,6 +23,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 MODULE_PATH = "services.bp4_decision_service"
+TEST_API_KEY = "test-api-key-for-ci"
 
 CLUSTER_KEY = ["Company", "Product", "Sub-product", "Issue", "Sub-issue"]
 
@@ -121,7 +122,7 @@ def loaded_client(tmp_path, monkeypatch, service_module):
     parquet_path = _build_synthetic_bp4_parquet(tmp_path)
     monkeypatch.setattr(service_module, "_default_parquet_path", lambda: parquet_path)
     monkeypatch.setattr(service_module, "_default_metadata_path", lambda: tmp_path / "does_not_exist.json")
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
@@ -129,7 +130,7 @@ def loaded_client(tmp_path, monkeypatch, service_module):
 def unloaded_client(tmp_path, monkeypatch, service_module):
     monkeypatch.setattr(service_module, "_default_parquet_path", lambda: tmp_path / "missing.parquet")
     monkeypatch.setattr(service_module, "_default_metadata_path", lambda: tmp_path / "missing_meta.json")
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
@@ -326,7 +327,7 @@ def test_real_bp4_decision_artifact_serves_queries(real_project_root):
     if MODULE_PATH in importlib.sys.modules:
         del importlib.sys.modules[MODULE_PATH]
     module = importlib.import_module(MODULE_PATH)
-    with TestClient(module.app) as client:
+    with TestClient(module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         health = client.get("/health")
         assert health.status_code == 200
         assert health.json()["status"] == "ok"

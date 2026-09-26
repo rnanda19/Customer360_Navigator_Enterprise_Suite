@@ -2,6 +2,10 @@
 # Run from the project ROOT (this file's build context matches the Dockerfile's - see its header):
 #   docker compose -f src/services/docker/bp4_decision_service/docker-compose.yml up --build
 # Then: curl http://localhost:8004/health
+#
+# C360_API_KEY is REQUIRED at run time (real API-key auth on all 7 services - see
+# SECURITY.md). / and /health stay open with no key; every other endpoint needs it,
+# e.g.: curl -H "X-API-Key: $C360_API_KEY" http://localhost:8004/...
 
 services:
   bp4-decision-service:
@@ -12,6 +16,8 @@ services:
     container_name: c360-bp4-decision-service
     ports:
       - "8004:8004"
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8004/health', timeout=3).status == 200 else 1)"]

@@ -30,6 +30,7 @@ from models.model_persistence import save_model_bundle
 from services.service_common import resolve_project_root
 
 MODULE_PATH = "services.bp2_inference_service"
+TEST_API_KEY = "test-api-key-for-ci"
 
 _REAL_COLS = list(FEATURE_COLS_CATEGORICAL) + [COMPANY_COL]
 
@@ -110,7 +111,7 @@ def loaded_client(tmp_path, monkeypatch, service_module):
         "_default_metadata_path",
         lambda: tmp_path / "does_not_exist.json",
     )
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
@@ -118,7 +119,7 @@ def loaded_client(tmp_path, monkeypatch, service_module):
 def unloaded_client(tmp_path, monkeypatch, service_module):
     monkeypatch.setattr(service_module, "_default_joblib_path", lambda: tmp_path / "missing.joblib")
     monkeypatch.setattr(service_module, "_default_metadata_path", lambda: tmp_path / "missing_meta.json")
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
@@ -257,7 +258,7 @@ def test_real_bp2_champion_bundle_serves_predictions(real_project_root):
     if MODULE_PATH in importlib.sys.modules:
         del importlib.sys.modules[MODULE_PATH]
     module = importlib.import_module(MODULE_PATH)
-    with TestClient(module.app) as client:
+    with TestClient(module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         health = client.get("/health")
         assert health.status_code == 200
         assert health.json()["status"] == "ok"

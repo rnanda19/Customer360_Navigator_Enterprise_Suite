@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 _THIS_FILE_SRC_DIR = Path(__file__).resolve().parents[1]
@@ -31,6 +31,7 @@ if str(_THIS_FILE_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_THIS_FILE_SRC_DIR))
 
 from models.model_persistence import predict_bp1  # noqa: E402
+from services.service_auth import require_api_key  # noqa: E402
 from services.service_common import (  # noqa: E402
     HealthResponse,
     ModelBundleHandle,
@@ -120,7 +121,12 @@ def health():
     return build_health_response(_handle)
 
 
-@app.post("/predict", response_model=BP1PredictResponse, tags=["inference"])
+@app.post(
+    "/predict",
+    response_model=BP1PredictResponse,
+    tags=["inference"],
+    dependencies=[Depends(require_api_key)],
+)
 def predict(request: BP1PredictRequest):
     if _handle is None or not _handle.is_loaded:
         error = _handle.error if _handle is not None else "Model handle not initialized."

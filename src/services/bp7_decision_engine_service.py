@@ -80,8 +80,12 @@ from pathlib import Path
 from typing import Any, Optional
 
 import polars as pl
-from fastapi import FastAPI, HTTPException, Path as PathParam, Query
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Path as PathParam
+from fastapi import Query
 from pydantic import BaseModel, Field
+
+from services.service_auth import require_api_key
 
 BP_ID = "bp7"
 DEFAULT_SELF_TEST_SAMPLE_SIZE = 25
@@ -369,7 +373,12 @@ def health():
     )
 
 
-@app.get("/decide/self-test", response_model=SelfTestResponse, tags=["query", "governance"])
+@app.get(
+    "/decide/self-test",
+    response_model=SelfTestResponse,
+    tags=["query", "governance"],
+    dependencies=[Depends(require_api_key)],
+)
 def decide_self_test(
     sample_size: int = Query(
         DEFAULT_SELF_TEST_SAMPLE_SIZE,
@@ -472,7 +481,12 @@ def decide_self_test(
     )
 
 
-@app.get("/decide/{complaint_id}", response_model=DecisionRecord, tags=["query"])
+@app.get(
+    "/decide/{complaint_id}",
+    response_model=DecisionRecord,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+)
 def decide(complaint_id: int = PathParam(..., description="Real, unique CFPB 'Complaint ID'.")):
     """Real, read-only point lookup of one real complaint's already-computed
     priority_score/intervention_flag/recommended_action/reason_codes (Gate 5's own real,

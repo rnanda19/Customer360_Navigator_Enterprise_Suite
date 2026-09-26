@@ -34,6 +34,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 MODULE_PATH = "services.bp6_resolution_service"
+TEST_API_KEY = "test-api-key-for-ci"
 
 UPSTREAM_BP_NAMES = {
     "bp1": "bp1_customer_intent_classification",
@@ -131,7 +132,7 @@ def configured_client(tmp_path, monkeypatch, service_module):
     _build_synthetic_prerequisites(tmp_path)
     monkeypatch.setattr(service_module, "resolve_project_root", lambda: tmp_path)
     monkeypatch.setenv("GEMINI_API_KEY", "sandbox-fake-key-not-real")
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
@@ -139,7 +140,7 @@ def configured_client(tmp_path, monkeypatch, service_module):
 def unconfigured_client(tmp_path, monkeypatch, service_module):
     (tmp_path / "PROJECT_STRUCTURE_LOCKED.md").touch()
     monkeypatch.setattr(service_module, "resolve_project_root", lambda: tmp_path)
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         yield client
 
 
@@ -293,7 +294,7 @@ def test_real_bp6_health_reports_ok_when_gates_2_and_4_have_run(
     if not (artifacts_dir / "gate4_explainability_trace.json").exists():
         pytest.skip("BP6 Gate 4 has not been run for real yet.")
     monkeypatch.setattr(service_module, "resolve_project_root", lambda: real_project_root)
-    with TestClient(service_module.app) as client:
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         r = client.get("/health")
     assert r.status_code == 200
     assert r.json()["status"] == "ok"

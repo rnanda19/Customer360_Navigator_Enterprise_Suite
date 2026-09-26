@@ -6,6 +6,9 @@
 # GEMINI_API_KEY is REQUIRED at run time (never baked into the image - see Dockerfile header).
 # Every real /resolve or /resolve/self-test call this container serves makes a real, live, paid-
 # quota-consuming call to the Google Gemini API using that key.
+#
+# C360_API_KEY is ALSO required (real API-key auth on all 7 services - see SECURITY.md): it
+# protects /resolve and /resolve/self-test; / and /health stay open with no key.
 
 services:
   bp6-resolution-service:
@@ -17,6 +20,7 @@ services:
     ports:
       - "8006:8006"
     environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
       - GEMINI_API_KEY=${GEMINI_API_KEY:?GEMINI_API_KEY must be set - export it or pass -e GEMINI_API_KEY=...}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash}
     restart: unless-stopped
