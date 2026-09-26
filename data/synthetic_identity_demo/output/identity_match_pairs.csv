@@ -1,0 +1,15 @@
+customer_360_id,source_system,source_customer_id,match_score,match_method,survivorship_rule,confidence
+C360-0001,core_banking,A-001,1.0,deterministic_email,most_recently_updated_source_record_wins,HIGH
+C360-0001,crm_system,B-001,1.0,deterministic_email,most_recently_updated_source_record_wins,HIGH
+C360-0001,web_signup,C-001,1.0,deterministic_phone,most_recently_updated_source_record_wins,HIGH
+C360-0002,core_banking,A-002,0.8905,probabilistic,most_recently_updated_source_record_wins,MEDIUM
+C360-0002,crm_system,B-002,0.8905,probabilistic,most_recently_updated_source_record_wins,MEDIUM
+C360-0003,core_banking,A-003,1.0,deterministic_email,most_recently_updated_source_record_wins,HIGH
+C360-0003,web_signup,C-002,1.0,deterministic_email,most_recently_updated_source_record_wins,HIGH
+C360-0004,core_banking,A-004,1.0,single_source_no_match,most_recently_updated_source_record_wins,N/A
+C360-0005,core_banking,A-005,1.0,single_source_no_match,most_recently_updated_source_record_wins,N/A
+C360-0006,crm_system,B-003,0.8222,probabilistic,most_recently_updated_source_record_wins,MEDIUM
+C360-0006,web_signup,C-003,0.8222,probabilistic,most_recently_updated_source_record_wins,MEDIUM
+C360-0007,crm_system,B-004,1.0,single_source_no_match,most_recently_updated_source_record_wins,N/A
+C360-0008,web_signup,C-004,1.0,single_source_no_match,most_recently_updated_source_record_wins,N/A
+C360-0009,web_signup,C-005,1.0,single_source_no_match,most_recently_updated_source_record_wins,N/A

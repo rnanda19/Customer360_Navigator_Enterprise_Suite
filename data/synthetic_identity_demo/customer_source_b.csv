@@ -1,0 +1,5 @@
+source_customer_id,source_system,full_name,email,phone,address_line1,city,state,zip,last_updated_utc
+B-001,crm_system,Alice Johnson,alice.johnson@example.com,555-201-1001,120 Maple Ave,Springfield,IL,62701,2026-07-10T11:00:00+00:00
+B-002,crm_system,Rob Smith,r.smith88@example.com,555-201-3345,482 Oak St,Springfield,IL,62701,2026-06-22T16:45:00+00:00
+B-003,crm_system,Jennifer Lee,jennifer.lee@example.com,555-201-4477,77 Cedar Boulevard,Madison,WI,53703,2026-05-05T13:20:00+00:00
+B-004,crm_system,Maria Garcia,maria.garcia@example.com,555-201-6655,22 Willow Way,Capitol Heights,WI,53704,2026-04-18T10:10:00+00:00

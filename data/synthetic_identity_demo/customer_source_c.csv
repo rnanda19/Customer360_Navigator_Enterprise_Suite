@@ -1,0 +1,6 @@
+source_customer_id,source_system,full_name,email,phone,address_line1,city,state,zip,last_updated_utc
+C-001,web_signup,Alice Johnson,ajohnson.web@example.com,555-201-1001,120 Maple Avenue,Springfield,IL,62701,2026-08-01T09:00:00+00:00
+C-002,web_signup,David Chen,david.chen88@example.com,555-201-7799,90 Birch Ln,Riverton,IL,62561,2026-07-28T15:15:00+00:00
+C-003,web_signup,Jen Lee,jen.lee.web@example.com,555-201-4488,77 Cedar Blvd,Madison,WI,53703,2026-07-02T12:40:00+00:00
+C-004,web_signup,Michelle Brown,michelle.brown@example.com,555-201-8822,410 Spruce Terrace,Capitol Heights,WI,53704,2026-06-12T17:00:00+00:00
+C-005,web_signup,Thomas Anderson,thomas.anderson@example.com,555-201-5533,58 Aspen Circle,Riverton,IL,62561,2026-05-30T08:30:00+00:00
