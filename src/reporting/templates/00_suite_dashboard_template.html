@@ -492,7 +492,12 @@
      a literal "0" with the real number ONLY in data-count, so any of those cases left a
      recruiter looking at a dashboard that appeared to say every KPI was zero. */
   function animateCount(el) {
+    // Renders the real value immediately (never a transient "0") so a quick screenshot,
+    // a crawler, a paused/background tab, or a slow first frame can never catch a false
+    // zero on a reviewer-facing KPI card. Then plays a purely cosmetic count-up on top -
+    // if that never fires for any reason, the correct number is already on screen.
     var target = parseFloat(el.getAttribute("data-count")) || 0;
+    el.textContent = target.toLocaleString();
     var start = 0;
     var duration = 900;
     var startTime = null;
