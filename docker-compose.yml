@@ -96,3 +96,14 @@ services:
     environment:
       - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
     restart: unless-stopped
+
+  bp-activation-service:
+    build:
+      context: .
+      dockerfile: src/services/docker/bp_activation_service/Dockerfile
+    image: c360-activation-service:latest
+    container_name: c360-activation-service
+    ports: ["8010:8010"]
+    environment:
+      - C360_API_KEY=${C360_API_KEY:?C360_API_KEY must be set - see .env.example}
+    restart: unless-stopped

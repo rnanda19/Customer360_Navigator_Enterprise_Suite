@@ -43,7 +43,11 @@ jobs:
           # BP7 requires no secret at all (it makes no external network call anywhere) - a plain
           # config check, same as BP1-5.
           C360_API_KEY=ci-smoke-test-key docker compose -f src/services/docker/bp7_decision_engine_service/docker-compose.yml config
-          # Root docker-compose.yml is a pure convenience aggregator of the 7 files above
+          # Activation Layer (SIMULATED) - no secret beyond the shared C360_API_KEY, no model/data
+          # artifact at all. See src/services/bp_activation_service.py's own module docstring for
+          # exactly what "simulated" discloses and does not claim.
+          C360_API_KEY=ci-smoke-test-key docker compose -f src/services/docker/bp_activation_service/docker-compose.yml config
+          # Root docker-compose.yml is a pure convenience aggregator of the 8 files above
           # (same build contexts, same images) - validated the same way, same placeholder key.
           GEMINI_API_KEY=ci-smoke-test-placeholder-not-real C360_API_KEY=ci-smoke-test-key docker compose -f docker-compose.yml config
       - name: Build-mechanics smoke test (placeholder model artifacts - NOT a real model)
@@ -106,7 +110,10 @@ jobs:
           [ -f notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv ] || echo 'Complaint ID,priority_score,intervention_flag,recommended_action,reason_codes,contribution_bp2,contribution_bp3,contribution_bp4,bp2_predicted_label,bp2_confidence,bp3_predicted_label,bp3_probability_positive_class,bp4_review_priority_tier,bp4_review_priority_score,bp4_join_status,bp1_context_status,bp5_outcome_1_context,bp5_outcome_2_context,tags_group' > notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv
           [ -f notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_decision_layer_summary.json ] || echo '{"live_row_count": 0, "champion_rule_scheme": "placeholder", "champion_weights_normalized": {"bp2": 0.33, "bp3": 0.33, "bp4": 0.34}, "intervention_threshold": 0.5, "generated_at_utc": "1970-01-01T00:00:00+00:00"}' > notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_decision_layer_summary.json
           docker build -f src/services/docker/bp7_decision_engine_service/Dockerfile -t c360-bp7-decision-engine-service:ci-smoke .
-      - name: Run each of the 7 built images and verify a real /health response
+          # Activation Layer needs no placeholder artifact at all - it has no model/data COPY step
+          # (see its own Dockerfile header: the lightest image in the suite).
+          docker build -f src/services/docker/bp_activation_service/Dockerfile -t c360-activation-service:ci-smoke .
+      - name: Run each of the 8 built images and verify a real /health response
         run: |
           # Real run + health-check, not just a build - each container is started for real from
           # the image just built above (same placeholder artifacts baked in), probed on its own
@@ -150,3 +157,4 @@ jobs:
           check_health c360-bp5-driver-service c360-bp5-driver-service:ci-smoke 8005
           check_health c360-bp6-resolution-service c360-bp6-resolution-service:ci-smoke 8006 -e GEMINI_API_KEY=ci-smoke-test-placeholder-not-real
           check_health c360-bp7-decision-engine-service c360-bp7-decision-engine-service:ci-smoke 8007
+          check_health c360-activation-service c360-activation-service:ci-smoke 8010
