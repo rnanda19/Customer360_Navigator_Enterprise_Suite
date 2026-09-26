@@ -45,6 +45,14 @@
 # dependency list above is UNCHANGED - the new services.service_auth import needs only fastapi
 # (already installed above), nothing new.
 
+# Production-hardening addition (2026-09-26, see the service module's own docstring): API
+# versioning (/v1 mirror), GET /version + /model-info + /metrics, POST /score + /decision,
+# request-ID/latency headers, a consistent JSON error envelope, and an in-memory rate limiter.
+# This image's dependency list above is STILL UNCHANGED - every addition uses only the Python
+# standard library (uuid, time, threading, subprocess, datetime) plus fastapi/pydantic, already
+# installed above. See RENDER_DEPLOYMENT.md at the repo root for how to deploy this image as a
+# real public API on Render's free tier.
+
 FROM python:3.11-slim
 
 LABEL org.opencontainers.image.title="Customer360 Navigator - BP7 Customer Navigator Decision Engine"

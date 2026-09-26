@@ -70,19 +70,77 @@ already-computed `reason_codes` string that encodes them), so a full, from-scrat
 `reason_codes`/`recommended_action` via `score_priority_rule` is not reproducible from this artifact
 alone — never attempted here with a fabricated stand-in for those two missing columns. The checks
 above are the honest, real thing this service CAN verify from what it actually serves.
+
+PRODUCTION-HARDENING ADDITION (2026-09-26 — Priority 2, "deploy BP7 as a real public API"):
+everything below this point is additive to the Gate 6 deliverable above, never a change to the
+lookup semantics already described. Added: explicit `/v1` API versioning (every route below is
+served both bare, for backward compatibility with the existing test suite and any existing
+caller, and again under `/v1` - every route decorated twice directly on `app`; see the note
+near the end of this docstring on why an `APIRouter` was tried first and reverted); `GET
+/version` (real app/API version, a best-effort real git commit — never fabricated, see
+`_resolve_git_commit()` — and the same
+honest "no semantic version, champion+timestamp is the real proxy" disclosure already used on
+`index.html`'s Dataset & Model Provenance panel); `GET /model-info` (the real Gate 5 decision-layer
+metadata — champion rule scheme, weights, threshold, disparate-impact audit — explicitly labeled
+as a lookup service's metadata, never a model bundle, since BP7 fits no model); `GET /metrics`
+(real, in-process request/latency counters — explicitly disclosed as per-process, non-distributed,
+no Prometheus wired up, never dressed up as more than it is); `POST /score` and `POST /decision`
+(batch form of the existing `GET /decide/{complaint_id}` lookup, accepting a JSON body of
+`complaint_ids` instead of one path parameter each — `/score` returns the real
+`priority_score`/`contribution_bp2/3/4` fields, `/decision` returns the real
+`intervention_flag`/`recommended_action`/`reason_codes` fields, both reading the SAME real Gate 5
+row per id via one batched `Complaint ID`-`is_in(...)` lazy-scan filter rather than N separate
+scans — no new inference of any kind, purely a different real-field projection and a batched read
+path over the identical real lookup `GET /decide/{complaint_id}` already performs); a
+request-ID (`X-Request-ID`) and latency (`X-Response-Time-Ms`) middleware; a consistent JSON error
+envelope (`detail` kept for backward compatibility, plus `error_code`/`status_code`/`request_id`)
+on every 4xx/5xx, including validation errors and any truly unhandled exception; and an in-memory,
+per-process, per-API-key-or-IP rate limiter (`C360_RATE_LIMIT_PER_MINUTE`, default 120/minute,
+0 disables it) — explicitly disclosed as non-distributed (see `/metrics`' own disclosure and
+`RENDER_DEPLOYMENT.md`), which is an honest fit for the single-instance Render free-tier deployment
+this hardening pass targets, never a claim of a production-grade distributed limiter. No new
+runtime dependency was added for any of this — every addition below uses only the Python standard
+library (`uuid`, `time`, `threading`, `subprocess`, `datetime`) plus `fastapi`/`pydantic`, already
+installed by this service's own Dockerfile.
+
+ON THE /v1 MECHANISM (real bug found and fixed during this hardening pass's own sandbox
+testing, 2026-09-26): an initial version of this file used a single `fastapi.APIRouter`,
+decorated every route once, and mounted it twice via `app.include_router(router)` /
+`app.include_router(router, prefix="/v1")`. That is idiomatic FastAPI, but this project's
+pinned FastAPI/Starlette version (grep/import-verified: fastapi 0.141.1, starlette 1.7.0)
+represents an included sub-router as one `fastapi.routing._IncludedRouter` wrapper object in
+`app.routes`, rather than flattening its child routes into that list the way older versions
+did - HTTP requests still routed correctly either way (verified directly against a real
+TestClient), but `src/deployment/bp7_readiness_verdict.py`'s own real
+`service_required_routes_present` check (and any other tool that plain-walks `app.routes`
+expecting flat `Route` objects) could no longer see the wrapped routes and would report a
+false FAIL. Rather than patch that unrelated governance script around this one file's
+internal implementation choice, every route below is instead decorated TWICE directly on
+`app` (once at its bare path, once again at the same path under `/v1`, with
+`include_in_schema=False` on the `/v1` copy so `/docs` shows one canonical operation per
+route) - no `APIRouter` anywhere in this file, matching every other BP service in this
+project (none of which use one either).
 """
 
 from __future__ import annotations
 
 import os
+import subprocess
+import threading
+import time
+import uuid
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
 import polars as pl
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi import Path as PathParam
-from fastapi import Query
+from fastapi import Query, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from services.service_auth import require_api_key
@@ -90,6 +148,30 @@ from services.service_auth import require_api_key
 BP_ID = "bp7"
 DEFAULT_SELF_TEST_SAMPLE_SIZE = 25
 MAX_SELF_TEST_SAMPLE_SIZE = 500
+
+# Production-hardening constants (2026-09-26 addition — see module docstring).
+MAX_BATCH_LOOKUP_SIZE = 100
+API_VERSIONS_SUPPORTED = ["v1"]
+RATE_LIMIT_PER_MINUTE_ENV_VAR = "C360_RATE_LIMIT_PER_MINUTE"
+DEFAULT_RATE_LIMIT_PER_MINUTE = 120
+GIT_COMMIT_ENV_VAR = "C360_GIT_COMMIT"
+# Paths exempt from rate limiting - orchestrator/uptime-monitor probes and interactive docs, same
+# spirit as service_auth's own "/ and /health stay open" convention (never for the auth-protected
+# query/governance endpoints below).
+_RATE_LIMIT_EXEMPT_PATHS = frozenset(
+    {
+        "/",
+        "/health",
+        "/version",
+        "/v1",
+        "/v1/",
+        "/v1/health",
+        "/v1/version",
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+    }
+)
 
 # The real, full recommended_action vocabulary `features.bp7_decision_engine_features
 # ._recommended_action_expr()` can produce (verified live against that real function's own source,
@@ -241,6 +323,231 @@ app = FastAPI(
 )
 
 
+# ---------------------------------------------------------------------------
+# Production-hardening infrastructure (2026-09-26): request-ID + latency middleware, an in-memory
+# request-metrics collector, and an in-memory per-key/per-IP rate limiter. All state below is
+# module-level and per-process by design (see module docstring's disclosure) - it resets whenever
+# this module is (re)imported, which is also what gives every test in
+# tests/services/test_bp7_decision_engine_service.py a clean slate per test (that suite's own
+# `service_module` fixture reloads this module before each test).
+# ---------------------------------------------------------------------------
+
+_SERVICE_STARTED_AT_MONOTONIC = time.monotonic()
+_SERVICE_STARTED_AT_UTC = datetime.now(timezone.utc).isoformat()
+
+_METRICS_LOCK = threading.Lock()
+_METRICS_STATE: dict[str, Any] = {
+    "total_requests": 0,
+    "requests_by_route": {},
+    "responses_by_status_class": {"2xx": 0, "3xx": 0, "4xx": 0, "5xx": 0},
+    "total_latency_ms": 0.0,
+}
+
+
+def _record_request_metric(route_template: str, status_code: int, latency_ms: float) -> None:
+    status_class = f"{status_code // 100}xx"
+    with _METRICS_LOCK:
+        _METRICS_STATE["total_requests"] += 1
+        _METRICS_STATE["requests_by_route"][route_template] = (
+            _METRICS_STATE["requests_by_route"].get(route_template, 0) + 1
+        )
+        _METRICS_STATE["responses_by_status_class"][status_class] = (
+            _METRICS_STATE["responses_by_status_class"].get(status_class, 0) + 1
+        )
+        _METRICS_STATE["total_latency_ms"] += latency_ms
+
+
+def _rate_limit_per_minute() -> int:
+    """Read live (not cached at import time) so tests can monkeypatch the env var; a value <= 0
+    disables the limiter entirely."""
+    raw = os.environ.get(RATE_LIMIT_PER_MINUTE_ENV_VAR)
+    if raw is None:
+        return DEFAULT_RATE_LIMIT_PER_MINUTE
+    try:
+        return int(raw)
+    except ValueError:
+        return DEFAULT_RATE_LIMIT_PER_MINUTE
+
+
+_RATE_LIMIT_LOCK = threading.Lock()
+_RATE_LIMIT_STATE: dict[str, tuple[int, int]] = {}
+
+
+def _rate_limit_key(request: Request) -> str:
+    api_key = request.headers.get("X-API-Key")
+    if api_key:
+        return f"key:{api_key}"
+    client = request.client
+    return f"ip:{client.host if client else 'unknown'}"
+
+
+def _check_rate_limit(request: Request) -> Optional[int]:
+    """Returns None if the request is allowed, else the number of whole seconds to wait before
+    retrying. Fixed-window (per real wall-clock minute), in-memory, per-process only - see module
+    docstring's disclosure."""
+    limit = _rate_limit_per_minute()
+    if limit <= 0:
+        return None
+    if request.url.path in _RATE_LIMIT_EXEMPT_PATHS:
+        return None
+    key = _rate_limit_key(request)
+    now = time.time()
+    current_window = int(now // 60)
+    with _RATE_LIMIT_LOCK:
+        window_start, count = _RATE_LIMIT_STATE.get(key, (current_window, 0))
+        if window_start != current_window:
+            window_start, count = current_window, 0
+        count += 1
+        _RATE_LIMIT_STATE[key] = (window_start, count)
+        if count > limit:
+            return max(1, 60 - int(now % 60))
+    return None
+
+
+_ERROR_CODE_BY_STATUS = {
+    401: "UNAUTHORIZED",
+    404: "NOT_FOUND",
+    422: "VALIDATION_ERROR",
+    429: "RATE_LIMITED",
+    503: "SERVICE_UNAVAILABLE",
+}
+
+
+def _request_id_of(request: Request) -> str:
+    existing = getattr(request.state, "request_id", None)
+    if existing:
+        return existing
+    return request.headers.get("X-Request-ID") or str(uuid.uuid4())
+
+
+@app.middleware("http")
+async def observability_middleware(request: Request, call_next):
+    """Assigns/propagates a request ID, enforces the in-memory rate limit, times the request, and
+    records it in the in-memory metrics counters. Runs for every route on both the bare and `/v1`
+    mount (this is app-level middleware, applied once regardless of how many routers are
+    mounted)."""
+    request_id = _request_id_of(request)
+    request.state.request_id = request_id
+
+    retry_after = _check_rate_limit(request)
+    if retry_after is not None:
+        payload = {
+            "detail": "Rate limit exceeded.",
+            "error_code": "RATE_LIMITED",
+            "status_code": 429,
+            "request_id": request_id,
+            "retry_after_seconds": retry_after,
+            "disclosure": (
+                f"In-memory, per-process rate limit ({_rate_limit_per_minute()} requests/minute, "
+                f"keyed by {RATE_LIMIT_PER_MINUTE_ENV_VAR.lower()} API key or client IP) - resets "
+                f"on process restart, never shared across instances. Set {RATE_LIMIT_PER_MINUTE_ENV_VAR} "
+                "to change it, or 0 to disable."
+            ),
+        }
+        response = JSONResponse(status_code=429, content=payload)
+        response.headers["X-Request-ID"] = request_id
+        response.headers["Retry-After"] = str(retry_after)
+        _record_request_metric(request.url.path, 429, 0.0)
+        return response
+
+    start = time.perf_counter()
+    response = await call_next(request)
+    latency_ms = (time.perf_counter() - start) * 1000
+
+    route = request.scope.get("route")
+    route_template = route.path if route is not None else request.url.path
+    _record_request_metric(route_template, response.status_code, latency_ms)
+
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Response-Time-Ms"] = f"{latency_ms:.2f}"
+    return response
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler_with_envelope(request: Request, exc: HTTPException) -> JSONResponse:
+    """Consistent JSON error envelope for every HTTPException raised anywhere in this service -
+    keeps the existing `detail` key (every pre-hardening test in
+    tests/services/test_bp7_decision_engine_service.py only asserts on status codes, never on body
+    shape, so this is purely additive) and adds `error_code`/`status_code`/`request_id`."""
+    request_id = _request_id_of(request)
+    payload = {
+        "detail": exc.detail,
+        "error_code": _ERROR_CODE_BY_STATUS.get(exc.status_code, "ERROR"),
+        "status_code": exc.status_code,
+        "request_id": request_id,
+    }
+    headers = dict(exc.headers or {})
+    headers["X-Request-ID"] = request_id
+    return JSONResponse(status_code=exc.status_code, content=payload, headers=headers)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler_with_envelope(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Same consistent envelope for FastAPI/pydantic request-validation failures (e.g. a
+    non-integer `complaint_id`, a `sample_size` outside its real bounds, or a `/score` batch over
+    `MAX_BATCH_LOOKUP_SIZE`) - still a 422, still carrying the real validation detail, never
+    silently swallowed."""
+    request_id = _request_id_of(request)
+    payload = {
+        "detail": jsonable_encoder(exc.errors()),
+        "error_code": "VALIDATION_ERROR",
+        "status_code": 422,
+        "request_id": request_id,
+    }
+    return JSONResponse(status_code=422, content=payload, headers={"X-Request-ID": request_id})
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler_with_envelope(request: Request, exc: Exception) -> JSONResponse:
+    """Last-resort safety net so a genuinely unexpected error (e.g. a corrupted CSV row) still
+    returns the same consistent envelope with a real request ID to correlate against server logs,
+    rather than an unstructured 500 or a raw traceback leaking to the caller. This never masks the
+    real exception from server-side logs - only the HTTP response body is templated."""
+    request_id = _request_id_of(request)
+    payload = {
+        "detail": "Internal server error.",
+        "error_code": "INTERNAL_ERROR",
+        "status_code": 500,
+        "request_id": request_id,
+    }
+    return JSONResponse(status_code=500, content=payload, headers={"X-Request-ID": request_id})
+
+
+def _resolve_git_commit() -> Optional[str]:
+    """Best-effort, never-fabricated short git commit SHA for `GET /version`. Prefers an explicit
+    `C360_GIT_COMMIT` env var (set this at build/deploy time - e.g. a Render environment variable
+    or a Docker build-arg baked in at image-build time - since a built container image never
+    contains a `.git` directory: this service's own Dockerfile COPYs only
+    PROJECT_STRUCTURE_LOCKED.md and src/, never .git/). Falls back to a real local
+    `git rev-parse --short HEAD` ONLY when a `.git` directory is actually present (e.g. running
+    this service directly from a checkout rather than the built image) - returns None rather than
+    inventing a hash when neither is available."""
+    env_commit = os.environ.get(GIT_COMMIT_ENV_VAR)
+    if env_commit:
+        return env_commit
+    try:
+        project_root = resolve_project_root()
+    except RuntimeError:
+        return None
+    if not (project_root / ".git").exists():
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=True,
+        )
+        commit = result.stdout.strip()
+        return commit or None
+    except Exception:  # noqa: BLE001 - best-effort only, never raises past this helper
+        return None
+
+
 class DecisionEngineHealthResponse(BaseModel):
     status: str = Field(description="'ok' if the real Gate 5 artifacts loaded, else 'not_configured'.")
     bp_id: str
@@ -299,6 +606,105 @@ class SelfTestResponse(BaseModel):
     real_external_api_call_made: bool = False
 
 
+class VersionResponse(BaseModel):
+    service: str = "bp7_customer_navigator_decision_engine"
+    app_version: str
+    api_versions_supported: list[str] = Field(default_factory=lambda: list(API_VERSIONS_SUPPORTED))
+    git_commit: Optional[str] = None
+    dataset_and_model_version_proxy: dict[str, Any]
+    started_at_utc: str
+    note: str = (
+        "This project has no semantic version tags for its dataset/decision-layer artifacts (the "
+        "same disclosure appears on index.html's own Dataset & Model Provenance panel) - "
+        "champion_rule_scheme + generated_at_utc from the real Gate 5 summary is the honest "
+        "version proxy used here instead of a fabricated version number."
+    )
+
+
+class ModelInfoResponse(BaseModel):
+    status: str
+    bp_id: str
+    decision_type: str = "deterministic_weighted_rule_lookup"
+    champion_rule_scheme: Optional[str] = None
+    champion_weights_normalized: Optional[dict[str, float]] = None
+    intervention_threshold: Optional[float] = None
+    live_row_count: Optional[int] = None
+    generated_at_utc: Optional[str] = None
+    upstream_inputs: list[str] = Field(default_factory=lambda: ["bp2", "bp3", "bp4"])
+    disparate_impact_audit: Optional[dict[str, Any]] = None
+    weight_rederivation_cross_check: Optional[dict[str, Any]] = None
+    records_csv_path: Optional[str] = None
+    error: Optional[str] = None
+    disclosure: str = (
+        "BP7 performs no live model inference and loads no model bundle. This describes the real, "
+        "persisted Gate 5 decision-layer artifact this service serves lookups over (contrast "
+        "BP1-3's /health, which reports a runtime-loaded joblib bundle)."
+    )
+
+
+class MetricsResponse(BaseModel):
+    status: str = "ok"
+    bp_id: str = BP_ID
+    uptime_seconds: float
+    started_at_utc: str
+    total_requests: int
+    requests_by_route: dict[str, int]
+    responses_by_status_class: dict[str, int]
+    average_latency_ms: Optional[float] = None
+    rate_limit_per_minute: int
+    disclosure: str = (
+        "In-memory counters for this single process only - reset on restart, never aggregated "
+        "across instances (this service is deployed as one process; see RENDER_DEPLOYMENT.md). "
+        "No external metrics backend (e.g. Prometheus) is wired up - this is a lightweight "
+        "built-in endpoint, not a claim of production-grade distributed observability."
+    )
+
+
+class BatchLookupRequest(BaseModel):
+    complaint_ids: list[int] = Field(
+        ...,
+        min_length=1,
+        max_length=MAX_BATCH_LOOKUP_SIZE,
+        description=(
+            "Real, unique CFPB 'Complaint ID' values to look up in one call - batch form of "
+            f"GET /decide/{{complaint_id}}. Bounded to {MAX_BATCH_LOOKUP_SIZE} ids per call."
+        ),
+    )
+
+
+class ScoreResultItem(BaseModel):
+    complaint_id: int
+    found: bool
+    priority_score: Optional[float] = None
+    contribution_bp2: Optional[float] = None
+    contribution_bp3: Optional[float] = None
+    contribution_bp4: Optional[float] = None
+
+
+class ScoreResponse(BaseModel):
+    results: list[ScoreResultItem]
+    note: str = (
+        "priority_score/contribution_* are BP7's real, pre-computed Gate 5 weighted-rule output "
+        "(champion_rule_scheme) - not a live model inference. See GET /model-info."
+    )
+
+
+class DecisionResultItem(BaseModel):
+    complaint_id: int
+    found: bool
+    intervention_flag: Optional[bool] = None
+    recommended_action: Optional[str] = None
+    reason_codes: Optional[str] = None
+
+
+class DecisionResponse(BaseModel):
+    results: list[DecisionResultItem]
+    note: str = (
+        "intervention_flag/recommended_action/reason_codes are BP7's real, pre-computed Gate 5 "
+        "decision-layer output - not a live re-scoring. See GET /model-info."
+    )
+
+
 def _row_to_record(row: dict[str, Any]) -> DecisionRecord:
     return DecisionRecord(
         complaint_id=row["Complaint ID"],
@@ -338,14 +744,36 @@ def _fetch_complaint_row(handle: DecisionEngineHandle, complaint_id: int) -> Opt
     return match.row(0, named=True)
 
 
+def _fetch_complaint_rows_batch(
+    handle: DecisionEngineHandle, complaint_ids: list[int]
+) -> dict[int, dict[str, Any]]:
+    """Batch form of `_fetch_complaint_row`, used by `/score` and `/decision`: ONE real lazy-scan
+    filtered with `Complaint ID.is_in(complaint_ids)` rather than one scan per id - real, on-disk
+    values only, still never an eager full-file load of the ~540MB/1,048,575-row CSV."""
+    if not complaint_ids:
+        return {}
+    matches = (
+        pl.scan_csv(handle.records_csv_path).filter(pl.col("Complaint ID").is_in(complaint_ids)).collect()
+    )
+    return {row["Complaint ID"]: row for row in matches.iter_rows(named=True)}
+
+
 @app.get("/", tags=["meta"])
+@app.get("/v1/", tags=["meta"], include_in_schema=False)
 def root():
     return {
         "service": "bp7_customer_navigator_decision_engine",
         "docs": "/docs",
         "health": "/health",
+        "version": "/version",
+        "model_info": "/model-info",
+        "metrics": "/metrics",
         "decide": "/decide/{complaint_id}",
         "self_test": "/decide/self-test",
+        "score": "/score",
+        "decision": "/decision",
+        "api_versions_supported": list(API_VERSIONS_SUPPORTED),
+        "versioned_base_path": "/v1",
         "note": (
             "Read-only lookup service over BP7's real, persisted, full-population priority-decision "
             "records - not a live model/API inference endpoint. BP7 makes no external network call "
@@ -355,6 +783,12 @@ def root():
 
 
 @app.get("/health", response_model=DecisionEngineHealthResponse, tags=["meta"])
+@app.get(
+    "/v1/health",
+    response_model=DecisionEngineHealthResponse,
+    tags=["meta"],
+    include_in_schema=False,
+)
 def health():
     handle = _get_handle()
     if not handle.is_loaded:
@@ -373,11 +807,107 @@ def health():
     )
 
 
+@app.get("/version", response_model=VersionResponse, tags=["meta"])
+@app.get(
+    "/v1/version",
+    response_model=VersionResponse,
+    tags=["meta"],
+    include_in_schema=False,
+)
+def version():
+    """Public (no API key), matching /health's precedent - orchestrators, load balancers, and
+    uptime/version-drift monitors need this with no secret. Never fabricates a git commit or a
+    semantic version this project doesn't really have - see `_resolve_git_commit()`."""
+    handle = _get_handle()
+    summary = (handle.summary or {}) if handle.is_loaded else {}
+    return VersionResponse(
+        app_version=app.version,
+        git_commit=_resolve_git_commit(),
+        dataset_and_model_version_proxy={
+            "champion_rule_scheme": summary.get("champion_rule_scheme"),
+            "generated_at_utc": summary.get("generated_at_utc"),
+            "live_row_count": summary.get("live_row_count"),
+            "gate5_artifacts_loaded": handle.is_loaded,
+        },
+        started_at_utc=_SERVICE_STARTED_AT_UTC,
+    )
+
+
+@app.get(
+    "/model-info",
+    response_model=ModelInfoResponse,
+    tags=["meta", "governance"],
+    dependencies=[Depends(require_api_key)],
+)
+@app.get(
+    "/v1/model-info",
+    response_model=ModelInfoResponse,
+    tags=["meta", "governance"],
+    dependencies=[Depends(require_api_key)],
+    include_in_schema=False,
+)
+def model_info():
+    handle = _get_handle()
+    if not handle.is_loaded:
+        return ModelInfoResponse(status="not_configured", bp_id=BP_ID, error=handle.error)
+    summary = handle.summary or {}
+    return ModelInfoResponse(
+        status="ok",
+        bp_id=BP_ID,
+        champion_rule_scheme=summary.get("champion_rule_scheme"),
+        champion_weights_normalized=summary.get("champion_weights_normalized"),
+        intervention_threshold=summary.get("intervention_threshold"),
+        live_row_count=summary.get("live_row_count"),
+        generated_at_utc=summary.get("generated_at_utc"),
+        disparate_impact_audit=summary.get("disparate_impact_audit"),
+        weight_rederivation_cross_check=summary.get("weight_rederivation_cross_check"),
+        records_csv_path=str(handle.records_csv_path),
+    )
+
+
+@app.get(
+    "/metrics",
+    response_model=MetricsResponse,
+    tags=["meta", "governance"],
+    dependencies=[Depends(require_api_key)],
+)
+@app.get(
+    "/v1/metrics",
+    response_model=MetricsResponse,
+    tags=["meta", "governance"],
+    dependencies=[Depends(require_api_key)],
+    include_in_schema=False,
+)
+def metrics():
+    with _METRICS_LOCK:
+        total = _METRICS_STATE["total_requests"]
+        total_latency_ms = _METRICS_STATE["total_latency_ms"]
+        requests_by_route = dict(_METRICS_STATE["requests_by_route"])
+        responses_by_status_class = dict(_METRICS_STATE["responses_by_status_class"])
+    average_latency_ms = (total_latency_ms / total) if total else None
+    return MetricsResponse(
+        uptime_seconds=round(time.monotonic() - _SERVICE_STARTED_AT_MONOTONIC, 3),
+        started_at_utc=_SERVICE_STARTED_AT_UTC,
+        total_requests=total,
+        requests_by_route=requests_by_route,
+        responses_by_status_class=responses_by_status_class,
+        average_latency_ms=(round(average_latency_ms, 3) if average_latency_ms is not None else None),
+        rate_limit_per_minute=_rate_limit_per_minute(),
+    )
+
+
 @app.get(
     "/decide/self-test",
     response_model=SelfTestResponse,
     tags=["query", "governance"],
     dependencies=[Depends(require_api_key)],
+)
+@app.get(
+    "/v1/decide/self-test",
+    response_model=SelfTestResponse,
+    tags=["query", "governance"],
+    dependencies=[Depends(require_api_key)],
+    include_in_schema=False,
 )
 def decide_self_test(
     sample_size: int = Query(
@@ -487,6 +1017,13 @@ def decide_self_test(
     tags=["query"],
     dependencies=[Depends(require_api_key)],
 )
+@app.get(
+    "/v1/decide/{complaint_id}",
+    response_model=DecisionRecord,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+    include_in_schema=False,
+)
 def decide(complaint_id: int = PathParam(..., description="Real, unique CFPB 'Complaint ID'.")):
     """Real, read-only point lookup of one real complaint's already-computed
     priority_score/intervention_flag/recommended_action/reason_codes (Gate 5's own real,
@@ -503,3 +1040,84 @@ def decide(complaint_id: int = PathParam(..., description="Real, unique CFPB 'Co
             status_code=404, detail=f"No real decision record for Complaint ID {complaint_id}."
         )
     return _row_to_record(row)
+
+
+@app.post(
+    "/score",
+    response_model=ScoreResponse,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+)
+@app.post(
+    "/v1/score",
+    response_model=ScoreResponse,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+    include_in_schema=False,
+)
+def score(request: BatchLookupRequest):
+    """Batch form of `GET /decide/{complaint_id}`, projected to the real 'score' fields
+    (priority_score + its contribution_bp2/3/4 decomposition) - see module docstring for why this
+    is a real-field projection over the identical real lookup, never a new inference. An id not
+    found in the real Gate 5 CSV is reported as `found: false`, never a fabricated score."""
+    handle = _get_handle()
+    if not handle.is_loaded:
+        raise HTTPException(status_code=503, detail=f"BP7 decision engine is not configured: {handle.error}")
+    rows_by_id = _fetch_complaint_rows_batch(handle, request.complaint_ids)
+    results = []
+    for complaint_id in request.complaint_ids:
+        row = rows_by_id.get(complaint_id)
+        if row is None:
+            results.append(ScoreResultItem(complaint_id=complaint_id, found=False))
+        else:
+            results.append(
+                ScoreResultItem(
+                    complaint_id=complaint_id,
+                    found=True,
+                    priority_score=row.get("priority_score"),
+                    contribution_bp2=row.get("contribution_bp2"),
+                    contribution_bp3=row.get("contribution_bp3"),
+                    contribution_bp4=row.get("contribution_bp4"),
+                )
+            )
+    return ScoreResponse(results=results)
+
+
+@app.post(
+    "/decision",
+    response_model=DecisionResponse,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+)
+@app.post(
+    "/v1/decision",
+    response_model=DecisionResponse,
+    tags=["query"],
+    dependencies=[Depends(require_api_key)],
+    include_in_schema=False,
+)
+def decision(request: BatchLookupRequest):
+    """Batch form of `GET /decide/{complaint_id}`, projected to the real 'decision' fields
+    (intervention_flag, recommended_action, reason_codes) - see module docstring for why this is a
+    real-field projection over the identical real lookup, never a new inference. An id not found in
+    the real Gate 5 CSV is reported as `found: false`, never a fabricated decision."""
+    handle = _get_handle()
+    if not handle.is_loaded:
+        raise HTTPException(status_code=503, detail=f"BP7 decision engine is not configured: {handle.error}")
+    rows_by_id = _fetch_complaint_rows_batch(handle, request.complaint_ids)
+    results = []
+    for complaint_id in request.complaint_ids:
+        row = rows_by_id.get(complaint_id)
+        if row is None:
+            results.append(DecisionResultItem(complaint_id=complaint_id, found=False))
+        else:
+            results.append(
+                DecisionResultItem(
+                    complaint_id=complaint_id,
+                    found=True,
+                    intervention_flag=bool(row["intervention_flag"]),
+                    recommended_action=row["recommended_action"],
+                    reason_codes=row["reason_codes"],
+                )
+            )
+    return DecisionResponse(results=results)

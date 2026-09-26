@@ -31,6 +31,29 @@ Set `C360_API_KEY` in `.env` (see `.env.example`) or your shell before starting 
 `docker-compose.yml` and each per-service `docker-compose.yml` under `src/services/docker/`
 require it (`${C360_API_KEY:?...}`) and refuse to start a container without it.
 
+## Rate limiting (added 2026-09-26)
+BP7's FastAPI service (`src/services/bp7_decision_engine_service.py`) adds an in-memory,
+per-process rate limiter as part of its "deploy as a real public API" hardening pass - fixed
+window, keyed by the caller's `X-API-Key` (falling back to client IP), `C360_RATE_LIMIT_PER_MINUTE`
+requests per minute (default 120, `0` disables it). `GET /` and `GET /health` are exempt, matching
+the authentication exemption above (orchestrator/uptime probes need no secret and no rate limit).
+An over-limit request gets `429` with a `Retry-After` header and the same consistent JSON error
+envelope every other error uses (see below).
+
+Explicitly disclosed, not glossed over: this limiter is real but in-memory and per-process - it
+resets on every restart and is not shared across instances. That is an honest fit for the
+single-instance Render free-tier deployment this hardening pass targets (see
+`RENDER_DEPLOYMENT.md`), not a claim of a production-grade distributed rate limiter. The other 6
+services do not yet have this - only BP7 was in scope for this deployment-hardening pass.
+
+## Structured error responses (added 2026-09-26)
+Every 4xx/5xx BP7 returns (bare or under `/v1`) carries a consistent JSON envelope -
+`error_code`, `status_code`, and a `request_id` (also echoed as the `X-Request-ID` response
+header, generated per-request or propagated from a caller-supplied `X-Request-ID` header) - in
+addition to the existing `detail` field every pre-hardening caller already relies on. This never
+changes an HTTP status code, only adds machine-readable structure and a value to correlate a
+client-reported error against server-side logs.
+
 ## Secrets management (added 2026-09-26)
 Today every secret above is a plain environment variable - a normal, honest way to run a solo
 local/demo deployment, but not how a real production system should manage secrets long-term. See
