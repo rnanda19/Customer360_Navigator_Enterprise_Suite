@@ -77,6 +77,13 @@ isort==9.0.1
 # 1.11.2 is the newest 1.x release verified to run cleanly here.
 mypy==1.11.2
 bandit==1.9.4
+# nbformat/pyflakes: back scripts/check_notebook_syntax.py's real methodology (nbformat.read()
+# + ast.parse() + pyflakes per notebook cell) - the script referenced by Makefile's
+# `notebook-check` target and ci.yml's `notebook-syntax-check` job existed only as historical
+# output logs (notebooks/*/artifacts/gate6_notebook_syntax_check_output.log) until now; the
+# script itself had never actually been committed, so both call sites were silent no-ops.
+nbformat==5.11.1
+pyflakes==4.0.0
 pre-commit>=3.8
 # pydantic-settings: src/utils/settings.py (hygiene pass, 2026-09-26) - pydantic v2 split
 # BaseSettings out of pydantic core into this separate package.
