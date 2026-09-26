@@ -84,7 +84,7 @@ bandit==1.9.4
 # script itself had never actually been committed, so both call sites were silent no-ops.
 nbformat==5.11.1
 pyflakes==4.0.0
-pre-commit>=3.8
+pre-commit>=4.6.2
 # pydantic-settings: src/utils/settings.py (hygiene pass, 2026-09-26) - pydantic v2 split
 # BaseSettings out of pydantic core into this separate package.
 pydantic-settings>=2.5
