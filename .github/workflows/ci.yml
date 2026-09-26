@@ -11,6 +11,20 @@ jobs:
       - run: black --check src/ tests/
       - run: flake8 src/ tests/
       - run: isort --check-only src/ tests/
+      # Hygiene pass (2026-09-26): mypy was pip-installed above but never actually invoked - wired
+      # in now as a real, non-blocking check (`|| true`, matching notebook-syntax-check's own
+      # precedent below) so CI reports the REAL error count from every real run rather than
+      # silently never running it at all. Kept soft rather than a hard gate until a real baseline
+      # run has been observed - see pyproject.toml's [tool.mypy] section for why ignore_missing_
+      # imports is on, and this project's own "disclose the real number, never invent a threshold"
+      # convention (same one BP3's disparate-impact finding follows).
+      - name: mypy (non-blocking - see comment above)
+        run: |
+          mypy src/ --config-file pyproject.toml | tee mypy_report.txt || true
+          echo "## mypy report (non-blocking)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 50 mypy_report.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
   security:
     runs-on: ubuntu-latest
     steps:
@@ -31,7 +45,20 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
-      - run: pytest tests/ -v
+      # Hygiene pass (2026-09-26): real coverage reporting (pytest-cov, already a declared
+      # requirements.txt dependency) - printed to the run's own step summary so it's visible
+      # without opening a separate artifact, and to a Cobertura XML for any future consumer.
+      # No --cov-fail-under gate yet: gating at an invented percentage before a real baseline
+      # coverage number has ever been observed would be exactly the kind of unearned claim this
+      # project's own zero-fabrication standard exists to rule out (see BP3's disparate-impact
+      # disclosure for the same principle applied elsewhere). Once a real run reports the actual
+      # number, a threshold can be set from that number - never guessed in advance.
+      - run: |
+          pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml | tee pytest_report.txt
+          echo "## Coverage report (informational - no gate yet, see ci.yml comment)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -A 200 "^Name " pytest_report.txt >> "$GITHUB_STEP_SUMMARY" || tail -n 30 pytest_report.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
   notebook-syntax-check:
     runs-on: ubuntu-latest
     steps:

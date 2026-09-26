@@ -44,6 +44,10 @@ dependencies = [
     # itself, so it stays in requirements.txt's "Service layer" section only.
     "fastapi>=0.115",
     "pydantic>=2.0",
+    # pydantic-settings: src/utils/settings.py (hygiene pass, 2026-09-26) directly imports
+    # BaseSettings/SettingsConfigDict - pydantic v2 split this out of pydantic core into its own
+    # package, so it needs its own declared floor here alongside pydantic itself.
+    "pydantic-settings>=2.5",
 ]
 
 [tool.setuptools.packages.find]
@@ -75,3 +79,17 @@ line_length = 110
 # there, so flagging the bare `import subprocess` itself a second time is pure noise.
 [tool.bandit]
 skips = ["B101", "B404"]
+
+# Hygiene pass (2026-09-26): mypy wired into CI as a real, non-blocking check (.github/workflows/
+# ci.yml's lint job) - a first real-run gauges the actual error count across this codebase before
+# any decision to make it a hard gate, matching this project's own "disclose the real number,
+# never invent a threshold" convention (see e.g. BP3's disparate-impact disclosure). ignore_missing_
+# imports = true: several real runtime deps (polars, xgboost, catboost, spacy, etc.) either ship no
+# type stubs or aren't installed in every environment this runs in - that is a real, current gap in
+# the type-stub ecosystem, not something this project's own code can fix, so it is silenced rather
+# than producing hundreds of unrelated "cannot find implementation" errors that would drown out
+# genuine issues in this project's own code.
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+exclude = ["^tests/"]
