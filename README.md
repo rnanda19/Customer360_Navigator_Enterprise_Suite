@@ -12,11 +12,11 @@
 [![Secrets Management Verification](https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/vault-verify.yml?branch=main&label=Secrets%20Management%20Verification&labelColor=4F46E5)](https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/vault-verify.yml)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg?labelColor=0891B2)]()
 [![CRISP-DM](https://img.shields.io/badge/methodology-CRISP--DM-informational.svg?labelColor=CA8A04)](#methodology)
-[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey.svg?labelColor=475569)](LICENSE)
+[![License: Portfolio (All Rights Reserved)](https://img.shields.io/badge/license-Portfolio%20(All%20Rights%20Reserved)-lightgrey.svg?labelColor=475569)](LICENSE)
 [![Zero Fabrication](https://img.shields.io/badge/policy-zero--fabrication-blueviolet)](#execution-boundary-standing-rule-disclosed-on-purpose)
 [![Business problems](https://img.shields.io/badge/business%20problems-8%2F8%20real--run%20confirmed-success)](#business-problems)
 
-**[🗺️ Start here](#start-here-live-suite-dashboard)** · **[⚡ Why it's different](#why-this-repo-is-different)** · **[📊 Real headline results](#at-a-glance)** · **[📈 Live reports](#live-reports-and-dashboards)** · **[⚠️ The fairness finding](#leading-with-the-fairness-finding)** · **[🧭 Business problems](#business-problems)** · **[🔗 Identity & Activation](#beyond-the-8-business-problems-identity-resolution-and-activation)** · **[🏗️ Architecture](#system-architecture)** · **[🗂️ Structure](#structure)** · **[🚀 Quickstart](#reproducing-this-locally)** · **[📌 What this is / isn't](#execution-boundary-standing-rule-disclosed-on-purpose)**
+**[🗺️ Start here](#start-here-live-suite-dashboard)** · **[⚡ Why it's different](#why-this-repo-is-different)** · **[📊 Real headline results](#at-a-glance)** · **[📈 Live reports](#live-reports-and-dashboards)** · **[⚠️ The fairness finding](#leading-with-the-fairness-finding)** · **[🧭 Business problems](#business-problems)** · **[🔗 Identity, Golden Profile & Observability](#beyond-the-8-business-problems-identity-resolution-golden-profile-activation-and-observability)** · **[🏗️ Architecture](#system-architecture)** · **[🗂️ Structure](#structure)** · **[🚀 Quickstart](#reproducing-this-locally)** · **[📌 What this is / isn't](#execution-boundary-standing-rule-disclosed-on-purpose)**
 
 </div>
 

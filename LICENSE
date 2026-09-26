@@ -1,16 +1,60 @@
-MIT License
+Copyright (c) 2026 Nandagopal R. All Rights Reserved.
 
-Copyright (c) 2026 Nandagopal
+PORTFOLIO LICENSE
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, subject to the following conditions:
+This repository is published for demonstration and evaluation purposes only:
+to let recruiters, hiring managers, technical reviewers, and other visitors
+see real, working examples of the author's engineering and analytical work.
+Publishing it here does not place it in the public domain and does not grant
+an open-source license of any kind.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. WHAT YOU MAY DO WITHOUT ASKING
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   a. View, read, and browse all files in this repository through GitHub or
+      any other means by which the author has made it publicly viewable.
+   b. Reference or discuss this work in a hiring, recruiting, or evaluation
+      context (for example, quoting a short excerpt in an interview note or
+      an internal hiring write-up), with attribution to the author and a
+      link back to this repository.
+   c. Clone or fork the repository for your own private, local review, so
+      long as the clone or fork is not published, redistributed, deployed,
+      or otherwise made available to any third party.
+
+2. WHAT REQUIRES THE AUTHOR'S PRIOR WRITTEN PERMISSION
+
+   a. Copying, reproducing, or redistributing any part of this repository's
+      source code, data, configuration, documentation, trained models, or
+      other content — in whole or in part — into any other public or
+      private repository, product, service, dataset, or publication.
+   b. Modifying, adapting, translating, or creating derivative works based
+      on this repository's content.
+   c. Using any part of this repository's content, in whole or in part, for
+      a commercial purpose, including incorporating it into a commercial
+      product, internal business tool, or paid service.
+   d. Sublicensing, selling, renting, or otherwise transferring any rights
+      in this repository's content to a third party.
+   e. Using this repository's content to train, fine-tune, or evaluate a
+      machine-learning model, except for the author's own use.
+
+3. NO WARRANTY
+
+   This repository and its content are provided "AS IS," without warranty of
+   any kind, express or implied, including but not limited to the implied
+   warranties of merchantability, fitness for a particular purpose, and
+   non-infringement. In no event shall the author be liable for any claim,
+   damages, or other liability, whether in an action of contract, tort, or
+   otherwise, arising from, out of, or in connection with this repository or
+   its use.
+
+4. REQUESTING PERMISSION
+
+   For permission to use this repository's content beyond what is described
+   in Section 1 — including licensing, collaboration, or commercial use —
+   open a GitHub issue on this repository or contact the author through the
+   LinkedIn profile linked in this repository's README.
+
+---
+This is a plain-language license template written for a personal portfolio
+project, not a substitute for legal advice. If this repository's
+intellectual property has commercial value to you, have this license
+reviewed by a qualified attorney in your jurisdiction before relying on it.
