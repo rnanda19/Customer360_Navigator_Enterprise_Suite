@@ -71,9 +71,26 @@ target-version = ["py311"]
 
 # profile = "black" resolves the one real, well-documented isort/black conflict (import-wrapping
 # style) without any manual per-file fixing - the standard pairing, not a project-specific tweak.
+#
+# src_paths = ["src"]: added 2026-09-26 after a real, reproduced CI-vs-local isort discrepancy -
+# CI (a clean `pip install -r requirements.txt` venv, python-version 3.11 per ci.yml) flagged
+# src/features/bp7_decision_engine_features.py and src/features/bp3_escalation_features.py as
+# "incorrectly sorted", while the identical bare `isort --check-only src/ tests/` command, same
+# isort==9.0.1, passed clean in this project's own local dev environment. Root-caused by
+# reproducing the exact CI failure locally with isort's own Config API
+# (isort.settings.Config(src_paths=[]) - i.e. no explicit src_paths) - isort's automatic "a folder
+# literally named src exists" src-root detection is what silently made local invocations treat
+# features/models/services/taxonomy/deployment/genai/utils as first-party imports; something about
+# the CI runner's environment does not trigger that same auto-detection, so those same local
+# package imports were sorted into the third-party group there instead, alongside pandas/polars/
+# scipy/sklearn - a real, environment-dependent flake, not a formatting regression in either file.
+# Declaring src_paths explicitly removes the dependency on that auto-detection heuristic
+# succeeding in any given environment, so this can never happen again regardless of runner,
+# Python version, or whichever packages happen to already be installed elsewhere in a dev venv.
 [tool.isort]
 profile = "black"
 line_length = 110
+src_paths = ["src"]
 
 # skips = ["B101"]: this project deliberately uses `assert` as its own "raise AssertionError,
 # never silently pass" integrity-check convention throughout notebooks and src/ alike (see e.g.

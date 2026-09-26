@@ -1,0 +1,55 @@
+name: Lint & Format
+
+# Linting, formatting, and static security scanning - split out from ci.yml (tests + notebook
+# syntax + docker validation, now its own docker-verify.yml) on 2026-09-26, mirroring this
+# project's own sibling AMEX RiskIQ Enterprise Credit Risk Platform repo's real
+# code-quality.yml/ci.yml split, so a quality-only failure doesn't read as "the models are
+# broken" and vice versa, and so this repo can carry an honest, separate "Lint & Format" badge.
+# Every step below is unchanged in substance from ci.yml's own former lint/security jobs - only
+# the file location and workflow name changed.
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      # Pinned exactly, matching requirements.txt's own pins (2026-09-26 CI incident -
+      # see that file's comment) - an unversioned install here silently drifted to
+      # whatever each tool's newest PyPI release was at run time and broke this job with
+      # no code change on this project's side at all.
+      - run: pip install black==24.10.0 flake8==7.4.1 isort==9.0.1 mypy==1.11.2 ruff==0.16.9
+      - run: black --check src/ tests/
+      - run: flake8 src/ tests/
+      - run: isort --check-only src/ tests/
+      # Added 2026-09-26: a second, independent lint gate alongside flake8 (see pyproject.toml's
+      # [tool.ruff] for exact scope/rationale - E/F/W only, mirroring flake8's own rule families).
+      - run: ruff check src/ tests/
+      # Hygiene pass (2026-09-26): mypy was pip-installed above but never actually invoked - wired
+      # in now as a real, non-blocking check (`|| true`, matching notebook-syntax-check's own
+      # precedent below) so CI reports the REAL error count from every real run rather than
+      # silently never running it at all. Kept soft rather than a hard gate until a real baseline
+      # run has been observed - see pyproject.toml's [tool.mypy] section for why ignore_missing_
+      # imports is on, and this project's own "disclose the real number, never invent a threshold"
+      # convention (same one BP3's disparate-impact finding follows).
+      - name: mypy (non-blocking - see comment above)
+        run: |
+          mypy src/ --config-file pyproject.toml | tee mypy_report.txt || true
+          echo "## mypy report (non-blocking)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 50 mypy_report.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      # Pinned exactly, same reasoning as the lint job above.
+      - run: pip install bandit==1.9.4
+      # -c pyproject.toml picks up [tool.bandit] skips = ["B101", "B404"] (see that section's
+      # comments for why each is a documented, non-security-relevant project convention here).
+      # Every other finding is a real blocker for this job, matching the AMEX RiskIQ platform's
+      # own "0 findings" bandit precedent this project inherits.
+      - run: bandit -c pyproject.toml -r src/

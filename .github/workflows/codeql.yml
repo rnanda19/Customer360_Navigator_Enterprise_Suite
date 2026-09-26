@@ -1,0 +1,43 @@
+# GitHub native CodeQL security code scanning.
+# Free for public repositories. Runs on every push/PR to main and on a weekly schedule so
+# newly-disclosed vulnerability patterns are still caught even when the code itself hasn't
+# changed. Adapted from this project's own sibling AMEX RiskIQ Enterprise Credit Risk Platform
+# repo's identical, already-verified-green codeql.yml (2026-09-26) - this workflow is fully
+# generic (language: python) and needs no Customer360-specific paths or configuration.
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  analyze:
+    name: Analyze (python)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'python' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"

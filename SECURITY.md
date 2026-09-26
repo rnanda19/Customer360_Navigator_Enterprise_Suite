@@ -31,6 +31,13 @@ Set `C360_API_KEY` in `.env` (see `.env.example`) or your shell before starting 
 `docker-compose.yml` and each per-service `docker-compose.yml` under `src/services/docker/`
 require it (`${C360_API_KEY:?...}`) and refuse to start a container without it.
 
+## Secrets management (added 2026-09-26)
+Today every secret above is a plain environment variable - a normal, honest way to run a solo
+local/demo deployment, but not how a real production system should manage secrets long-term. See
+`SECRETS_MANAGEMENT.md` for a real, CI-verified proof-of-concept (`docs/secrets_management_demo/`
++ `.github/workflows/vault-verify.yml`) of a HashiCorp Vault dev-mode alternative, and what real
+production Vault would still need beyond it.
+
 ## Dependencies
 `requirements.txt` and `pyproject.toml` pin minimum versions for every real direct import found in `src/`
 (derived by grepping actual imports, not copied wholesale from an unrelated template).

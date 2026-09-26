@@ -5,9 +5,14 @@
 
 **Eight real business problems. One shared CFPB dataset. Zero fabricated numbers — including the one time the fairness audit didn't come back clean.**
 
-[![CI](https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/ci.yml/badge.svg)](https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/ci.yml)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](requirements.txt)
-[![License: MIT](https://img.shields.io/badge/license-MIT-informational)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/ci.yml?branch=main&label=CI&labelColor=2563EB)](https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/ci.yml)
+[![Lint & Format](https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/code-quality.yml?branch=main&label=Lint%20%26%20Format&labelColor=0D9488)](https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/code-quality.yml)
+[![CodeQL Security Scan](https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/codeql.yml?branch=main&label=CodeQL%20Security%20Scan&labelColor=7C3AED)](https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/codeql.yml)
+[![Docker Build & Run Verification](https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/docker-verify.yml?branch=main&label=Docker%20Build%20%26%20Run%20Verification&labelColor=B45309)](https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/docker-verify.yml)
+[![Secrets Management Verification](https://img.shields.io/github/actions/workflow/status/rnanda19/Customer360_Navigator_Enterprise_Suite/vault-verify.yml?branch=main&label=Secrets%20Management%20Verification&labelColor=4F46E5)](https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/actions/workflows/vault-verify.yml)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg?labelColor=0891B2)]()
+[![CRISP-DM](https://img.shields.io/badge/methodology-CRISP--DM-informational.svg?labelColor=CA8A04)](#methodology)
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey.svg?labelColor=475569)](LICENSE)
 [![Zero Fabrication](https://img.shields.io/badge/policy-zero--fabrication-blueviolet)](#execution-boundary-standing-rule-disclosed-on-purpose)
 [![Business problems](https://img.shields.io/badge/business%20problems-8%2F8%20real--run%20confirmed-success)](#business-problems)
 
@@ -262,9 +267,13 @@ MODEL_CARD.md, CHANGELOG.md, and each BP's executive rollup (dashboard/report/wo
 human, Power BI Desktop step — never a notebook deliverable). `tests/` — 1,000+ tests, mirroring `src/`
 1:1. `docs/` — architecture notes, BRD/FRD, data dictionary, and `evidence_ledger/EVIDENCE_LEDGER.md`,
 the append-only record of every real run. `scripts/` — the notebook-syntax and structural-check tooling
-every gate uses. `.github/workflows/ci.yml` — lint (black, flake8, isort, ruff), security (bandit),
-pytest, notebook-syntax, and Docker-compose-validate, generic across all 8 BPs, plus
-`.github/dependabot.yml`, `.github/ISSUE_TEMPLATE/`, and `.github/PULL_REQUEST_TEMPLATE.md`.
+every gate uses. `.github/workflows/` — 5 separate workflows, each its own real badge above:
+`ci.yml` (pytest + notebook-syntax), `code-quality.yml` (lint: black/flake8/isort/ruff/mypy;
+security: bandit), `codeql.yml` (GitHub-native semantic security scanning), `docker-verify.yml`
+(real `docker build` + `docker run` + `/health` check for all 7 services), and
+`vault-verify.yml` (real HashiCorp Vault dev-mode write/read/verify, see
+`SECRETS_MANAGEMENT.md`) — plus `.github/dependabot.yml`, `.github/ISSUE_TEMPLATE/`, and
+`.github/PULL_REQUEST_TEMPLATE.md`.
 `docker-compose.yml` (repo root) — one-command aggregator of all 7 per-BP compose files under
 `src/services/docker/`. `.env.example` — every real environment variable this codebase reads
 (`C360_PROJECT_ROOT`, `C360_API_KEY`, `GEMINI_API_KEY`, `GEMINI_MODEL`), nothing illustrative.

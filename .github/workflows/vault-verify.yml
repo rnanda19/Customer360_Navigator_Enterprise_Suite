@@ -1,0 +1,40 @@
+name: Secrets Management (Vault Dev-Mode) Verification
+
+# Real, CI-verified proof-of-concept for SECRETS_MANAGEMENT.md, adapted from this project's own
+# sibling AMEX RiskIQ Enterprise Credit Risk Platform repo's real, already-verified-green
+# vault-verify.yml (2026-09-26). This sandbox environment has no Docker, so - exactly like
+# docker-verify.yml's Dockerfile verification - this workflow runs on GitHub's ubuntu-latest
+# runners (real Docker access) to actually start a local dev-mode HashiCorp Vault, write a real
+# secret to it, read it back, and assert the value matches exactly. Check the Actions tab after
+# pushing to confirm it goes green; this file's own description does not claim the demonstration
+# passed until CI has actually run it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  vault-write-read-verify:
+    name: Start dev-mode Vault, write + read a real secret, verify it matches
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs/secrets_management_demo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Vault (dev mode) via docker compose
+        run: docker compose -f docker-compose.vault.yml up -d
+
+      - name: Run the real write/read/verify script
+        run: bash vault_dev_example.sh
+
+      - name: Show Vault logs (always, for visibility)
+        if: always()
+        run: docker compose -f docker-compose.vault.yml logs || true
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker-compose.vault.yml down -v || true

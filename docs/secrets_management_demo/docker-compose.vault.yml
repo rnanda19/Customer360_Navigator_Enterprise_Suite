@@ -1,0 +1,21 @@
+# Local-dev-only HashiCorp Vault, for demonstrating a real secrets-management pattern this
+# platform's 7 services could adopt in place of plain .env files. Adapted from this project's own
+# sibling AMEX RiskIQ Enterprise Credit Risk Platform repo's real, already-verified-green
+# docker-compose.vault.yml (2026-09-26).
+#
+# THIS IS DEV MODE: an in-memory, unsealed, single-node Vault with a fixed root token. It is
+# intentionally insecure and is never meant to run anywhere but a laptop or a throwaway CI job -
+# see SECRETS_MANAGEMENT.md for the real production-mode requirements (auto-unseal, TLS, a real
+# storage backend, short-lived tokens) this deliberately skips.
+services:
+  vault:
+    image: hashicorp/vault:1.17
+    container_name: c360-vault-dev
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "root-token-for-local-dev-only"
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    ports:
+      - "8200:8200"
+    command: ["server", "-dev"]
