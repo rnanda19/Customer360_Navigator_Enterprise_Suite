@@ -16,7 +16,7 @@
 [![Zero Fabrication](https://img.shields.io/badge/policy-zero--fabrication-blueviolet)](#execution-boundary-standing-rule-disclosed-on-purpose)
 [![Business problems](https://img.shields.io/badge/business%20problems-8%2F8%20real--run%20confirmed-success)](#business-problems)
 
-**[🗺️ Start here](#start-here-live-suite-dashboard)** · **[⚡ Why it's different](#why-this-repo-is-different)** · **[📊 Real headline results](#at-a-glance)** · **[📈 Live reports](#live-reports-and-dashboards)** · **[⚠️ The fairness finding](#leading-with-the-fairness-finding)** · **[🧭 Business problems](#business-problems)** · **[🏗️ Architecture](#system-architecture)** · **[🗂️ Structure](#structure)** · **[🚀 Quickstart](#reproducing-this-locally)** · **[📌 What this is / isn't](#execution-boundary-standing-rule-disclosed-on-purpose)**
+**[🗺️ Start here](#start-here-live-suite-dashboard)** · **[⚡ Why it's different](#why-this-repo-is-different)** · **[📊 Real headline results](#at-a-glance)** · **[📈 Live reports](#live-reports-and-dashboards)** · **[⚠️ The fairness finding](#leading-with-the-fairness-finding)** · **[🧭 Business problems](#business-problems)** · **[🔗 Identity & Activation](#beyond-the-8-business-problems-identity-resolution-and-activation)** · **[🏗️ Architecture](#system-architecture)** · **[🗂️ Structure](#structure)** · **[🚀 Quickstart](#reproducing-this-locally)** · **[📌 What this is / isn't](#execution-boundary-standing-rule-disclosed-on-purpose)**
 
 </div>
 
@@ -194,7 +194,15 @@ converting BP2/BP3/BP4's real predictions into one of four fixed business action
 `STANDARD_QUEUE` — plus a `priority_score` and reason codes, never a trained classifier and never a
 GenAI call (by design — see the module's own docstring on why UDAAP Section 9 rules that out here).
 Full-population real scoring (1,048,575 rows). Adverse impact ratio **0.908127** — passes the
-four-fifths floor. Served live at `GET /decide/{complaint_id}` (`src/services/bp7_decision_engine_service.py`).
+four-fifths floor. Implements `GET /decide/{complaint_id}` (`src/services/bp7_decision_engine_service.py`)
+— real, tested, Docker-packaged, and runnable locally today (`docker compose -f
+src/services/docker/bp7_decision_engine_service/docker-compose.yml up --build`). **Not currently
+behind a public URL** — no BP in this suite is. A one-click deploy is ready when you want it:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/tree/main)
+
+See [`RENDER_DEPLOYMENT.md`](RENDER_DEPLOYMENT.md) for exactly what that button does and doesn't
+do (it cannot create your Render account or your API key for you — see that doc for why).
 Details: [`notebooks/bp7_customer_navigator_decision_engine/README.md`](notebooks/bp7_customer_navigator_decision_engine/README.md).
 </details>
 
@@ -216,6 +224,41 @@ against its own artifact files rather than re-asserting it. Real-run confirmed: 
 RECOMMENDED FOR PRODUCTION, 1 at CONDITIONAL - GOVERNANCE REVIEW REQUIRED (BP3, disclosed above), 1 at
 Recommended for Decision-Support Use With Monitoring (BP5); BP8 has no production-tier concept of its own
 (a Gold-layer build, not a decision model).
+
+<br>
+
+## Beyond the 8 Business Problems: Identity Resolution and Activation
+
+Two more layers exist on top of BP1-8, deliberately kept **out** of the 8-BP numbering because
+neither is a modeling problem over real CFPB data — both are disclosed, working demonstrations of
+the two pieces a full enterprise Customer 360 platform needs beyond prediction and decisioning.
+
+**Identity Resolution → Golden Customer Record** (`src/identity_resolution/`,
+[full disclosure](data/synthetic_identity_demo/README.md)). The real CFPB extract this suite is
+built on has no customer identifier at all (BP4's own architecture doc states this — it's why BP4
+does event/issue-cluster journey analytics instead of inventing one). So this is a real
+deterministic-then-probabilistic entity resolver (union-find on exact email/phone, then a
+disclosed weighted `difflib` similarity blend past a calibrated threshold), run against a
+small, hand-authored, **entirely fictional** 14-row/3-source fixture that models what a
+core-banking system, a CRM, and a web-signup flow would each say about the same overlapping
+customers. On a real run it resolves 14 source rows to 9 golden `customer_360_id` records —
+correctly chaining one fictional customer across all 3 sources, correctly matching two more
+probabilistically, and correctly **declining** to merge a deliberate near-miss pair (proven by its
+own test suite, 11/11 passing). Never joined to, or run against, any real CFPB row anywhere in
+this project.
+
+**Activation — Decision → Action** (`src/services/bp_activation_service.py`, port 8010). BP7
+already turns predictions into a decision; this layer demonstrates the next real step — routing
+that decision somewhere. It takes BP7's 3 real `recommended_action` values and routes each to a
+simulated CRM case, notification, or escalation-queue adapter over a real, inspectable SQLite
+event log. Every response field is prefixed `SIMULATED_` and the module's own docstring states
+plainly which real systems are never contacted — this is a pattern demonstration, not a claim of
+live CRM/banking-system integration. 9/9 tests passing, Docker-packaged like every other service
+in this suite.
+
+Both layers, plus every other row in this repo, are in the
+[Production Readiness Matrix](docs/PRODUCTION_READINESS_MATRIX.md) with the same real/synthetic
+disclosure repeated there.
 
 <br>
 

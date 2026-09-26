@@ -1,0 +1,33 @@
+# Customer360 Navigator — Render Blueprint for BP7 (Customer Navigator Decision Engine)
+#
+# This deploys BP7 exactly as it already runs locally (see
+# src/services/docker/bp7_decision_engine_service/{Dockerfile,docker-compose.yml}) — a read-only
+# lookup service over BP7's real, persisted, full-population decision records, zero external
+# network calls. Nothing here is a new or different service; this file just describes the same
+# Dockerfile to Render's Blueprint system (https://render.com/docs/blueprint-spec) so it can be
+# deployed with a review-and-approve click instead of the fully manual console walkthrough.
+#
+# What this file does NOT do, and cannot do: create a Render account, click "Approve" for you, or
+# set your real C360_API_KEY. The two envVars marked `sync: false` below are deliberately left
+# blank here — Render prompts for their real values in its own dashboard at deploy time, so no
+# secret is ever stored in this repo. See RENDER_DEPLOYMENT.md at the repo root for the full
+# walkthrough (manual-console steps, what each field means, and how to verify the real deployment
+# once it's live) and README.md's BP7 section for the "Deploy to Render" button this file backs.
+
+services:
+  - type: web
+    name: c360-bp7-decision-engine
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: src/services/docker/bp7_decision_engine_service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: C360_API_KEY
+        sync: false
+      - key: C360_GIT_COMMIT
+        sync: false
+      - key: C360_RATE_LIMIT_PER_MINUTE
+        value: "120"

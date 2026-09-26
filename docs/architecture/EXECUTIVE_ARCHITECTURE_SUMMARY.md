@@ -58,7 +58,7 @@ flowchart TB
 | BP8 Gold layer + `.pbix` | **Real** — 11 Parquet tables, committed 7-page report | [`powerbi/README.md`](../../powerbi/README.md) |
 | Activation layer | **Real code, simulated destinations** — routes BP7's real decisions to mock CRM/notification/case adapters | Every response field prefixed `SIMULATED_`; disclosed in module docstring |
 | Identity Resolution / Golden Customer Record | **Real code, synthetic fixture** — demonstrates the pattern; never touches real CFPB rows because the real extract has no customer identifier to resolve | [`data/synthetic_identity_demo/README.md`](../../data/synthetic_identity_demo/README.md) |
-| Live production deployment (HTTPS front door, auth gateway) | **Not done** — requires a cloud account (Render/similar) this repo cannot create on its own | See `RENDER_DEPLOYMENT.md` |
+| Live production deployment (HTTPS front door, auth gateway) | **Not done** — a real Render Blueprint (`render.yaml`) and "Deploy to Render" button are ready, but creating the account and approving the deploy is a real action only you can take | See `RENDER_DEPLOYMENT.md` and the button in README.md's BP7 section |
 | Prometheus/Grafana live scraping | **Not done** — nothing is deployed yet for Grafana to scrape; depends on the item above | — |
 
 ## Technologies per layer

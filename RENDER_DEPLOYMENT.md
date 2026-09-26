@@ -33,7 +33,29 @@ BP7 is a read-only lookup service over a real, persisted, ~540MB/1,048,575-row C
 the Dockerfile's own header for why the image is intentionally large). It makes zero external
 network calls of its own.
 
-## One-time setup
+## Fastest path: the Render Blueprint (`render.yaml`)
+
+This repo now ships a real [Render Blueprint](https://render.com/docs/blueprint-spec)
+(`render.yaml` at the repo root) that describes this exact Dockerfile/health-check/env-var setup
+to Render, so most of the manual console steps below are pre-filled for you:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/tree/main)
+
+Clicking it takes you to Render, where **you** sign in or create an account, review the one
+service Render found in `render.yaml`, and approve it — Claude cannot do any part of that step
+for you (account creation and clicking "Approve" are both outside Claude's execution boundary on
+this project). The only thing you still have to type in yourself is your real `C360_API_KEY`
+(and optionally `C360_GIT_COMMIT`) — `render.yaml` deliberately leaves those blank
+(`sync: false`) rather than storing a secret in this repo, so Render's own dashboard prompts you
+for them during that same approval flow. Everything else (Dockerfile path, build context, health
+check path, free-tier plan) is already set correctly in `render.yaml` — verify it matches the
+manual steps below if you ever edit either file, since they describe the same service twice.
+
+If the Blueprint flow ever fails to sync (it happens — see
+[Render's own community reports](https://community.render.com/t/blueprint-sync-fails-with-no-error-messages/3707)),
+the fully manual path below configures the identical service by hand.
+
+## One-time setup (manual console path)
 
 1. **Confirm the real artifacts exist and are committed.** Render builds from your GitHub repo,
    so `notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv`
