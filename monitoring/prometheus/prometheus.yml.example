@@ -1,0 +1,63 @@
+# Customer360 Navigator - Prometheus scrape configuration for BP7 (Priority 3 observability
+# addition, 2026-09-26). See MONITORING.md at the repo root for the full disclosure on which
+# metrics are live-per-request vs. static-Gate-5-artifact-refreshed-per-restart.
+#
+# THIS IS A TEMPLATE. Copy it to prometheus.yml (gitignored - same .env.example -> .env
+# convention this project already uses for secrets) and fill in your own real C360_API_KEY value
+# below. Prometheus's own scrape_config has no built-in way to read an environment variable at
+# config-parse time, so - exactly like this project's own .env.example - the real value goes in
+# the untracked copy, never in this committed template.
+#
+#   cp monitoring/prometheus/prometheus.yml.example monitoring/prometheus/prometheus.yml
+#   # then edit the X-API-Key line below to your real C360_API_KEY value
+#
+# WHY http_headers, NOT the `authorization:` block: Prometheus's native scrape_config
+# `authorization:` field only supports `Authorization: <scheme> <credentials>` (e.g. Bearer
+# tokens) - it cannot send an arbitrary header name. BP7's real auth
+# (src/services/service_auth.py::require_api_key, see SECURITY.md) checks `X-API-Key` specifically,
+# so this uses Prometheus's `http_headers` scrape-config field instead (added in Prometheus 2.47+;
+# if you are running an older Prometheus, upgrade - this is a real, documented Prometheus feature,
+# not a workaround invented for this project).
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Option A (default): a BP7 instance running locally via
+  # `docker compose -f src/services/docker/bp7_decision_engine_service/docker-compose.yml up`,
+  # reached from inside the Prometheus container via the Docker-Desktop/Linux-20.10+
+  # `host.docker.internal` gateway alias this stack's own docker-compose.monitoring.yml sets up
+  # (see that file's `extra_hosts` entry) - NOT a shared Docker network, so no change to BP7's own
+  # existing docker-compose.yml is required.
+  - job_name: "bp7-local"
+    metrics_path: /metrics/prometheus
+    http_headers:
+      X-API-Key:
+        values: ["REPLACE_WITH_YOUR_REAL_C360_API_KEY"]
+    static_configs:
+      - targets: ["host.docker.internal:8007"]
+        labels:
+          environment: "local"
+          bp_id: "bp7"
+
+  # Option B: your real, deployed Render instance (see RENDER_DEPLOYMENT.md). Prometheus scrapes
+  # this directly over HTTPS - no VPN/tunnel needed, since Render assigns a real public HTTPS URL.
+  # Uncomment and replace <your-service-name> with your real Render service name to scrape your
+  # actual deployed production instance alongside (or instead of) the local one above.
+  # - job_name: "bp7-render-production"
+  #   scheme: https
+  #   metrics_path: /metrics/prometheus
+  #   http_headers:
+  #     X-API-Key:
+  #       values: ["REPLACE_WITH_YOUR_REAL_C360_API_KEY"]
+  #   static_configs:
+  #     - targets: ["<your-service-name>.onrender.com"]
+  #       labels:
+  #         environment: "render-production"
+  #         bp_id: "bp7"
+
+  # Prometheus's own self-scrape - standard convention, not specific to this project.
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

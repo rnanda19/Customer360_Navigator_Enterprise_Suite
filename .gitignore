@@ -21,6 +21,10 @@ models/**/*.onnx
 .env
 *.pem
 *.key
+# Real Prometheus scrape config (Priority 3 observability addition, 2026-09-26) - contains
+# the real C360_API_KEY value in its http_headers block. Same .env.example -> .env convention;
+# monitoring/prometheus/prometheus.yml.example is the committed template.
+monitoring/prometheus/prometheus.yml
 
 # OS / editor
 .DS_Store

@@ -1,0 +1,67 @@
+# Customer360 Navigator - Prometheus + Grafana observability stack (Priority 3 addition,
+# 2026-09-26). Standalone from the main docker-compose.yml / per-service compose files - this
+# stack only SCRAPES a BP7 instance, it does not run one. Start BP7 itself first (see
+# src/services/docker/bp7_decision_engine_service/docker-compose.yml or RENDER_DEPLOYMENT.md for a
+# real deployed instance), then start this stack:
+#
+#   cp monitoring/prometheus/prometheus.yml.example monitoring/prometheus/prometheus.yml
+#   # edit monitoring/prometheus/prometheus.yml: fill in your real C360_API_KEY
+#   docker compose -f monitoring/docker-compose.monitoring.yml up
+#
+# Then: Prometheus at http://localhost:9090, Grafana at http://localhost:3000
+# (default Grafana login admin/admin - change it; see the environment section below for how this
+# stack sets a real initial password from GRAFANA_ADMIN_PASSWORD instead of leaving the well-known
+# default in place).
+#
+# Run from the project ROOT so the two bind-mount paths below resolve correctly:
+#   docker compose -f monitoring/docker-compose.monitoring.yml up
+#
+# See MONITORING.md at the repo root for the full disclosure on which panels/metrics are
+# live-per-request vs. static-Gate-5-artifact-refreshed-per-restart.
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: c360-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    # host.docker.internal lets this container reach a BP7 instance published on the HOST
+    # machine's localhost:8007 (e.g. via `docker compose -f
+    # src/services/docker/bp7_decision_engine_service/docker-compose.yml up`) WITHOUT joining that
+    # service's own Docker network or editing its compose file - Docker Desktop (Mac/Windows)
+    # resolves this alias natively; `host-gateway` makes it also resolve on Linux with Docker
+    # Engine 20.10+.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: c360-grafana
+    depends_on:
+      - prometheus
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      # Real initial admin password, read from your shell/`.env` - never a hardcoded secret in
+      # this file (same "no committed credential" convention as C360_API_KEY/GEMINI_API_KEY - see
+      # SECURITY.md). Falls back to Grafana's own documented "admin" default only if genuinely
+      # unset - change it on first login either way.
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:

@@ -1,0 +1,16 @@
+# Customer360 Navigator - Grafana datasource provisioning (Priority 3 addition, 2026-09-26).
+# Auto-registers the Prometheus instance this same stack starts (see docker-compose.monitoring.yml
+# - Grafana and Prometheus share this compose file's default network, so "prometheus" resolves by
+# container/service name) as Grafana's default data source. No manual "Add data source" step.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    # Fixed uid (rather than Grafana's auto-generated one) so the dashboard JSON below can
+    # reference this datasource by a stable id regardless of provisioning order.
+    uid: c360_prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true

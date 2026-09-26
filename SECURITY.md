@@ -54,6 +54,18 @@ addition to the existing `detail` field every pre-hardening caller already relie
 changes an HTTP status code, only adds machine-readable structure and a value to correlate a
 client-reported error against server-side logs.
 
+## Observability (added 2026-09-26)
+BP7's `GET /metrics/prometheus` (real Prometheus exposition-format metrics - see `MONITORING.md`)
+requires the same `X-API-Key` header as every other governance endpoint (`/model-info`, `/metrics`)
+and is subject to the same in-memory rate limiter described above - it is never left open the way
+some real-world Prometheus setups leave their metrics port. Because Prometheus's native
+`authorization:` scrape-config block only supports `Authorization: Bearer` tokens, never an
+arbitrary header name, `MONITORING.md` documents using Prometheus's `http_headers` scrape-config
+field (2.47+) to send `X-API-Key` on each scrape. The optional periodic background self-test
+refresh (`C360_SELF_TEST_METRICS_INTERVAL_SECONDS`) runs entirely in-process and makes no network
+call of any kind - it re-reads the same real, local Gate 5 CSV `GET /decide/self-test` already
+reads.
+
 ## Secrets management (added 2026-09-26)
 Today every secret above is a plain environment variable - a normal, honest way to run a solo
 local/demo deployment, but not how a real production system should manage secrets long-term. See

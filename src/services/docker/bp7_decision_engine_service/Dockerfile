@@ -53,6 +53,14 @@
 # installed above. See RENDER_DEPLOYMENT.md at the repo root for how to deploy this image as a
 # real public API on Render's free tier.
 
+# AMENDED same day (2026-09-26, Priority 3 - "add real observability: Prometheus + Grafana"): the
+# "STILL UNCHANGED" sentence directly above was true for the production-hardening pass it
+# described - it is NO LONGER true as of this later, separate addition. `prometheus-client` is
+# added to the pip install list below - the first genuinely NEW runtime dependency this image has
+# ever needed (every earlier addition, including the one directly above, used only the standard
+# library plus fastapi/pydantic already installed). It backs the new GET /metrics/prometheus
+# endpoint (real Prometheus exposition-format metrics). See MONITORING.md at the repo root.
+
 FROM python:3.11-slim
 
 LABEL org.opencontainers.image.title="Customer360 Navigator - BP7 Customer Navigator Decision Engine"
@@ -72,7 +80,8 @@ RUN pip install --no-cache-dir \
         "scipy>=1.13" \
         "scikit-learn>=1.5" \
         "joblib>=1.3" \
-        "PyYAML>=6.0"
+        "PyYAML>=6.0" \
+        "prometheus-client>=0.20"
 
 COPY --chown=c360service:c360service PROJECT_STRUCTURE_LOCKED.md ./PROJECT_STRUCTURE_LOCKED.md
 COPY --chown=c360service:c360service src/ ./src/

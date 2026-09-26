@@ -48,6 +48,12 @@ dependencies = [
     # BaseSettings/SettingsConfigDict - pydantic v2 split this out of pydantic core into its own
     # package, so it needs its own declared floor here alongside pydantic itself.
     "pydantic-settings>=2.5",
+    # prometheus-client: src/services/bp7_decision_engine_service.py directly imports it (Priority 3
+    # observability addition, 2026-09-26) for its GET /metrics/prometheus endpoint - real
+    # Prometheus exposition-format metrics via a dedicated CollectorRegistry, not a claim of a
+    # managed Prometheus/Grafana deployment (see that module's own docstring and MONITORING.md).
+    # Floor matches requirements.txt's own new entry for consistency across the two files.
+    "prometheus-client>=0.20",
 ]
 
 [tool.setuptools.packages.find]

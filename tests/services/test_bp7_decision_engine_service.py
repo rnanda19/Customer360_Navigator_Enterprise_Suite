@@ -22,6 +22,7 @@ from __future__ import annotations
 import csv
 import importlib
 import json
+import time
 from pathlib import Path
 
 import pytest
@@ -149,6 +150,27 @@ def _build_synthetic_prerequisites(tmp_path: Path) -> None:
         "champion_rule_scheme": "correlation_aware_plus_lr_diagnostic",
         "champion_weights_normalized": {"bp2": 0.222714, "bp3": 0.170774, "bp4": 0.606512},
         "intervention_threshold": 0.5,
+        # Real-schema (field names match gate5_decision_layer_summary.json exactly, verified
+        # directly against the real, on-disk summary JSON) synthetic governance sub-objects, added
+        # for the Priority 3 observability tests below (bp7_population_* Prometheus gauges).
+        "disparate_impact_audit": {
+            "join_coverage_pct": 100.0,
+            "adverse_impact_ratio": 0.908127,
+            "flagged_four_fifths_rule": False,
+        },
+        "contribution_decomposition_summary": {
+            "n_rows": 3,
+            "reconstruction_exact_within_tolerance": True,
+        },
+        "weight_rederivation_cross_check": {
+            "cramers_v_matches_config": True,
+            "bp4_coverage_matches_config": True,
+            "weights_match_config": True,
+        },
+        "champion_stats": {
+            "coverage_pct": 100.0,
+            "intervention_flag_rate": 0.768415,
+        },
     }
     with open(artifacts_dir / "gate5_decision_layer_summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f)
@@ -524,6 +546,166 @@ def test_rate_limit_exempts_health_and_root(configured_client, monkeypatch):
     for _ in range(5):
         assert configured_client.get("/").status_code == 200
         assert configured_client.get("/health").status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Priority 3 observability endpoint (2026-09-26 addition - see the service module's own docstring):
+# GET /metrics/prometheus - real Prometheus exposition-format text, the live http_requests_total/
+# http_request_duration_seconds/lookup_volume_total/recommended_action_served_total series, the
+# static per-restart bp7_population_* governance gauges, and the one genuinely live governance
+# signal (bp7_self_test_last_result/bp7_self_test_last_run_timestamp_seconds).
+# ---------------------------------------------------------------------------
+
+
+def test_metrics_prometheus_requires_auth(configured_client):
+    r = configured_client.get("/metrics/prometheus", headers={"X-API-Key": "wrong-key"})
+    assert r.status_code == 401
+
+
+def test_metrics_prometheus_is_well_formed_exposition_format(configured_client):
+    r = configured_client.get("/metrics/prometheus")
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"].startswith("text/plain")
+    assert "# HELP bp7_http_requests_total" in r.text
+    assert "# TYPE bp7_http_requests_total counter" in r.text
+    assert "# TYPE bp7_http_request_duration_seconds histogram" in r.text
+
+
+def test_metrics_prometheus_counts_real_requests_by_route_and_status(configured_client):
+    configured_client.get("/decide/1001")
+    configured_client.get("/decide/999999999")  # a real 404
+    r = configured_client.get("/metrics/prometheus")
+    assert r.status_code == 200, r.text
+    body = r.text
+    assert 'bp7_http_requests_total{method="GET",route="/decide/{complaint_id}",status_code="200"}' in body
+    assert 'bp7_http_requests_total{method="GET",route="/decide/{complaint_id}",status_code="404"}' in body
+
+
+def test_metrics_prometheus_lookup_volume_and_recommended_action_series(configured_client):
+    configured_client.get("/decide/1001")  # found, ESCALATE_ROOT_CAUSE_REVIEW_RECURRING_CLUSTER
+    configured_client.get("/decide/999999999")  # not found
+    configured_client.post("/decision", json={"complaint_ids": [1002]})  # found, STANDARD_QUEUE
+    r = configured_client.get("/metrics/prometheus")
+    body = r.text
+    assert 'bp7_lookup_volume_total{endpoint="decide",found="true"} 1.0' in body
+    assert 'bp7_lookup_volume_total{endpoint="decide",found="false"} 1.0' in body
+    assert 'bp7_lookup_volume_total{endpoint="decision",found="true"} 1.0' in body
+    assert (
+        "bp7_recommended_action_served_total{"
+        'recommended_action="ESCALATE_ROOT_CAUSE_REVIEW_RECURRING_CLUSTER"} 1.0'
+    ) in body
+    assert 'bp7_recommended_action_served_total{recommended_action="STANDARD_QUEUE"} 1.0' in body
+
+
+def test_metrics_prometheus_population_gauges_reflect_real_gate5_summary(configured_client):
+    """The bp7_population_* gauges must report the REAL, synthetic-fixture Gate 5 governance
+    numbers verbatim - never a fabricated or rounded-differently value - and must be explicitly
+    disclosed (see the module docstring) as static/per-restart, never live per-request drift."""
+    r = configured_client.get("/metrics/prometheus")
+    body = r.text
+    assert "bp7_population_adverse_impact_ratio 0.908127" in body
+    assert "bp7_population_four_fifths_rule_flagged 0.0" in body
+    assert "bp7_population_contribution_reconstruction_exact 1.0" in body
+    assert "bp7_population_weight_rederivation_consistent 1.0" in body
+    assert "bp7_population_intervention_flag_rate 0.768415" in body
+    assert "bp7_gate5_artifact_loaded 1.0" in body
+
+
+def test_metrics_prometheus_gate5_artifact_loaded_is_zero_when_not_configured(unconfigured_client):
+    r = unconfigured_client.get("/metrics/prometheus")
+    assert r.status_code == 200, r.text
+    assert "bp7_gate5_artifact_loaded 0.0" in r.text
+
+
+def test_metrics_prometheus_service_info_gauge_carries_real_labels(configured_client):
+    r = configured_client.get("/metrics/prometheus")
+    body = r.text
+    assert 'champion_rule_scheme="correlation_aware_plus_lr_diagnostic"' in body
+    assert 'gate5_generated_at_utc="2026-09-25T00:00:00+00:00"' in body
+
+
+def test_v1_metrics_prometheus_mirrors_bare_route(configured_client):
+    configured_client.get("/decide/1001")
+    bare = configured_client.get("/metrics/prometheus")
+    versioned = configured_client.get("/v1/metrics/prometheus")
+    assert bare.status_code == versioned.status_code == 200
+    assert "bp7_gate5_artifact_loaded 1.0" in bare.text
+    assert "bp7_gate5_artifact_loaded 1.0" in versioned.text
+
+
+def test_self_test_client_call_updates_live_gauges(configured_client):
+    """The one genuinely live governance signal (see module docstring): calling GET
+    /decide/self-test must update bp7_self_test_last_result/bp7_self_test_last_run_timestamp_
+    seconds to reflect that REAL run, not leave them at their startup default."""
+    before = configured_client.get("/metrics/prometheus").text
+    assert "bp7_self_test_last_run_timestamp_seconds 0.0" in before
+
+    self_test = configured_client.get("/decide/self-test", params={"sample_size": 3})
+    assert self_test.status_code == 200
+    assert self_test.json()["all_checks_passed"] is True
+
+    after = configured_client.get("/metrics/prometheus").text
+    assert "bp7_self_test_last_result 1.0" in after
+    assert "bp7_self_test_last_run_timestamp_seconds 0.0" not in after
+
+
+def test_self_test_client_call_records_failure_in_live_gauge(configured_client, tmp_path, monkeypatch):
+    """Negative control mirroring test_self_test_detects_broken_reconstruction: a real failing
+    self-test must set bp7_self_test_last_result to 0, never leave a stale passing value."""
+    artifacts_dir = tmp_path / "notebooks" / "bp7_customer_navigator_decision_engine" / "artifacts"
+    csv_path = artifacts_dir / "gate5_full_population_decision_records.csv"
+    text = csv_path.read_text(encoding="utf-8")
+    text = text.replace("1001,0.62,true", "1001,0.99,true")
+    csv_path.write_text(text, encoding="utf-8")
+
+    self_test = configured_client.get("/decide/self-test", params={"sample_size": 3})
+    assert self_test.json()["all_checks_passed"] is False
+
+    after = configured_client.get("/metrics/prometheus").text
+    assert "bp7_self_test_last_result 0.0" in after
+
+
+def test_self_test_background_refresh_updates_live_gauges(tmp_path, monkeypatch, service_module):
+    """The optional periodic background refresh (C360_SELF_TEST_METRICS_INTERVAL_SECONDS) must
+    genuinely fire on its own, on a real asyncio background task, with no client ever calling
+    GET /decide/self-test - proving this is a real live signal, not merely client-triggered."""
+    monkeypatch.setenv("C360_SELF_TEST_METRICS_INTERVAL_SECONDS", "0.05")
+    _build_synthetic_prerequisites(tmp_path)
+    monkeypatch.setattr(service_module, "resolve_project_root", lambda: tmp_path)
+
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
+        before = client.get("/metrics/prometheus").text
+        assert "bp7_self_test_last_run_timestamp_seconds 0.0" in before
+
+        deadline = time.time() + 2.0
+        refreshed = False
+        while time.time() < deadline:
+            body = client.get("/metrics/prometheus").text
+            for line in body.split("\n"):
+                if (
+                    line.startswith("bp7_self_test_last_run_timestamp_seconds ")
+                    and float(line.split()[1]) > 0
+                ):
+                    refreshed = True
+                    break
+            if refreshed:
+                break
+            time.sleep(0.05)
+        assert refreshed, "background self-test refresh did not update the live gauge within 2s"
+
+
+def test_self_test_background_refresh_disabled_when_zero(tmp_path, monkeypatch, service_module):
+    """C360_SELF_TEST_METRICS_INTERVAL_SECONDS=0 must disable the background task entirely - the
+    gauge then stays at its startup default until a real client calls GET /decide/self-test."""
+    monkeypatch.setenv("C360_SELF_TEST_METRICS_INTERVAL_SECONDS", "0")
+    _build_synthetic_prerequisites(tmp_path)
+    monkeypatch.setattr(service_module, "resolve_project_root", lambda: tmp_path)
+
+    with TestClient(service_module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
+        assert service_module._self_test_background_task is None
+        time.sleep(0.3)
+        body = client.get("/metrics/prometheus").text
+        assert "bp7_self_test_last_run_timestamp_seconds 0.0" in body
 
 
 # ---------------------------------------------------------------------------

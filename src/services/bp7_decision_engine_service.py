@@ -120,10 +120,57 @@ internal implementation choice, every route below is instead decorated TWICE dir
 `include_in_schema=False` on the `/v1` copy so `/docs` shows one canonical operation per
 route) - no `APIRouter` anywhere in this file, matching every other BP service in this
 project (none of which use one either).
+
+PRIORITY 3 ADDITION (2026-09-26 — "add real observability: Prometheus + Grafana"): adds
+`GET /metrics/prometheus` (bare + `/v1`, auth-protected via the same `require_api_key`
+dependency as `/metrics`, subject to the same rate limiter — a deliberate consistency choice,
+not an oversight; see `MONITORING.md`), serving real Prometheus exposition-format text via a
+dedicated `prometheus_client.CollectorRegistry` (never the library's global default registry —
+this module is `importlib.reload()`'d before every test in
+`tests/services/test_bp7_decision_engine_service.py`, and a dedicated per-reload registry is
+what avoids "Duplicated timeseries in CollectorRegistry" across tests, exactly like the
+pre-existing `_METRICS_STATE`/`_RATE_LIMIT_STATE` module-level dicts already reset safely per
+reload for the identical reason). This is the first genuinely NEW runtime dependency added to
+this service since the Gate 6 deliverable above (`prometheus-client` — see `requirements.txt`/
+`pyproject.toml`/this service's own Dockerfile); every earlier addition in this file used only
+the standard library plus `fastapi`/`pydantic`, already installed.
+
+What is exposed, and — critically — what is honestly disclosed about what each series really
+measures (this distinction is repeated in `MONITORING.md`, never left implicit):
+  - Real, live, per-request series: `bp7_http_requests_total` / `bp7_http_request_duration_
+    seconds` (every request this instance serves, by method/route/status), `bp7_lookup_volume_
+    total` (real `/decide`, `/score`, `/decision` lookups, by whether the id was found), and
+    `bp7_recommended_action_served_total` (the real decision distribution actually served).
+  - Real process-level series for free from `prometheus_client`'s own standard collectors
+    (`ProcessCollector`/`PlatformCollector`, registered onto this module's dedicated registry
+    below - not custom code): `process_cpu_seconds_total`, `process_resident_memory_bytes`, and
+    `process_start_time_seconds` (the user's explicit "CPU, memory, service uptime" ask).
+  - Real, but STATIC, per-process-restart series: `bp7_population_*` gauges and `bp7_service_
+    info` — these are the real, already-computed Gate 5 population-level governance numbers
+    (`gate5_decision_layer_summary.json`'s own `disparate_impact_audit`, `contribution_
+    decomposition_summary`, `weight_rederivation_cross_check`, `champion_stats`), refreshed
+    once at service (re)start, NEVER recomputed live per request. BP7 makes no live inference
+    (see this docstring's own opening sections) — there is no live per-request feature/
+    prediction distribution to compare against a training baseline the way there would be for
+    BP1-3/BP6, so these are deliberately NOT presented as live drift/fairness detection. They
+    are the honest, real thing a static lookup service CAN expose: the population-level
+    governance audit Gate 5 already ran once, made queryable as a time series.
+  - The one genuinely LIVE governance signal this service can honestly expose:
+    `bp7_self_test_last_result` / `bp7_self_test_last_run_timestamp_seconds`, reusing the exact
+    same real internal-consistency computation `GET /decide/self-test` already performed (see
+    `_compute_self_test()`, factored out of that route so both it and the new optional
+    background refresh below call the identical real logic). Updated (a) whenever a real
+    client calls that endpoint, and (b) optionally on a periodic background `asyncio` task
+    (`C360_SELF_TEST_METRICS_INTERVAL_SECONDS`, default 300s, `0` disables it) started in
+    `lifespan` — so a Grafana panel wired to this series reflects a real, live, repeatedly-
+    re-run check, not a value frozen at startup, while never fabricating a drift statistic this
+    service has no live inference to compute.
 """
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import os
 import subprocess
 import threading
@@ -137,10 +184,20 @@ from typing import Any, Optional
 import polars as pl
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi import Path as PathParam
-from fastapi import Query, Request
+from fastapi import Query, Request, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
+from prometheus_client.platform_collector import PlatformCollector
+from prometheus_client.process_collector import ProcessCollector
 from pydantic import BaseModel, Field
 
 from services.service_auth import require_api_key
@@ -155,6 +212,12 @@ API_VERSIONS_SUPPORTED = ["v1"]
 RATE_LIMIT_PER_MINUTE_ENV_VAR = "C360_RATE_LIMIT_PER_MINUTE"
 DEFAULT_RATE_LIMIT_PER_MINUTE = 120
 GIT_COMMIT_ENV_VAR = "C360_GIT_COMMIT"
+
+# Priority 3 observability constants (2026-09-26 addition — see module docstring). Controls the
+# optional periodic background refresh of the live self-test gauges; a value <= 0 disables it
+# entirely (the gauges are then only updated by real client calls to GET /decide/self-test).
+SELF_TEST_METRICS_INTERVAL_ENV_VAR = "C360_SELF_TEST_METRICS_INTERVAL_SECONDS"
+DEFAULT_SELF_TEST_METRICS_INTERVAL_SECONDS = 300.0
 # Paths exempt from rate limiting - orchestrator/uptime-monitor probes and interactive docs, same
 # spirit as service_auth's own "/ and /health stay open" convention (never for the auth-protected
 # query/governance endpoints below).
@@ -301,14 +364,338 @@ def _get_handle() -> DecisionEngineHandle:
     return _handle
 
 
+# ---------------------------------------------------------------------------
+# Prometheus metrics (2026-09-26 Priority 3 addition — "add real observability: Prometheus +
+# Grafana"; see the module docstring for the full disclosure on live-per-request vs. static-
+# per-restart series). A DEDICATED CollectorRegistry - never prometheus_client's global default
+# `REGISTRY` - so this module can be safely `importlib.reload()`'d (the test suite's own
+# `service_module` fixture reloads this module before every test; reusing the global default
+# registry across reloads would raise "Duplicated timeseries in CollectorRegistry" on the second
+# test). This mirrors the pre-existing `_METRICS_STATE`/`_RATE_LIMIT_STATE` module-level dicts
+# above, which already reset safely per reload for the identical reason.
+# ---------------------------------------------------------------------------
+
+PROM_REGISTRY = CollectorRegistry()
+
+# Real CPU/memory/process-uptime metrics (the user's explicit "CPU, memory" ask) - prometheus_
+# client's own standard-library collectors, NOT custom code. These attach to the global default
+# registry automatically at import time, but a DEDICATED registry (see above) gets nothing for
+# free, so they are registered onto PROM_REGISTRY explicitly here: process_cpu_seconds_total,
+# process_resident_memory_bytes, process_virtual_memory_bytes, process_start_time_seconds,
+# process_open_fds/process_max_fds, and python_info.
+ProcessCollector(registry=PROM_REGISTRY)
+PlatformCollector(registry=PROM_REGISTRY)
+
+HTTP_REQUESTS_TOTAL = Counter(
+    "bp7_http_requests_total",
+    "Total HTTP requests served by this BP7 instance, by method, route template, and status code.",
+    ["method", "route", "status_code"],
+    registry=PROM_REGISTRY,
+)
+HTTP_REQUEST_DURATION_SECONDS = Histogram(
+    "bp7_http_request_duration_seconds",
+    "HTTP request latency in seconds, by method and route template.",
+    ["method", "route"],
+    registry=PROM_REGISTRY,
+)
+SERVICE_UPTIME_SECONDS = Gauge(
+    "bp7_service_uptime_seconds",
+    "Seconds since this BP7 process started (module import time).",
+    registry=PROM_REGISTRY,
+)
+SERVICE_INFO = Gauge(
+    "bp7_service_info",
+    "Always 1 - static build/version identity exposed as labels (the Prometheus 'info pattern', "
+    "matching how kube_pod_info/up etc. work) - never a numeric measurement in its own right.",
+    ["app_version", "git_commit", "champion_rule_scheme", "gate5_generated_at_utc"],
+    registry=PROM_REGISTRY,
+)
+LOOKUP_VOLUME_TOTAL = Counter(
+    "bp7_lookup_volume_total",
+    "Real Complaint ID lookups served across /decide, /score, /decision, by endpoint and whether "
+    "the id was found in the real Gate 5 CSV.",
+    ["endpoint", "found"],
+    registry=PROM_REGISTRY,
+)
+RECOMMENDED_ACTION_SERVED_TOTAL = Counter(
+    "bp7_recommended_action_served_total",
+    "Real recommended_action values actually served to callers, by value - the real, live decision "
+    "distribution (contrast bp7_population_intervention_flag_rate, the static Gate 5 population rate).",
+    ["recommended_action"],
+    registry=PROM_REGISTRY,
+)
+
+# Population-level governance gauges - REAL, already-computed Gate 5 numbers (see
+# gate5_decision_layer_summary.json), refreshed once per service (re)start by
+# _update_static_gauges() below. Deliberately NOT live per-request feature/prediction drift: BP7
+# makes no live inference (see module docstring), so there is no live per-request distribution to
+# compare against a training baseline the way there would be for BP1-3/BP6. These are the honest,
+# real, population-level fairness/reconciliation numbers Gate 5 already computed once over the
+# full persisted population, exposed as a queryable time series - see MONITORING.md for the same
+# disclosure repeated alongside the dashboard that renders them.
+POPULATION_ADVERSE_IMPACT_RATIO = Gauge(
+    "bp7_population_adverse_impact_ratio",
+    "Real Gate 5 disparate_impact_audit.adverse_impact_ratio (four-fifths-rule selection-rate ratio).",
+    registry=PROM_REGISTRY,
+)
+POPULATION_FOUR_FIFTHS_RULE_FLAGGED = Gauge(
+    "bp7_population_four_fifths_rule_flagged",
+    "1 if Gate 5's real disparate_impact_audit.flagged_four_fifths_rule is true, else 0.",
+    registry=PROM_REGISTRY,
+)
+POPULATION_CONTRIBUTION_RECONSTRUCTION_EXACT = Gauge(
+    "bp7_population_contribution_reconstruction_exact",
+    "1 if Gate 5's real contribution_decomposition_summary.reconstruction_exact_within_tolerance "
+    "is true across the full persisted population, else 0.",
+    registry=PROM_REGISTRY,
+)
+POPULATION_WEIGHT_REDERIVATION_CONSISTENT = Gauge(
+    "bp7_population_weight_rederivation_consistent",
+    "1 iff Gate 5's real weight_rederivation_cross_check reported cramers_v_matches_config AND "
+    "bp4_coverage_matches_config AND weights_match_config all true, else 0.",
+    registry=PROM_REGISTRY,
+)
+POPULATION_INTERVENTION_FLAG_RATE = Gauge(
+    "bp7_population_intervention_flag_rate",
+    "Real Gate 5 champion_stats.intervention_flag_rate across the full persisted population.",
+    registry=PROM_REGISTRY,
+)
+GATE5_ARTIFACT_LOADED = Gauge(
+    "bp7_gate5_artifact_loaded",
+    "1 if this instance's real Gate 5 records CSV + summary JSON loaded successfully at startup, else 0.",
+    registry=PROM_REGISTRY,
+)
+
+# The one genuinely LIVE governance signal this static-lookup service can honestly expose (see
+# module docstring): the real internal-consistency self-test's own last result, updated whenever a
+# real client calls GET /decide/self-test AND, optionally, by the periodic background refresh -
+# see _self_test_metrics_refresh_loop() below.
+SELF_TEST_LAST_RESULT = Gauge(
+    "bp7_self_test_last_result",
+    "1 if the real /decide/self-test internal-consistency check last passed, 0 if it last failed. "
+    "Absent (no data) until the first real self-test run since this process started.",
+    registry=PROM_REGISTRY,
+)
+SELF_TEST_LAST_RUN_TIMESTAMP = Gauge(
+    "bp7_self_test_last_run_timestamp_seconds",
+    "Unix timestamp (seconds) of the last real self-test run (client-triggered or "
+    "background-refreshed). Compare against time() to build a real staleness/'Data Quality' panel.",
+    registry=PROM_REGISTRY,
+)
+
+
+def _update_static_gauges(handle: "DecisionEngineHandle") -> None:
+    """Populates the population-level and service-info gauges from the real, already-loaded Gate 5
+    summary. Called once from `lifespan()` right after `_handle` is set, and again defensively at
+    the top of `GET /metrics/prometheus` (idempotent - re-setting the same real values) so a scrape
+    never reads stale/default values if it somehow lands before `lifespan`'s own startup call did."""
+    GATE5_ARTIFACT_LOADED.set(1.0 if handle.is_loaded else 0.0)
+    summary = handle.summary or {}
+    SERVICE_INFO.labels(
+        app_version=app.version,
+        git_commit=_resolve_git_commit() or "unknown",
+        champion_rule_scheme=summary.get("champion_rule_scheme") or "unknown",
+        gate5_generated_at_utc=summary.get("generated_at_utc") or "unknown",
+    ).set(1)
+    if not handle.is_loaded:
+        return
+
+    audit = summary.get("disparate_impact_audit") or {}
+    if audit.get("adverse_impact_ratio") is not None:
+        POPULATION_ADVERSE_IMPACT_RATIO.set(float(audit["adverse_impact_ratio"]))
+    if "flagged_four_fifths_rule" in audit:
+        POPULATION_FOUR_FIFTHS_RULE_FLAGGED.set(1.0 if audit["flagged_four_fifths_rule"] else 0.0)
+
+    decomposition = summary.get("contribution_decomposition_summary") or {}
+    if "reconstruction_exact_within_tolerance" in decomposition:
+        POPULATION_CONTRIBUTION_RECONSTRUCTION_EXACT.set(
+            1.0 if decomposition["reconstruction_exact_within_tolerance"] else 0.0
+        )
+
+    weight_check = summary.get("weight_rederivation_cross_check") or {}
+    if weight_check:
+        all_consistent = all(
+            weight_check.get(key) is True
+            for key in ("cramers_v_matches_config", "bp4_coverage_matches_config", "weights_match_config")
+        )
+        POPULATION_WEIGHT_REDERIVATION_CONSISTENT.set(1.0 if all_consistent else 0.0)
+
+    champion_stats = summary.get("champion_stats") or {}
+    if champion_stats.get("intervention_flag_rate") is not None:
+        POPULATION_INTERVENTION_FLAG_RATE.set(float(champion_stats["intervention_flag_rate"]))
+
+
+class SelfTestNotConfiguredError(RuntimeError):
+    """Raised by `_compute_self_test()` when the real Gate 5 artifacts are not loaded. A plain
+    exception (never `HTTPException`) because this is also called from a background asyncio task
+    with no HTTP request to attach a status code to - the HTTP route below converts this to the
+    real 503 it already returned before this refactor."""
+
+
+class SelfTestEmptyArtifactError(RuntimeError):
+    """Raised by `_compute_self_test()` when the real Gate 5 records CSV contains zero rows. Same
+    plain-exception rationale as `SelfTestNotConfiguredError` above."""
+
+
+def _compute_self_test(handle: DecisionEngineHandle, sample_size: int) -> "SelfTestResponse":
+    """The real internal-consistency computation behind `GET /decide/self-test` - factored out
+    (2026-09-26 Priority 3 addition) so BOTH the HTTP route below AND the optional periodic
+    background metrics-refresh task (`_self_test_metrics_refresh_loop()`) call the exact same real
+    logic, never two implementations that could silently drift apart. Behavior is byte-for-byte
+    identical to this project's original Gate 6 `decide_self_test()` route body - see that
+    function's own docstring (preserved below) for the full rationale of what this self-test does
+    and does not prove."""
+    if not handle.is_loaded:
+        raise SelfTestNotConfiguredError(f"BP7 decision engine is not configured: {handle.error}")
+
+    # Two independently-constructed lazy scans over the same real artifact - deterministic (the
+    # file's own on-disk order, never random/unseeded) - proving the read path is reproducible.
+    sample_a = pl.scan_csv(handle.records_csv_path).limit(sample_size).collect()
+    sample_b = pl.scan_csv(handle.records_csv_path).limit(sample_size).collect()
+    if sample_a.height == 0:
+        raise SelfTestEmptyArtifactError("Real Gate 5 records CSV contains zero rows.")
+
+    # Reuse (never reinvent) Gate 4/5's own real reconciliation function.
+    from features.bp7_decision_engine_features import (
+        DEFAULT_INTERVENTION_THRESHOLD,
+        summarize_contribution_decomposition,
+    )
+
+    threshold = float((handle.summary or {}).get("intervention_threshold", DEFAULT_INTERVENTION_THRESHOLD))
+    decomposition_summary = summarize_contribution_decomposition(sample_a)
+
+    row_checks: list[SelfTestRowCheck] = []
+    for row_a, row_b in zip(sample_a.iter_rows(named=True), sample_b.iter_rows(named=True)):
+        dual_read_identical = row_a == row_b
+
+        priority_score = row_a["priority_score"]
+        intervention_flag = bool(row_a["intervention_flag"])
+        if priority_score is None:
+            intervention_matches_rule = intervention_flag is False
+        else:
+            intervention_matches_rule = intervention_flag == (priority_score >= threshold)
+
+        # An unscored row (priority_score is null, structurally UNSCORED_MISSING_UPSTREAM_INPUT)
+        # has no contribution_bp2/3/4 to reconstruct - vacuously consistent, matching
+        # summarize_contribution_decomposition()'s own aggregate semantics above (it excludes null
+        # rows from the reconstruction-error check entirely, never counts one as a failure).
+        if priority_score is None:
+            contribution_exact = True
+        else:
+            contrib_sum = (
+                (row_a["contribution_bp2"] or 0.0)
+                + (row_a["contribution_bp3"] or 0.0)
+                + (row_a["contribution_bp4"] or 0.0)
+            )
+            contribution_exact = abs(contrib_sum - priority_score) < 1e-6
+
+        recommended_action = row_a["recommended_action"]
+        action_is_known = recommended_action in KNOWN_RECOMMENDED_ACTIONS
+        if priority_score is None:
+            action_consistent = recommended_action == "UNSCORED_MISSING_UPSTREAM_INPUT"
+        elif intervention_flag:
+            action_consistent = recommended_action in (
+                "ESCALATE_ROOT_CAUSE_REVIEW_RECURRING_CLUSTER",
+                "ESCALATE_SENIOR_REVIEWER",
+                "PRIORITY_QUEUE_REVIEW",
+            )
+        else:
+            action_consistent = recommended_action == "STANDARD_QUEUE"
+
+        row_checks.append(
+            SelfTestRowCheck(
+                complaint_id=row_a["Complaint ID"],
+                contribution_reconstruction_exact=contribution_exact,
+                intervention_flag_matches_threshold_rule=intervention_matches_rule,
+                recommended_action_structurally_consistent=action_is_known and action_consistent,
+                dual_read_identical=dual_read_identical,
+            )
+        )
+
+    all_checks_passed = decomposition_summary["reconstruction_exact_within_tolerance"] and all(
+        (
+            rc.contribution_reconstruction_exact
+            and rc.intervention_flag_matches_threshold_rule
+            and rc.recommended_action_structurally_consistent
+            and rc.dual_read_identical
+        )
+        for rc in row_checks
+    )
+
+    return SelfTestResponse(
+        all_checks_passed=all_checks_passed,
+        sample_size_requested=sample_size,
+        n_rows_checked=sample_a.height,
+        contribution_decomposition_summary=decomposition_summary,
+        row_checks=row_checks,
+    )
+
+
+def _record_self_test_metrics(result: "SelfTestResponse") -> None:
+    """Records a real self-test outcome (client-triggered or background-refreshed) into the live
+    self-test gauges - see module docstring."""
+    SELF_TEST_LAST_RESULT.set(1.0 if result.all_checks_passed else 0.0)
+    SELF_TEST_LAST_RUN_TIMESTAMP.set(time.time())
+
+
+def _self_test_metrics_interval_seconds() -> float:
+    """Read live (not cached at import time) so tests can monkeypatch the env var, matching
+    `_rate_limit_per_minute()`'s own established pattern above. A value <= 0 disables the periodic
+    background refresh entirely - the gauges are then only ever updated by real client calls to
+    GET /decide/self-test."""
+    raw = os.environ.get(SELF_TEST_METRICS_INTERVAL_ENV_VAR)
+    if raw is None:
+        return DEFAULT_SELF_TEST_METRICS_INTERVAL_SECONDS
+    try:
+        return float(raw)
+    except ValueError:
+        return DEFAULT_SELF_TEST_METRICS_INTERVAL_SECONDS
+
+
+_self_test_background_task: Optional[asyncio.Task] = None
+
+
+async def _self_test_metrics_refresh_loop(interval_seconds: float) -> None:
+    """Periodically re-runs the REAL `_compute_self_test()` - the identical real computation GET
+    /decide/self-test performs, reused rather than reimplemented - and records its result into the
+    live self-test gauges. This is the one genuinely live governance signal this static-lookup
+    service can honestly expose (see module docstring): it never invents a drift statistic BP7 has
+    no live inference to compute. If the real computation raises for any reason (Gate 5 artifacts
+    not loaded, a transient read error, etc.) this cycle is simply skipped and the gauges keep
+    their last real value - it never crashes the service and never fabricates a passing result,
+    matching `DecisionEngineHandle._load()`'s own established "never raise past this point"
+    precedent elsewhere in this file."""
+    while True:
+        await asyncio.sleep(interval_seconds)
+        try:
+            handle = _get_handle()
+            result = _compute_self_test(handle, DEFAULT_SELF_TEST_SAMPLE_SIZE)
+            _record_self_test_metrics(result)
+        except Exception:  # noqa: BLE001 - best-effort periodic refresh, never crashes the process
+            continue
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _handle
+    global _handle, _self_test_background_task
     project_root = resolve_project_root()
     _handle = DecisionEngineHandle(
         _default_records_csv_path(project_root), _default_summary_json_path(project_root)
     )
-    yield
+    _update_static_gauges(_handle)
+    SERVICE_UPTIME_SECONDS.set_function(lambda: time.monotonic() - _SERVICE_STARTED_AT_MONOTONIC)
+
+    interval = _self_test_metrics_interval_seconds()
+    if interval > 0:
+        _self_test_background_task = asyncio.create_task(_self_test_metrics_refresh_loop(interval))
+    try:
+        yield
+    finally:
+        if _self_test_background_task is not None:
+            _self_test_background_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await _self_test_background_task
+            _self_test_background_task = None
 
 
 app = FastAPI(
@@ -428,9 +815,11 @@ async def observability_middleware(request: Request, call_next):
     mounted)."""
     request_id = _request_id_of(request)
     request.state.request_id = request_id
+    start = time.perf_counter()
 
     retry_after = _check_rate_limit(request)
     if retry_after is not None:
+        latency_ms = (time.perf_counter() - start) * 1000
         payload = {
             "detail": "Rate limit exceeded.",
             "error_code": "RATE_LIMITED",
@@ -447,16 +836,25 @@ async def observability_middleware(request: Request, call_next):
         response = JSONResponse(status_code=429, content=payload)
         response.headers["X-Request-ID"] = request_id
         response.headers["Retry-After"] = str(retry_after)
-        _record_request_metric(request.url.path, 429, 0.0)
+        _record_request_metric(request.url.path, 429, latency_ms)
+        HTTP_REQUESTS_TOTAL.labels(method=request.method, route=request.url.path, status_code="429").inc()
+        HTTP_REQUEST_DURATION_SECONDS.labels(method=request.method, route=request.url.path).observe(
+            latency_ms / 1000.0
+        )
         return response
 
-    start = time.perf_counter()
     response = await call_next(request)
     latency_ms = (time.perf_counter() - start) * 1000
 
     route = request.scope.get("route")
     route_template = route.path if route is not None else request.url.path
     _record_request_metric(route_template, response.status_code, latency_ms)
+    HTTP_REQUESTS_TOTAL.labels(
+        method=request.method, route=route_template, status_code=str(response.status_code)
+    ).inc()
+    HTTP_REQUEST_DURATION_SECONDS.labels(method=request.method, route=route_template).observe(
+        latency_ms / 1000.0
+    )
 
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Response-Time-Ms"] = f"{latency_ms:.2f}"
@@ -768,6 +1166,7 @@ def root():
         "version": "/version",
         "model_info": "/model-info",
         "metrics": "/metrics",
+        "metrics_prometheus": "/metrics/prometheus",
         "decide": "/decide/{complaint_id}",
         "self_test": "/decide/self-test",
         "score": "/score",
@@ -897,6 +1296,32 @@ def metrics():
 
 
 @app.get(
+    "/metrics/prometheus",
+    tags=["meta", "governance"],
+    dependencies=[Depends(require_api_key)],
+)
+@app.get(
+    "/v1/metrics/prometheus",
+    tags=["meta", "governance"],
+    dependencies=[Depends(require_api_key)],
+    include_in_schema=False,
+)
+def metrics_prometheus():
+    """Real Prometheus exposition-format metrics for this BP7 instance (2026-09-26 Priority 3
+    addition - see the module docstring for the full disclosure on which series are live-per-
+    request vs. static-Gate-5-artifact-refreshed-per-restart, and `MONITORING.md` for how to point
+    a real Prometheus scrape config at this endpoint). Auth-protected via the same X-API-Key
+    dependency, and subject to the same rate limiter, as `GET /metrics` above - a deliberate
+    consistency choice (every governance endpoint in this service needs the key; see
+    `MONITORING.md` for how to configure a scrape config's `http_headers` to send it, since
+    Prometheus's native `authorization:` block only supports `Authorization: Bearer` tokens, never
+    an arbitrary header name like `X-API-Key`)."""
+    handle = _get_handle()
+    _update_static_gauges(handle)
+    return Response(content=generate_latest(PROM_REGISTRY), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.get(
     "/decide/self-test",
     response_model=SelfTestResponse,
     tags=["query", "governance"],
@@ -923,92 +1348,23 @@ def decide_self_test(
     never a mock, never a fabricated pass. Makes ZERO external network calls (BP7 makes none
     anywhere) - the honest analogue here is proving this service's own read/serve path introduces
     no drift versus the real artifact on disk, and that every served row is internally consistent
-    with its own real, already-computed fields."""
+    with its own real, already-computed fields.
+
+    2026-09-26 Priority 3 refactor: the actual computation now lives in the shared
+    `_compute_self_test()` helper (defined above `lifespan`) so the optional periodic background
+    metrics-refresh task can call the identical real logic - this route is now a thin wrapper that
+    converts that helper's plain exceptions to the same real 503s it always returned, and records
+    the real outcome into the live `bp7_self_test_last_result`/`bp7_self_test_last_run_timestamp_
+    seconds` Prometheus gauges (see `GET /metrics/prometheus`)."""
     handle = _get_handle()
-    if not handle.is_loaded:
-        raise HTTPException(status_code=503, detail=f"BP7 decision engine is not configured: {handle.error}")
-
-    # Two independently-constructed lazy scans over the same real artifact - deterministic (the
-    # file's own on-disk order, never random/unseeded) - proving the read path is reproducible.
-    sample_a = pl.scan_csv(handle.records_csv_path).limit(sample_size).collect()
-    sample_b = pl.scan_csv(handle.records_csv_path).limit(sample_size).collect()
-    if sample_a.height == 0:
-        raise HTTPException(status_code=503, detail="Real Gate 5 records CSV contains zero rows.")
-
-    # Reuse (never reinvent) Gate 4/5's own real reconciliation function.
-    from features.bp7_decision_engine_features import (
-        DEFAULT_INTERVENTION_THRESHOLD,
-        summarize_contribution_decomposition,
-    )
-
-    threshold = float((handle.summary or {}).get("intervention_threshold", DEFAULT_INTERVENTION_THRESHOLD))
-    decomposition_summary = summarize_contribution_decomposition(sample_a)
-
-    row_checks: list[SelfTestRowCheck] = []
-    for row_a, row_b in zip(sample_a.iter_rows(named=True), sample_b.iter_rows(named=True)):
-        dual_read_identical = row_a == row_b
-
-        priority_score = row_a["priority_score"]
-        intervention_flag = bool(row_a["intervention_flag"])
-        if priority_score is None:
-            intervention_matches_rule = intervention_flag is False
-        else:
-            intervention_matches_rule = intervention_flag == (priority_score >= threshold)
-
-        # An unscored row (priority_score is null, structurally UNSCORED_MISSING_UPSTREAM_INPUT)
-        # has no contribution_bp2/3/4 to reconstruct - vacuously consistent, matching
-        # summarize_contribution_decomposition()'s own aggregate semantics above (it excludes null
-        # rows from the reconstruction-error check entirely, never counts one as a failure).
-        if priority_score is None:
-            contribution_exact = True
-        else:
-            contrib_sum = (
-                (row_a["contribution_bp2"] or 0.0)
-                + (row_a["contribution_bp3"] or 0.0)
-                + (row_a["contribution_bp4"] or 0.0)
-            )
-            contribution_exact = abs(contrib_sum - priority_score) < 1e-6
-
-        recommended_action = row_a["recommended_action"]
-        action_is_known = recommended_action in KNOWN_RECOMMENDED_ACTIONS
-        if priority_score is None:
-            action_consistent = recommended_action == "UNSCORED_MISSING_UPSTREAM_INPUT"
-        elif intervention_flag:
-            action_consistent = recommended_action in (
-                "ESCALATE_ROOT_CAUSE_REVIEW_RECURRING_CLUSTER",
-                "ESCALATE_SENIOR_REVIEWER",
-                "PRIORITY_QUEUE_REVIEW",
-            )
-        else:
-            action_consistent = recommended_action == "STANDARD_QUEUE"
-
-        row_checks.append(
-            SelfTestRowCheck(
-                complaint_id=row_a["Complaint ID"],
-                contribution_reconstruction_exact=contribution_exact,
-                intervention_flag_matches_threshold_rule=intervention_matches_rule,
-                recommended_action_structurally_consistent=action_is_known and action_consistent,
-                dual_read_identical=dual_read_identical,
-            )
-        )
-
-    all_checks_passed = decomposition_summary["reconstruction_exact_within_tolerance"] and all(
-        (
-            rc.contribution_reconstruction_exact
-            and rc.intervention_flag_matches_threshold_rule
-            and rc.recommended_action_structurally_consistent
-            and rc.dual_read_identical
-        )
-        for rc in row_checks
-    )
-
-    return SelfTestResponse(
-        all_checks_passed=all_checks_passed,
-        sample_size_requested=sample_size,
-        n_rows_checked=sample_a.height,
-        contribution_decomposition_summary=decomposition_summary,
-        row_checks=row_checks,
-    )
+    try:
+        result = _compute_self_test(handle, sample_size)
+    except SelfTestNotConfiguredError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    except SelfTestEmptyArtifactError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    _record_self_test_metrics(result)
+    return result
 
 
 @app.get(
@@ -1036,10 +1392,14 @@ def decide(complaint_id: int = PathParam(..., description="Real, unique CFPB 'Co
         raise HTTPException(status_code=503, detail=f"BP7 decision engine is not configured: {handle.error}")
     row = _fetch_complaint_row(handle, complaint_id)
     if row is None:
+        LOOKUP_VOLUME_TOTAL.labels(endpoint="decide", found="false").inc()
         raise HTTPException(
             status_code=404, detail=f"No real decision record for Complaint ID {complaint_id}."
         )
-    return _row_to_record(row)
+    LOOKUP_VOLUME_TOTAL.labels(endpoint="decide", found="true").inc()
+    record = _row_to_record(row)
+    RECOMMENDED_ACTION_SERVED_TOTAL.labels(recommended_action=record.recommended_action).inc()
+    return record
 
 
 @app.post(
@@ -1068,8 +1428,10 @@ def score(request: BatchLookupRequest):
     for complaint_id in request.complaint_ids:
         row = rows_by_id.get(complaint_id)
         if row is None:
+            LOOKUP_VOLUME_TOTAL.labels(endpoint="score", found="false").inc()
             results.append(ScoreResultItem(complaint_id=complaint_id, found=False))
         else:
+            LOOKUP_VOLUME_TOTAL.labels(endpoint="score", found="true").inc()
             results.append(
                 ScoreResultItem(
                     complaint_id=complaint_id,
@@ -1109,8 +1471,11 @@ def decision(request: BatchLookupRequest):
     for complaint_id in request.complaint_ids:
         row = rows_by_id.get(complaint_id)
         if row is None:
+            LOOKUP_VOLUME_TOTAL.labels(endpoint="decision", found="false").inc()
             results.append(DecisionResultItem(complaint_id=complaint_id, found=False))
         else:
+            LOOKUP_VOLUME_TOTAL.labels(endpoint="decision", found="true").inc()
+            RECOMMENDED_ACTION_SERVED_TOTAL.labels(recommended_action=row["recommended_action"]).inc()
             results.append(
                 DecisionResultItem(
                     complaint_id=complaint_id,

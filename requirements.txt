@@ -35,6 +35,14 @@ matplotlib>=3.9
 # Service layer (optional, BP6/BP7)
 fastapi>=0.115
 uvicorn>=0.30
+# prometheus-client: BP7's `GET /metrics/prometheus` endpoint (Priority 3 observability addition,
+# 2026-09-26) - real Prometheus exposition-format metrics via a dedicated CollectorRegistry (see
+# src/services/bp7_decision_engine_service.py's own module docstring and MONITORING.md at the repo
+# root). This is the first genuinely NEW runtime dependency added to BP7's service layer since
+# fastapi/uvicorn above - every production-hardening addition before this one (versioning, rate
+# limiting, request tracing) used only the Python standard library. Floor chosen well below the
+# 0.26.0 release verified installed and working against this exact codebase, 2026-09-26.
+prometheus-client>=0.20
 
 # GenAI SDK (BP6 Gate 5 only - the sole gate in this whole project that makes a real external API
 # call; genai_sdk_modules_loaded() structurally verifies this import stays absent at every other
