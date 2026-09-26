@@ -1,0 +1,84 @@
+# Customer360 Navigator Enterprise Suite - all-in-one local compose
+#
+# Convenience aggregator only. Each service already has its own independent, independently-CI-
+# validated docker-compose.yml under src/services/docker/<service>/ (the project's own established
+# one-service-one-container pattern) - this file just runs all 7 of them together from the project
+# root for local end-to-end testing:
+#
+#   docker compose up --build            # all 7 services
+#   docker compose up --build bp1-inference-service bp7-decision-engine-service   # a subset
+#
+# BP6 needs GEMINI_API_KEY set in your shell or a real .env (see .env.example) before it will
+# start; every other service needs no secret. BP8 has no service - it is a Gold-layer build only
+# (see docs/architecture/README.md), so it has no entry here.
+#
+# Every image below COPYs a real, already-persisted model/artifact from models/ or notebooks/**/
+# artifacts/ at build time - run that BP's own hardening/persistence notebook for real first if
+# the build fails at a COPY step with "not found".
+
+services:
+  bp1-inference-service:
+    build:
+      context: .
+      dockerfile: src/services/docker/bp1_inference_service/Dockerfile
+    image: c360-bp1-inference-service:latest
+    container_name: c360-bp1-inference-service
+    ports: ["8001:8001"]
+    restart: unless-stopped
+
+  bp2-inference-service:
+    build:
+      context: .
+      dockerfile: src/services/docker/bp2_inference_service/Dockerfile
+    image: c360-bp2-inference-service:latest
+    container_name: c360-bp2-inference-service
+    ports: ["8002:8002"]
+    restart: unless-stopped
+
+  bp3-inference-service:
+    build:
+      context: .
+      dockerfile: src/services/docker/bp3_inference_service/Dockerfile
+    image: c360-bp3-inference-service:latest
+    container_name: c360-bp3-inference-service
+    ports: ["8003:8003"]
+    restart: unless-stopped
+
+  bp4-decision-service:
+    build:
+      context: .
+      dockerfile: src/services/docker/bp4_decision_service/Dockerfile
+    image: c360-bp4-decision-service:latest
+    container_name: c360-bp4-decision-service
+    ports: ["8004:8004"]
+    restart: unless-stopped
+
+  bp5-driver-service:
+    build:
+      context: .
+      dockerfile: src/services/docker/bp5_driver_service/Dockerfile
+    image: c360-bp5-driver-service:latest
+    container_name: c360-bp5-driver-service
+    ports: ["8005:8005"]
+    restart: unless-stopped
+
+  bp6-resolution-service:
+    build:
+      context: .
+      dockerfile: src/services/docker/bp6_resolution_service/Dockerfile
+    image: c360-bp6-resolution-service:latest
+    container_name: c360-bp6-resolution-service
+    ports: ["8006:8006"]
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:?GEMINI_API_KEY must be set - see .env.example}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash}
+    restart: unless-stopped
+
+  bp7-decision-engine-service:
+    build:
+      context: .
+      dockerfile: src/services/docker/bp7_decision_engine_service/Dockerfile
+    image: c360-bp7-decision-engine-service:latest
+    container_name: c360-bp7-decision-engine-service
+    ports: ["8007:8007"]
+    restart: unless-stopped

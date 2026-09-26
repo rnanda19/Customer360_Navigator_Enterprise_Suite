@@ -1,0 +1,45 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+
+  - package-ecosystem: "docker"
+    directory: "/src/services/docker/bp1_inference_service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/src/services/docker/bp2_inference_service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/src/services/docker/bp3_inference_service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/src/services/docker/bp4_decision_service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/src/services/docker/bp5_driver_service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/src/services/docker/bp6_resolution_service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/src/services/docker/bp7_decision_engine_service"
+    schedule:
+      interval: "weekly"

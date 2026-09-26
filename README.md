@@ -11,7 +11,7 @@
 [![Zero Fabrication](https://img.shields.io/badge/policy-zero--fabrication-blueviolet)](#execution-boundary-standing-rule-disclosed-on-purpose)
 [![Business problems](https://img.shields.io/badge/business%20problems-8%2F8%20real--run%20confirmed-success)](#business-problems)
 
-**[⚡ Why it's different](#why-this-repo-is-different)** · **[📊 Real headline results](#at-a-glance)** · **[⚠️ The fairness finding](#leading-with-the-fairness-finding)** · **[🧭 Business problems](#business-problems)** · **[🗂️ Structure](#structure)** · **[🚀 Quickstart](#reproducing-this-locally)** · **[📌 What this is / isn't](#execution-boundary-standing-rule-disclosed-on-purpose)**
+**[⚡ Why it's different](#why-this-repo-is-different)** · **[📊 Real headline results](#at-a-glance)** · **[📈 Live reports](#live-reports-and-dashboards)** · **[⚠️ The fairness finding](#leading-with-the-fairness-finding)** · **[🧭 Business problems](#business-problems)** · **[🏗️ Architecture](#system-architecture)** · **[🗂️ Structure](#structure)** · **[🚀 Quickstart](#reproducing-this-locally)** · **[📌 What this is / isn't](#execution-boundary-standing-rule-disclosed-on-purpose)**
 
 </div>
 
@@ -51,6 +51,31 @@ Most complaint-analytics portfolios stop at a confusion matrix and a clean-looki
 | BP8 — Executive/Product Analytics | Power BI Gold-layer aggregation | **11** real Gold Parquet tables | MEASURED — build complete, all 3 gates confirmed |
 
 Suite-wide: **1,048,575** real CFPB rows, **13,083** real Banking77 rows, **1,000+** tests across the suite, **0** fabricated figures. Full detail, per BP, in `notebooks/<bp>/README.md` and `reports/<bp>/README.md`.
+
+<br>
+
+## Live Reports and Dashboards
+
+Every executive rollup below is a real file committed in this repo - not a mockup, not a template with
+numbers dropped in. Click **View live** to open the interactive HTML dashboard directly in your browser
+(rendered via [htmlpreview.github.io](https://htmlpreview.github.io), a read-only mirror of this repo's
+own committed file - nothing is hosted anywhere else). Report / Workbook / Deck open GitHub's own
+built-in file previewer.
+
+| Business problem | Dashboard | Report (.docx) | Workbook (.xlsx) | Deck (.pptx) |
+|---|---|---|---|---|
+| **00 - Suite-wide rollup (start here)** | [View live](https://htmlpreview.github.io/?https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/reports/00_suite_executive_rollup/00_suite_executive_rollup_dashboard.html) | [Report](reports/00_suite_executive_rollup/00_suite_executive_rollup_report.docx) | [Workbook](reports/00_suite_executive_rollup/00_suite_executive_rollup_workbook.xlsx) | [Deck](reports/00_suite_executive_rollup/00_suite_executive_rollup_deck.pptx) |
+| BP1 - Customer Intent Classification | [View live](https://htmlpreview.github.io/?https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/reports/bp1_customer_intent_classification/executive_rollup/bp1_executive_rollup_dashboard.html) | [Report](reports/bp1_customer_intent_classification/executive_rollup/bp1_executive_rollup_report.docx) | [Workbook](reports/bp1_customer_intent_classification/executive_rollup/bp1_executive_rollup_workbook.xlsx) | [Deck](reports/bp1_customer_intent_classification/executive_rollup/bp1_executive_rollup_deck.pptx) |
+| BP2 - Customer Friction Classification | [View live](https://htmlpreview.github.io/?https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/reports/bp2_customer_friction_classification/executive_rollup/bp2_executive_rollup_dashboard.html) | [Report](reports/bp2_customer_friction_classification/executive_rollup/bp2_executive_rollup_report.docx) | - | [Deck](reports/bp2_customer_friction_classification/executive_rollup/bp2_executive_rollup_deck.pptx) |
+| BP3 - Complaint Escalation Prediction | [View live](https://htmlpreview.github.io/?https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/reports/bp3_complaint_escalation_prediction/executive_rollup/bp3_executive_rollup_dashboard.html) | [Report](reports/bp3_complaint_escalation_prediction/executive_rollup/bp3_executive_rollup_report.docx) | - | [Deck](reports/bp3_complaint_escalation_prediction/executive_rollup/bp3_executive_rollup_deck.pptx) |
+| BP4 - Customer Journey Analytics | [View live](https://htmlpreview.github.io/?https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/reports/bp4_customer_journey_analytics/executive_rollup/bp4_executive_rollup_dashboard.html) | [Report](reports/bp4_customer_journey_analytics/executive_rollup/bp4_executive_rollup_report.docx) | [Workbook](reports/bp4_customer_journey_analytics/executive_rollup/bp4_executive_rollup_workbook.xlsx) | [Deck](reports/bp4_customer_journey_analytics/executive_rollup/bp4_executive_rollup_deck.pptx) |
+| BP5 - Root-Cause and Driver Analytics | [View live](https://htmlpreview.github.io/?https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/reports/bp5_root_cause_driver_analytics/executive_rollup/bp5_executive_rollup_dashboard.html) | [Report](reports/bp5_root_cause_driver_analytics/executive_rollup/bp5_executive_rollup_report.docx) | [Workbook](reports/bp5_root_cause_driver_analytics/executive_rollup/bp5_executive_rollup_workbook.xlsx) | [Deck](reports/bp5_root_cause_driver_analytics/executive_rollup/bp5_executive_rollup_deck.pptx) |
+| BP6 - GenAI Resolution Assistant | [View live](https://htmlpreview.github.io/?https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/reports/bp6_genai_resolution_assistant/executive_rollup/bp6_executive_rollup_dashboard.html) | [Report](reports/bp6_genai_resolution_assistant/executive_rollup/bp6_executive_rollup_report.docx) | [Workbook](reports/bp6_genai_resolution_assistant/executive_rollup/bp6_executive_rollup_workbook.xlsx) | [Deck](reports/bp6_genai_resolution_assistant/executive_rollup/bp6_executive_rollup_deck.pptx) |
+| BP7 - Customer Navigator Decision Engine | [View live](https://htmlpreview.github.io/?https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/reports/bp7_customer_navigator_decision_engine/executive_rollup/bp7_executive_rollup_dashboard.html) | [Report](reports/bp7_customer_navigator_decision_engine/executive_rollup/bp7_executive_rollup_report.docx) | [Workbook](reports/bp7_customer_navigator_decision_engine/executive_rollup/bp7_executive_rollup_workbook.xlsx) | [Deck](reports/bp7_customer_navigator_decision_engine/executive_rollup/bp7_executive_rollup_deck.pptx) |
+| BP8 - Executive/Product Analytics | *Gold-layer build only, no dashboard - see [`powerbi/gold_tables/`](powerbi/gold_tables/) and [`reports/bp8_executive_product_analytics/README.md`](reports/bp8_executive_product_analytics/README.md)* | - | - | - |
+
+BP2 and BP3 don't carry a standalone `.xlsx` workbook in their rollup - disclosed here rather than linking
+a file that isn't there. Every other cell links a real, committed file.
 
 <br>
 
@@ -180,6 +205,76 @@ than being silently double-counted.
 
 <br>
 
+## System Architecture
+
+```mermaid
+flowchart TD
+    subgraph SRC["Source data (real)"]
+        CFPB["CFPB Consumer Complaint Database\n1,048,575 rows"]
+        B77["BANKING77 intent dataset\n13,083 rows (derived taxonomy overlay)"]
+    end
+
+    subgraph GOLD["Shared Gold layer (Polars / DuckDB)"]
+        TAX["taxonomy_mapper.py"]
+        FEAT["per-BP feature engineering, BP1-BP5"]
+    end
+
+    CFPB --> TAX
+    B77 --> TAX
+    TAX --> FEAT
+
+    FEAT --> BP1["BP1 Intent Classification\nLogReg - Acc 0.8224"]
+    FEAT --> BP2["BP2 Friction Classification\nXGBoost - F1 0.4559"]
+    FEAT --> BP3["BP3 Escalation Prediction\nXGBoost - ECOA flagged 0.139"]
+    FEAT --> BP4["BP4 Journey Analytics\nPolars - 29.5x speedup"]
+    FEAT --> BP5["BP5 Root-Cause Analytics\nAssociation-only"]
+
+    B77 --> BP6EV["PII screen + evidence registry"]
+    BP6EV --> BP6["BP6 GenAI Resolution Assistant\nGemini-grounded - human-gated"]
+
+    BP2 --> CTX["BP7 context re-scoring"]
+    BP3 --> CTX
+    BP4 --> CTX
+    BP5 -.->|context| CTX
+    CTX --> BP7["BP7 Decision Engine\nAIR 0.908, not flagged"]
+
+    BP1 --> BP8G["BP8 Gold-layer aggregation\n11 real Parquet tables"]
+    BP2 --> BP8G
+    BP3 --> BP8G
+    BP4 --> BP8G
+    BP5 --> BP8G
+    BP7 --> BP8G
+    BP8G --> PBI["Power BI Desktop\n(human step)"]
+
+    BP1 --> ROLLUP["Per-BP + Suite\nExecutive Rollups"]
+    BP7 --> ROLLUP
+    BP8G --> ROLLUP
+
+    classDef srcClass fill:#1565C0,stroke:#0D47A1,color:#fff
+    classDef goldClass fill:#5E35B1,stroke:#4527A0,color:#fff
+    classDef bpClass fill:#00897B,stroke:#00695C,color:#fff
+    classDef genaiClass fill:#6A1B9A,stroke:#4A148C,color:#fff
+    classDef decisionClass fill:#00695C,stroke:#004D40,color:#fff
+    classDef analyticsClass fill:#283593,stroke:#1A237E,color:#fff
+    classDef outClass fill:#F57C00,stroke:#E65100,color:#fff
+    class CFPB,B77 srcClass
+    class TAX,FEAT,BP6EV,CTX goldClass
+    class BP1,BP2,BP3,BP4,BP5 bpClass
+    class BP6 genaiClass
+    class BP7 decisionClass
+    class BP8G,PBI analyticsClass
+    class ROLLUP outClass
+```
+
+One shared CFPB + BANKING77 Gold layer feeds five independently-gated predictive/analytical BPs (BP1-BP5);
+BP6 layers retrieval-grounded GenAI on top of BANKING77's narrative text; BP7 re-scores BP2/BP3/BP4/BP5's
+own outputs into one deterministic, transparent decision layer; BP8 aggregates every upstream BP's real
+Gold-layer output into Power BI-ready tables; the suite-wide rollup comprehends all eight. Full diagram,
+shared-infrastructure table, and the cross-cutting ECOA/Reg B - UDAAP - NIST AI RMF - GLBA governance
+matrix: [`docs/architecture/README.md`](docs/architecture/README.md).
+
+<br>
+
 ## Structure
 
 `notebooks/` — one folder per BP, one notebook per gate, each with a real README. `src/{taxonomy,features,
@@ -191,7 +286,11 @@ human, Power BI Desktop step — never a notebook deliverable). `tests/` — 1,0
 1:1. `docs/` — architecture notes, BRD/FRD, data dictionary, and `evidence_ledger/EVIDENCE_LEDGER.md`,
 the append-only record of every real run. `scripts/` — the notebook-syntax and structural-check tooling
 every gate uses. `.github/workflows/ci.yml` — lint, security (bandit), pytest, notebook-syntax, and
-Docker-compose-validate, generic across all 8 BPs.
+Docker-compose-validate, generic across all 8 BPs, plus `.github/dependabot.yml`,
+`.github/ISSUE_TEMPLATE/`, and `.github/PULL_REQUEST_TEMPLATE.md`. `docker-compose.yml` (repo root) —
+one-command aggregator of all 7 per-BP compose files under `src/services/docker/`. `.env.example` —
+every real environment variable this codebase reads (`C360_PROJECT_ROOT`, `GEMINI_API_KEY`,
+`GEMINI_MODEL`), nothing illustrative.
 
 <br>
 
@@ -202,6 +301,8 @@ python -m pip install -e .          # editable install of src/ (setuptools src-l
 python -m pip install -r requirements.txt
 jupyter lab                          # or notebook — run notebooks in gate order, G1 through G6/G7
 ```
+
+A root `docker-compose.yml` builds and runs all 7 FastAPI services (BP1-BP7; BP8 has no service, see Structure below) together — `docker compose up --build`. Copy `.env.example` to `.env` first if you're bringing up BP6 (needs a real `GEMINI_API_KEY`).
 
 Each notebook resolves its own project root (env override, else a bounded upward walk for a directory
 containing both `configs/` and `src/`) rather than assuming a fixed path. `pytest tests/ -v` runs the full

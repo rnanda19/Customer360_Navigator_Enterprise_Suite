@@ -60,6 +60,9 @@ jobs:
           # BP7 requires no secret at all (it makes no external network call anywhere) - a plain
           # config check, same as BP1-5.
           docker compose -f src/services/docker/bp7_decision_engine_service/docker-compose.yml config
+          # Root docker-compose.yml is a pure convenience aggregator of the 7 files above
+          # (same build contexts, same images) - validated the same way, same placeholder key.
+          GEMINI_API_KEY=ci-smoke-test-placeholder-not-real docker compose -f docker-compose.yml config
       - name: Build-mechanics smoke test (placeholder model artifacts - NOT a real model)
         run: |
           # models/**/*.joblib is gitignored by design (see .gitignore and each Dockerfile's own
