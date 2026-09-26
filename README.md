@@ -84,10 +84,9 @@ real Plotly / inline-JS charts in each dashboard actually draw (an earlier versi
 through htmlpreview.github.io, which strips JavaScript entirely for security and left every chart blank -
 switched away from it for that reason).
 
-**One-time setup required:** these links only resolve once GitHub Pages is turned on for this repo -
-Settings -> Pages -> Source: "Deploy from a branch" -> Branch: `main`, folder `/ (root)` -> Save. Until
-that's done, the links below 404; nothing else in this repo depends on it. Report / Workbook / Deck open
-GitHub's own built-in file previewer.
+**GitHub Pages is live** (Settings -> Pages -> Source: "Deploy from a branch" -> `main`, `/ (root)`) -
+every **View live** link below resolves directly, no setup needed. Report / Workbook / Deck open GitHub's
+own built-in file previewer.
 
 | Business problem | Dashboard | Report (.docx) | Workbook (.xlsx) | Deck (.pptx) |
 |---|---|---|---|---|
@@ -202,9 +201,13 @@ Details: [`notebooks/bp7_customer_navigator_decision_engine/README.md`](notebook
 <details>
 <summary><b>BP8 — Executive/Product Analytics (Power BI Gold Layer)</b> (click to expand)</summary>
 
-Aggregates Gold-layer outputs from BP1-7 into 11 real Power BI-ready Gold Parquet tables. No predictive
-target, no classifier, no GenAI call — never treated as a ninth modeling problem. The interactive `.pbix`
-is an explicit human, Power BI Desktop step. Details: [`notebooks/bp8_executive_product_analytics/README.md`](notebooks/bp8_executive_product_analytics/README.md).
+Aggregates Gold-layer outputs from BP1-7 into 11 real Power BI-ready Gold Parquet tables (7 from Gate 2,
+4 from Gate 3). The interactive 7-page `.pbix` executive report has been built over these same real Gold
+tables (zero synthetic data in the model) and is committed in this repo:
+[**Download the Power BI report (.pbix)**](powerbi/pbix/Customer360_Navigator_Executive_Report.pbix) -
+open directly in Power BI Desktop. No predictive target, no classifier, no GenAI call — never treated as a
+ninth modeling problem. Details: [`notebooks/bp8_executive_product_analytics/README.md`](notebooks/bp8_executive_product_analytics/README.md)
+and [`powerbi/README.md`](powerbi/README.md) (page-by-page contents, measures, build guide).
 </details>
 
 A suite-wide executive rollup (`notebooks/00_suite_executive_rollup/`) consolidates all eight BPs' own real
@@ -249,6 +252,15 @@ For the fully-labeled deep-dive version of that same mechanism - plus the shared
 table, the cross-cutting ECOA/Reg B / UDAAP / NIST AI RMF / GLBA governance matrix, and the
 per-BP gate-by-gate status table - see [`docs/architecture/README.md`](docs/architecture/README.md).
 
+**One-page version for a time-constrained reader:** [`docs/architecture/EXECUTIVE_ARCHITECTURE_SUMMARY.md`](docs/architecture/EXECUTIVE_ARCHITECTURE_SUMMARY.md)
+- a single layered diagram naming the real technology per layer, plus an explicit real-vs-synthetic
+table (the Identity Resolution and Activation layers are disclosed there as synthetic/simulated,
+never claimed as live integrations). **Per-BP evidence table:**
+[`docs/PRODUCTION_READINESS_MATRIX.md`](docs/PRODUCTION_READINESS_MATRIX.md) - model, validation
+method, fairness result, explainability method, API, Docker, real pytest counts, monitoring, and
+production tier for all 8 BPs plus the Identity Resolution and Activation layers, every cell
+sourced from a real artifact in this repo.
+
 <br>
 
 ## Structure
@@ -263,8 +275,9 @@ below), and `reporting` is this suite's presentation layer (dashboards/reports/w
 there is no separate web frontend; BP8's Power BI layer plays that role, see Business problems
 above). `configs/` — per-BP YAML, gate results appended as marker-delimited blocks. `reports/` —
 MODEL_CARD.md, CHANGELOG.md, and each BP's executive rollup (dashboard/report/workbook/deck).
-`powerbi/gold_tables/` — BP8's Python-built Gold/semantic layer (the interactive `.pbix` itself is a
-human, Power BI Desktop step — never a notebook deliverable). `tests/` — 1,000+ tests, mirroring `src/`
+`powerbi/gold_tables/` — BP8's Python-built Gold/semantic layer, plus `powerbi/pbix/` — the built,
+committed 7-page interactive `.pbix` executive report over those same real tables. `tests/` — 1,000+
+tests, mirroring `src/`
 1:1. `docs/` — architecture notes, BRD/FRD, data dictionary, and `evidence_ledger/EVIDENCE_LEDGER.md`,
 the append-only record of every real run. `scripts/` — the notebook-syntax and structural-check tooling
 every gate uses. `.github/workflows/` — 5 separate workflows, each its own real badge above:
