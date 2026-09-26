@@ -732,9 +732,22 @@ def load_bp8_summary(project_root: Path) -> dict:
         "gate2": gate2,
         "gate2_generated_at_utc": gate2.get("generated_at_utc"),
         "gate2_confirmed": bool(gate2.get("generated_at_utc")),
-        "n_kpi_categories_ready": gate2.get("n_kpi_categories_ready"),
-        "n_kpi_categories_deferred": gate2.get("n_kpi_categories_deferred"),
-        "gold_tables_written_count": gate2.get("gold_tables_written_count"),
+        # gate2's own manifest never wrote "n_kpi_categories_ready" / "n_kpi_categories_deferred" /
+        # "gold_tables_written_count" as scalar fields - only the real underlying
+        # "kpi_category_scope" dict and "gold_tables_written" list exist. Reading the absent scalar
+        # keys silently returned None -> rendered as the literal string "None"/"0" on the suite
+        # dashboard even though the real data one field over was fully populated. Compute these
+        # three counts directly from that real data instead of trusting a field that was never
+        # written. (Falls back to an explicit field if a future gate2 run starts writing one.)
+        "n_kpi_categories_ready": gate2.get("n_kpi_categories_ready", sum(
+            1 for v in gate2.get("kpi_category_scope", {}).values() if v.get("ready")
+        )),
+        "n_kpi_categories_deferred": gate2.get("n_kpi_categories_deferred", sum(
+            1 for v in gate2.get("kpi_category_scope", {}).values() if not v.get("ready")
+        )),
+        "gold_tables_written_count": gate2.get(
+            "gold_tables_written_count", len(gate2.get("gold_tables_written", gate2.get("gold_tables", [])))
+        ),
         "gold_tables": gate2.get("gold_tables_written", gate2.get("gold_tables", [])),
         "gate3_manifest_path": str(gate3_path),
         "gate3_exists": gate3_exists,
