@@ -1,0 +1,10 @@
+customer_360_id,product_id,product_type,opened_at_utc,status
+C360-0001,PRD-0001,checking_account,2024-03-01T00:00:00+00:00,active
+C360-0001,PRD-0002,credit_card,2025-01-15T00:00:00+00:00,active
+C360-0002,PRD-0003,savings_account,2023-11-20T00:00:00+00:00,active
+C360-0003,PRD-0004,checking_account,2022-06-05T00:00:00+00:00,active
+C360-0004,PRD-0005,credit_card,2026-06-10T00:00:00+00:00,active
+C360-0006,PRD-0006,checking_account,2021-09-12T00:00:00+00:00,active
+C360-0006,PRD-0007,auto_loan,2019-04-01T00:00:00+00:00,closed
+C360-0007,PRD-0008,savings_account,2024-08-19T00:00:00+00:00,active
+C360-0008,PRD-0009,checking_account,2026-06-12T00:00:00+00:00,active

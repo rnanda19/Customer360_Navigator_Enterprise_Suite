@@ -1,0 +1,481 @@
+[
+  {
+    "customer_360_id": "C360-0001",
+    "profile": {
+      "customer_360_id": "C360-0001",
+      "full_name": "Alice Johnson",
+      "email": "ajohnson.web@example.com",
+      "phone": "555-201-1001",
+      "address_line1": "120 Maple Avenue",
+      "city": "Springfield",
+      "state": "IL",
+      "zip": "62701",
+      "survived_from_source": "web_signup:C-001",
+      "n_source_records": 3,
+      "source_systems": "core_banking,crm_system,web_signup"
+    },
+    "interactions": [
+      {
+        "customer_360_id": "C360-0001",
+        "interaction_id": "INT-0001",
+        "interaction_type": "web_login",
+        "channel": "web",
+        "occurred_at_utc": "2026-08-20T09:15:00+00:00",
+        "summary": "Fictional example: routine account login and balance check."
+      },
+      {
+        "customer_360_id": "C360-0001",
+        "interaction_id": "INT-0002",
+        "interaction_type": "mobile_app_session",
+        "channel": "mobile_app",
+        "occurred_at_utc": "2026-08-28T18:02:00+00:00",
+        "summary": "Fictional example: viewed recent transactions in mobile app."
+      }
+    ],
+    "products": [
+      {
+        "customer_360_id": "C360-0001",
+        "product_id": "PRD-0001",
+        "product_type": "checking_account",
+        "opened_at_utc": "2024-03-01T00:00:00+00:00",
+        "status": "active"
+      },
+      {
+        "customer_360_id": "C360-0001",
+        "product_id": "PRD-0002",
+        "product_type": "credit_card",
+        "opened_at_utc": "2025-01-15T00:00:00+00:00",
+        "status": "active"
+      }
+    ],
+    "complaints": [],
+    "risk_signals": {
+      "n_interactions": 2,
+      "n_products_total": 2,
+      "n_products_active": 2,
+      "n_complaint_examples": 0,
+      "days_since_last_interaction": 4
+    },
+    "journey": [
+      {
+        "event_type": "interaction",
+        "occurred_at_utc": "2026-08-20T09:15:00+00:00",
+        "detail": "web_login via web: Fictional example: routine account login and balance check."
+      },
+      {
+        "event_type": "interaction",
+        "occurred_at_utc": "2026-08-28T18:02:00+00:00",
+        "detail": "mobile_app_session via mobile_app: Fictional example: viewed recent transactions in mobile app."
+      }
+    ],
+    "recommended_action_demo": "PRIORITY_QUEUE_REVIEW"
+  },
+  {
+    "customer_360_id": "C360-0002",
+    "profile": {
+      "customer_360_id": "C360-0002",
+      "full_name": "Rob Smith",
+      "email": "r.smith88@example.com",
+      "phone": "555-201-3345",
+      "address_line1": "482 Oak St",
+      "city": "Springfield",
+      "state": "IL",
+      "zip": "62701",
+      "survived_from_source": "crm_system:B-002",
+      "n_source_records": 2,
+      "source_systems": "core_banking,crm_system"
+    },
+    "interactions": [
+      {
+        "customer_360_id": "C360-0002",
+        "interaction_id": "INT-0003",
+        "interaction_type": "branch_visit",
+        "channel": "branch",
+        "occurred_at_utc": "2026-08-05T14:30:00+00:00",
+        "summary": "Fictional example: in-person inquiry about a statement line item."
+      }
+    ],
+    "products": [
+      {
+        "customer_360_id": "C360-0002",
+        "product_id": "PRD-0003",
+        "product_type": "savings_account",
+        "opened_at_utc": "2023-11-20T00:00:00+00:00",
+        "status": "active"
+      }
+    ],
+    "complaints": [
+      {
+        "customer_360_id": "C360-0002",
+        "complaint_example_id": "CMPEX-0001",
+        "category": "billing_dispute",
+        "summary": "FICTIONAL EXAMPLE ONLY - not a real CFPB row. Illustrates a billing-dispute-shaped record a real Customer 360 platform would attach here.",
+        "occurred_at_utc": "2026-07-10T00:00:00+00:00"
+      }
+    ],
+    "risk_signals": {
+      "n_interactions": 1,
+      "n_products_total": 1,
+      "n_products_active": 1,
+      "n_complaint_examples": 1,
+      "days_since_last_interaction": 27
+    },
+    "journey": [
+      {
+        "event_type": "complaint_example",
+        "occurred_at_utc": "2026-07-10T00:00:00+00:00",
+        "detail": "billing_dispute: FICTIONAL EXAMPLE ONLY - not a real CFPB row. Illustrates a billing-dispute-shaped record a real Customer 360 platform would attach here."
+      },
+      {
+        "event_type": "interaction",
+        "occurred_at_utc": "2026-08-05T14:30:00+00:00",
+        "detail": "branch_visit via branch: Fictional example: in-person inquiry about a statement line item."
+      }
+    ],
+    "recommended_action_demo": "ESCALATE_SENIOR_REVIEWER"
+  },
+  {
+    "customer_360_id": "C360-0003",
+    "profile": {
+      "customer_360_id": "C360-0003",
+      "full_name": "David Chen",
+      "email": "david.chen88@example.com",
+      "phone": "555-201-7799",
+      "address_line1": "90 Birch Ln",
+      "city": "Riverton",
+      "state": "IL",
+      "zip": "62561",
+      "survived_from_source": "web_signup:C-002",
+      "n_source_records": 2,
+      "source_systems": "core_banking,web_signup"
+    },
+    "interactions": [
+      {
+        "customer_360_id": "C360-0003",
+        "interaction_id": "INT-0004",
+        "interaction_type": "call_center_inquiry",
+        "channel": "phone",
+        "occurred_at_utc": "2026-07-22T11:45:00+00:00",
+        "summary": "Fictional example: called to ask about a pending transfer."
+      }
+    ],
+    "products": [
+      {
+        "customer_360_id": "C360-0003",
+        "product_id": "PRD-0004",
+        "product_type": "checking_account",
+        "opened_at_utc": "2022-06-05T00:00:00+00:00",
+        "status": "active"
+      }
+    ],
+    "complaints": [],
+    "risk_signals": {
+      "n_interactions": 1,
+      "n_products_total": 1,
+      "n_products_active": 1,
+      "n_complaint_examples": 0,
+      "days_since_last_interaction": 41
+    },
+    "journey": [
+      {
+        "event_type": "interaction",
+        "occurred_at_utc": "2026-07-22T11:45:00+00:00",
+        "detail": "call_center_inquiry via phone: Fictional example: called to ask about a pending transfer."
+      }
+    ],
+    "recommended_action_demo": "STANDARD_QUEUE"
+  },
+  {
+    "customer_360_id": "C360-0004",
+    "profile": {
+      "customer_360_id": "C360-0004",
+      "full_name": "Michael Brown",
+      "email": "michael.brown@example.com",
+      "phone": "555-201-9900",
+      "address_line1": "15 Elm Court",
+      "city": "Madison",
+      "state": "WI",
+      "zip": "53703",
+      "survived_from_source": "core_banking:A-004",
+      "n_source_records": 1,
+      "source_systems": "core_banking"
+    },
+    "interactions": [
+      {
+        "customer_360_id": "C360-0004",
+        "interaction_id": "INT-0005",
+        "interaction_type": "card_activation",
+        "channel": "web",
+        "occurred_at_utc": "2026-06-10T08:00:00+00:00",
+        "summary": "Fictional example: activated a newly issued card online."
+      }
+    ],
+    "products": [
+      {
+        "customer_360_id": "C360-0004",
+        "product_id": "PRD-0005",
+        "product_type": "credit_card",
+        "opened_at_utc": "2026-06-10T00:00:00+00:00",
+        "status": "active"
+      }
+    ],
+    "complaints": [],
+    "risk_signals": {
+      "n_interactions": 1,
+      "n_products_total": 1,
+      "n_products_active": 1,
+      "n_complaint_examples": 0,
+      "days_since_last_interaction": 83
+    },
+    "journey": [
+      {
+        "event_type": "interaction",
+        "occurred_at_utc": "2026-06-10T08:00:00+00:00",
+        "detail": "card_activation via web: Fictional example: activated a newly issued card online."
+      }
+    ],
+    "recommended_action_demo": "STANDARD_QUEUE"
+  },
+  {
+    "customer_360_id": "C360-0005",
+    "profile": {
+      "customer_360_id": "C360-0005",
+      "full_name": "Sarah Wilson",
+      "email": "sarah.wilson@example.com",
+      "phone": "555-201-2211",
+      "address_line1": "301 Pine Road",
+      "city": "Riverton",
+      "state": "IL",
+      "zip": "62561",
+      "survived_from_source": "core_banking:A-005",
+      "n_source_records": 1,
+      "source_systems": "core_banking"
+    },
+    "interactions": [],
+    "products": [],
+    "complaints": [],
+    "risk_signals": {
+      "n_interactions": 0,
+      "n_products_total": 0,
+      "n_products_active": 0,
+      "n_complaint_examples": 0,
+      "days_since_last_interaction": null
+    },
+    "journey": [],
+    "recommended_action_demo": "STANDARD_QUEUE"
+  },
+  {
+    "customer_360_id": "C360-0006",
+    "profile": {
+      "customer_360_id": "C360-0006",
+      "full_name": "Jen Lee",
+      "email": "jen.lee.web@example.com",
+      "phone": "555-201-4488",
+      "address_line1": "77 Cedar Blvd",
+      "city": "Madison",
+      "state": "WI",
+      "zip": "53703",
+      "survived_from_source": "web_signup:C-003",
+      "n_source_records": 2,
+      "source_systems": "crm_system,web_signup"
+    },
+    "interactions": [
+      {
+        "customer_360_id": "C360-0006",
+        "interaction_id": "INT-0006",
+        "interaction_type": "chatbot_session",
+        "channel": "web",
+        "occurred_at_utc": "2026-08-15T16:20:00+00:00",
+        "summary": "Fictional example: chatbot session about a declined transaction."
+      },
+      {
+        "customer_360_id": "C360-0006",
+        "interaction_id": "INT-0007",
+        "interaction_type": "email_opened",
+        "channel": "email",
+        "occurred_at_utc": "2026-08-16T09:00:00+00:00",
+        "summary": "Fictional example: opened a follow-up email from the chatbot session."
+      }
+    ],
+    "products": [
+      {
+        "customer_360_id": "C360-0006",
+        "product_id": "PRD-0006",
+        "product_type": "checking_account",
+        "opened_at_utc": "2021-09-12T00:00:00+00:00",
+        "status": "active"
+      },
+      {
+        "customer_360_id": "C360-0006",
+        "product_id": "PRD-0007",
+        "product_type": "auto_loan",
+        "opened_at_utc": "2019-04-01T00:00:00+00:00",
+        "status": "closed"
+      }
+    ],
+    "complaints": [
+      {
+        "customer_360_id": "C360-0006",
+        "complaint_example_id": "CMPEX-0002",
+        "category": "card_fraud_report",
+        "summary": "FICTIONAL EXAMPLE ONLY - not a real CFPB row. Illustrates a fraud-report-shaped record a real Customer 360 platform would attach here.",
+        "occurred_at_utc": "2026-08-16T10:00:00+00:00"
+      }
+    ],
+    "risk_signals": {
+      "n_interactions": 2,
+      "n_products_total": 2,
+      "n_products_active": 1,
+      "n_complaint_examples": 1,
+      "days_since_last_interaction": 16
+    },
+    "journey": [
+      {
+        "event_type": "interaction",
+        "occurred_at_utc": "2026-08-15T16:20:00+00:00",
+        "detail": "chatbot_session via web: Fictional example: chatbot session about a declined transaction."
+      },
+      {
+        "event_type": "interaction",
+        "occurred_at_utc": "2026-08-16T09:00:00+00:00",
+        "detail": "email_opened via email: Fictional example: opened a follow-up email from the chatbot session."
+      },
+      {
+        "event_type": "complaint_example",
+        "occurred_at_utc": "2026-08-16T10:00:00+00:00",
+        "detail": "card_fraud_report: FICTIONAL EXAMPLE ONLY - not a real CFPB row. Illustrates a fraud-report-shaped record a real Customer 360 platform would attach here."
+      }
+    ],
+    "recommended_action_demo": "ESCALATE_SENIOR_REVIEWER"
+  },
+  {
+    "customer_360_id": "C360-0007",
+    "profile": {
+      "customer_360_id": "C360-0007",
+      "full_name": "Maria Garcia",
+      "email": "maria.garcia@example.com",
+      "phone": "555-201-6655",
+      "address_line1": "22 Willow Way",
+      "city": "Capitol Heights",
+      "state": "WI",
+      "zip": "53704",
+      "survived_from_source": "crm_system:B-004",
+      "n_source_records": 1,
+      "source_systems": "crm_system"
+    },
+    "interactions": [
+      {
+        "customer_360_id": "C360-0007",
+        "interaction_id": "INT-0008",
+        "interaction_type": "branch_visit",
+        "channel": "branch",
+        "occurred_at_utc": "2026-07-30T13:10:00+00:00",
+        "summary": "Fictional example: opened conversation about savings account options."
+      }
+    ],
+    "products": [
+      {
+        "customer_360_id": "C360-0007",
+        "product_id": "PRD-0008",
+        "product_type": "savings_account",
+        "opened_at_utc": "2024-08-19T00:00:00+00:00",
+        "status": "active"
+      }
+    ],
+    "complaints": [],
+    "risk_signals": {
+      "n_interactions": 1,
+      "n_products_total": 1,
+      "n_products_active": 1,
+      "n_complaint_examples": 0,
+      "days_since_last_interaction": 33
+    },
+    "journey": [
+      {
+        "event_type": "interaction",
+        "occurred_at_utc": "2026-07-30T13:10:00+00:00",
+        "detail": "branch_visit via branch: Fictional example: opened conversation about savings account options."
+      }
+    ],
+    "recommended_action_demo": "STANDARD_QUEUE"
+  },
+  {
+    "customer_360_id": "C360-0008",
+    "profile": {
+      "customer_360_id": "C360-0008",
+      "full_name": "Michelle Brown",
+      "email": "michelle.brown@example.com",
+      "phone": "555-201-8822",
+      "address_line1": "410 Spruce Terrace",
+      "city": "Capitol Heights",
+      "state": "WI",
+      "zip": "53704",
+      "survived_from_source": "web_signup:C-004",
+      "n_source_records": 1,
+      "source_systems": "web_signup"
+    },
+    "interactions": [
+      {
+        "customer_360_id": "C360-0008",
+        "interaction_id": "INT-0009",
+        "interaction_type": "signup_confirmation",
+        "channel": "web",
+        "occurred_at_utc": "2026-06-12T17:05:00+00:00",
+        "summary": "Fictional example: confirmed email after web self-signup."
+      }
+    ],
+    "products": [
+      {
+        "customer_360_id": "C360-0008",
+        "product_id": "PRD-0009",
+        "product_type": "checking_account",
+        "opened_at_utc": "2026-06-12T00:00:00+00:00",
+        "status": "active"
+      }
+    ],
+    "complaints": [],
+    "risk_signals": {
+      "n_interactions": 1,
+      "n_products_total": 1,
+      "n_products_active": 1,
+      "n_complaint_examples": 0,
+      "days_since_last_interaction": 81
+    },
+    "journey": [
+      {
+        "event_type": "interaction",
+        "occurred_at_utc": "2026-06-12T17:05:00+00:00",
+        "detail": "signup_confirmation via web: Fictional example: confirmed email after web self-signup."
+      }
+    ],
+    "recommended_action_demo": "STANDARD_QUEUE"
+  },
+  {
+    "customer_360_id": "C360-0009",
+    "profile": {
+      "customer_360_id": "C360-0009",
+      "full_name": "Thomas Anderson",
+      "email": "thomas.anderson@example.com",
+      "phone": "555-201-5533",
+      "address_line1": "58 Aspen Circle",
+      "city": "Riverton",
+      "state": "IL",
+      "zip": "62561",
+      "survived_from_source": "web_signup:C-005",
+      "n_source_records": 1,
+      "source_systems": "web_signup"
+    },
+    "interactions": [],
+    "products": [],
+    "complaints": [],
+    "risk_signals": {
+      "n_interactions": 0,
+      "n_products_total": 0,
+      "n_products_active": 0,
+      "n_complaint_examples": 0,
+      "days_since_last_interaction": null
+    },
+    "journey": [],
+    "recommended_action_demo": "STANDARD_QUEUE"
+  }
+]

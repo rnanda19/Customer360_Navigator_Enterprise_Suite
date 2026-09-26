@@ -1,0 +1,2 @@
+source_system_a,source_customer_id_a,source_system_b,source_customer_id_b,score,review_threshold,merge_threshold
+core_banking,A-004,web_signup,C-004,0.6978,0.6,0.72

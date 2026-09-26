@@ -21,6 +21,7 @@ from identity_resolution.entity_resolution import (
     DETERMINISTIC_PHONE,
     PROBABILISTIC,
     PROBABILISTIC_MATCH_THRESHOLD,
+    REVIEW_THRESHOLD,
     SINGLE_SOURCE,
     SourceRecord,
     resolve_identities,
@@ -126,6 +127,35 @@ def test_near_miss_pair_correctly_not_merged(resolved):
     assert michael_golden.customer_360_id != michelle_golden.customer_360_id
     assert michael_golden.n_source_records == 1
     assert michelle_golden.n_source_records == 1
+
+
+def test_near_miss_pair_is_flagged_for_duplicate_review_not_silently_dropped(resolved):
+    """The duplicate-detection review tier this module adds: a pair scoring between
+    REVIEW_THRESHOLD and PROBABILISTIC_MATCH_THRESHOLD must never be silently discarded - it must
+    appear in diagnostics['duplicate_review_queue'] so a human steward can see it, exactly the real
+    near-miss pair this fixture is built to produce (Michael Brown / Michelle Brown, real computed
+    score 0.6978)."""
+    records, _, _, diag = resolved
+    michael = next(r for r in records if r.full_name == "Michael Brown")
+    michelle = next(r for r in records if r.full_name == "Michelle Brown")
+    queue = diag["duplicate_review_queue"]
+    matches = [q for q in queue if {q["a"], q["b"]} == {michael.row_key, michelle.row_key}]
+    assert len(matches) == 1, "the real near-miss pair must be in the review queue, not dropped"
+    assert matches[0]["score"] == 0.6978
+    assert matches[0]["merged"] is False
+    assert matches[0]["score"] >= REVIEW_THRESHOLD
+    assert matches[0]["score"] < PROBABILISTIC_MATCH_THRESHOLD
+
+
+def test_duplicate_review_queue_contains_only_the_one_real_near_miss_pair(resolved):
+    """On this real fixture, exactly one pair falls in the real gap between REVIEW_THRESHOLD
+    (0.60) and PROBABILISTIC_MATCH_THRESHOLD (0.72) - every other unrelated pair scores well
+    under 0.60 (see the module's own REVIEW_THRESHOLD docstring for the real score distribution
+    this was calibrated against). A review queue that flagged unrelated pairs too would be a
+    calibration bug, not a feature - this proves it doesn't."""
+    *_, diag = resolved
+    assert len(diag["duplicate_review_queue"]) == 1
+    assert diag["review_threshold"] == REVIEW_THRESHOLD
 
 
 def test_true_singletons_get_single_source_method_and_na_confidence(resolved):

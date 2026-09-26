@@ -1,0 +1,10 @@
+customer_360_id,interaction_id,interaction_type,channel,occurred_at_utc,summary
+C360-0001,INT-0001,web_login,web,2026-08-20T09:15:00+00:00,Fictional example: routine account login and balance check.
+C360-0001,INT-0002,mobile_app_session,mobile_app,2026-08-28T18:02:00+00:00,Fictional example: viewed recent transactions in mobile app.
+C360-0002,INT-0003,branch_visit,branch,2026-08-05T14:30:00+00:00,Fictional example: in-person inquiry about a statement line item.
+C360-0003,INT-0004,call_center_inquiry,phone,2026-07-22T11:45:00+00:00,Fictional example: called to ask about a pending transfer.
+C360-0004,INT-0005,card_activation,web,2026-06-10T08:00:00+00:00,Fictional example: activated a newly issued card online.
+C360-0006,INT-0006,chatbot_session,web,2026-08-15T16:20:00+00:00,Fictional example: chatbot session about a declined transaction.
+C360-0006,INT-0007,email_opened,email,2026-08-16T09:00:00+00:00,Fictional example: opened a follow-up email from the chatbot session.
+C360-0007,INT-0008,branch_visit,branch,2026-07-30T13:10:00+00:00,Fictional example: opened conversation about savings account options.
+C360-0008,INT-0009,signup_confirmation,web,2026-06-12T17:05:00+00:00,Fictional example: confirmed email after web self-signup.

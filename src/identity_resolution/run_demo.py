@@ -14,6 +14,13 @@ output files next to them:
       customer_360_id, full_name, email, phone, address_line1, city, state, zip,
       survived_from_source, n_source_records, source_systems
 
+  data/synthetic_identity_demo/output/duplicate_review_queue.csv
+      source_system_a, source_customer_id_a, source_system_b, source_customer_id_b, score,
+      review_threshold, merge_threshold  -- real pairs this run scored between the review and
+      merge thresholds (see entity_resolution.py's own REVIEW_THRESHOLD docstring): NEVER
+      auto-merged, surfaced here for a human data steward to decide, exactly the "possible
+      duplicate, needs review" step a real MDM pipeline has and this demo previously skipped.
+
 Usage (from the project root):  python -m identity_resolution.run_demo
 """
 
@@ -86,11 +93,45 @@ def main() -> None:
         for g in golden:
             writer.writerow(asdict(g))
 
+    review_path = out_dir / "duplicate_review_queue.csv"
+    with open(review_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[
+                "source_system_a",
+                "source_customer_id_a",
+                "source_system_b",
+                "source_customer_id_b",
+                "score",
+                "review_threshold",
+                "merge_threshold",
+            ],
+        )
+        writer.writeheader()
+        for item in diag["duplicate_review_queue"]:
+            writer.writerow(
+                {
+                    "source_system_a": item["a"][0],
+                    "source_customer_id_a": item["a"][1],
+                    "source_system_b": item["b"][0],
+                    "source_customer_id_b": item["b"][1],
+                    "score": item["score"],
+                    "review_threshold": diag["review_threshold"],
+                    "merge_threshold": diag["threshold"],
+                }
+            )
+
     print(f"Real synthetic source rows read: {len(records)}")
     print(f"Real golden customer_360_id clusters resolved: {len(golden)}")
+    print(
+        f"Real pairs flagged for duplicate review (never auto-merged): {len(diag['duplicate_review_queue'])}"
+    )
     print(f"Wrote: {pairs_path}")
     print(f"Wrote: {golden_path}")
-    print(f"Probabilistic match threshold used: {diag['threshold']}")
+    print(f"Wrote: {review_path}")
+    merge_t = diag["threshold"]
+    review_t = diag["review_threshold"]
+    print(f"Probabilistic match threshold used: {merge_t} (review threshold: {review_t})")
 
 
 if __name__ == "__main__":

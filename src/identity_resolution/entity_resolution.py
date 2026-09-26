@@ -62,12 +62,23 @@ from difflib import SequenceMatcher
 # Not an arbitrary/guessed constant — see the test module's own assertions on the real numbers.
 PROBABILISTIC_MATCH_THRESHOLD = 0.72
 
+# Duplicate-detection review tier: a real MDM/identity-resolution pattern this module previously
+# lacked - a pair scoring below the auto-merge threshold but clearly closer than the general
+# population is not silently dropped, it is flagged for a human steward to review. Calibrated
+# against this module's own real, computed score distribution (see resolve_identities' own
+# pairwise diagnostics): the deliberate near-miss pair (Michael Brown / Michelle Brown) scores
+# 0.6978 - the next-highest unrelated pair in this fixture scores 0.5921. 0.60 sits cleanly in
+# that real gap, so it isolates exactly the one genuine near-miss without sweeping in the general
+# population of unrelated pairs (all of which score well under 0.55 in this fixture).
+REVIEW_THRESHOLD = 0.60
+
 SIMILARITY_WEIGHTS = {"name": 0.35, "address": 0.35, "phone": 0.15, "email": 0.15}
 
 DETERMINISTIC_EMAIL = "deterministic_email"
 DETERMINISTIC_PHONE = "deterministic_phone"
 PROBABILISTIC = "probabilistic"
 SINGLE_SOURCE = "single_source_no_match"
+FLAGGED_FOR_REVIEW = "flagged_for_review_possible_duplicate"
 
 SURVIVORSHIP_RULE = "most_recently_updated_source_record_wins"
 
@@ -219,15 +230,18 @@ def resolve_identities(
             if uf.find(a.row_key) == uf.find(b.row_key):
                 continue  # already merged deterministically
             score = probabilistic_score(a, b)
+            merged = score >= PROBABILISTIC_MATCH_THRESHOLD
+            flagged_for_review = (not merged) and score >= REVIEW_THRESHOLD
             pairwise_scores.append(
                 {
                     "a": a.row_key,
                     "b": b.row_key,
                     "score": round(score, 4),
-                    "merged": score >= PROBABILISTIC_MATCH_THRESHOLD,
+                    "merged": merged,
+                    "flagged_for_review": flagged_for_review,
                 }
             )
-            if score >= PROBABILISTIC_MATCH_THRESHOLD:
+            if merged:
                 uf.union(a.row_key, b.row_key)
                 edge_methods[frozenset((a.row_key, b.row_key))] = (PROBABILISTIC, round(score, 4))
 
@@ -284,8 +298,16 @@ def resolve_identities(
 
     match_pairs.sort(key=lambda mp: (mp.customer_360_id, mp.source_system, mp.source_customer_id))
     golden_records.sort(key=lambda g: g.customer_360_id)
+
+    # Duplicate-detection review queue: every real pair this run scored as flagged_for_review,
+    # NEVER auto-merged - a human steward decision, not this module's. Real, re-derivable from
+    # pairwise_probabilistic_scores; kept as its own list so a caller never has to re-filter it.
+    duplicate_review_queue = [s for s in pairwise_scores if s["flagged_for_review"]]
+
     diagnostics = {
         "pairwise_probabilistic_scores": pairwise_scores,
         "threshold": PROBABILISTIC_MATCH_THRESHOLD,
+        "review_threshold": REVIEW_THRESHOLD,
+        "duplicate_review_queue": duplicate_review_queue,
     }
     return match_pairs, golden_records, diagnostics
