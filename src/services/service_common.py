@@ -93,6 +93,11 @@ class ModelBundleHandle:
         except ValueError as e:
             self.error = f"Model bundle at {self.joblib_path} failed validation: {e}"
             return
+        except Exception as e:  # noqa: BLE001 - any corrupt/unreadable bundle (e.g. EOFError on a
+            # zero-byte or truncated file) must degrade to a reported error, never crash startup -
+            # this is the class's own documented guarantee ("Never raises past __init__").
+            self.error = f"Model bundle at {self.joblib_path} could not be loaded: {e}"
+            return
 
         if self.metadata_path is not None and self.metadata_path.exists():
             import json

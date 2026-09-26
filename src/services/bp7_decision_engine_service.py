@@ -672,7 +672,7 @@ async def _self_test_metrics_refresh_loop(interval_seconds: float) -> None:
             result = _compute_self_test(handle, DEFAULT_SELF_TEST_SAMPLE_SIZE)
             _record_self_test_metrics(result)
         except Exception:  # noqa: BLE001 - best-effort periodic refresh, never crashes the process
-            continue
+            continue  # nosec B112 - intentional: skip this cycle, loop keeps running
 
 
 @asynccontextmanager
@@ -932,7 +932,7 @@ def _resolve_git_commit() -> Optional[str]:
     if not (project_root / ".git").exists():
         return None
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603,B607 - fixed argv, no shell, no user input
             ["git", "rev-parse", "--short", "HEAD"],
             cwd=project_root,
             capture_output=True,
