@@ -932,7 +932,7 @@ def _resolve_git_commit() -> Optional[str]:
     if not (project_root / ".git").exists():
         return None
     try:
-        result = subprocess.run(  # nosec B603,B607 - fixed argv, no shell, no user input
+        result = subprocess.run(  # nosec B603 B607 -- fixed argv, no shell, no user input
             ["git", "rev-parse", "--short", "HEAD"],
             cwd=project_root,
             capture_output=True,
