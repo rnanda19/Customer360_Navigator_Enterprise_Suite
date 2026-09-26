@@ -1,0 +1,192 @@
+-- ============================================================================
+-- Customer360 Navigator — DAX measure library for the Priority 4 executive
+-- report. Every measure below references a real column verified against the
+-- actual Gold parquet files on 2026-09-26 (see queries.pq header for the
+-- verification method). None of these have been executed inside a real Power
+-- BI engine — I have no way to run Power BI Desktop's formula engine from
+-- here. The DAX syntax is correct standard DAX, but treat each new measure
+-- as unverified until you see it evaluate without a red squiggle / error
+-- in the DAX editor. Report back anything that errors and I'll fix it.
+--
+-- HOW TO USE: Report view -> select the table in Fields -> Home/Modeling ->
+-- New Measure -> paste ONE measure's name+formula -> Enter. Repeat per
+-- measure. Group by the "-- Page N" headers below to build one page's
+-- measures at a time rather than all 40+ at once.
+-- ============================================================================
+
+
+-- ==================== Page 1: Executive Overview ====================
+
+-- Table: bp8_gold_decision_engine_summary (1 row — MAX() is a safe aggregator)
+Total Scored Population = MAX(bp8_gold_decision_engine_summary[live_row_count])
+Intervention Flag Rate = MAX(bp8_gold_decision_engine_summary[intervention_flag_rate])
+Coverage Pct = MAX(bp8_gold_decision_engine_summary[coverage_pct])
+Adverse Impact Ratio = MAX(bp8_gold_decision_engine_summary[adverse_impact_ratio])
+Champion Rule Scheme = MAX(bp8_gold_decision_engine_summary[champion_rule_scheme])
+
+-- Table: bp8_gold_friction_trends
+Total Friction-Tracked Complaints = SUM(bp8_gold_friction_trends[n_complaints])
+High or Med-High Friction Complaints =
+CALCULATE(
+    SUM(bp8_gold_friction_trends[n_complaints]),
+    bp8_gold_friction_trends[friction_severity_class] IN {"HIGH_FRICTION", "MEDIUM_HIGH_FRICTION"}
+)
+High Friction Rate = DIVIDE([High or Med-High Friction Complaints], [Total Friction-Tracked Complaints])
+
+-- Table: bp8_gold_escalation_trends
+Total Escalation-Tracked Complaints = SUM(bp8_gold_escalation_trends[n_complaints])
+Intervention Required Complaints =
+CALCULATE(
+    SUM(bp8_gold_escalation_trends[n_complaints]),
+    bp8_gold_escalation_trends[intervention_status] = "INTERVENTION_REQUIRED"
+)
+Escalation Rate = DIVIDE([Intervention Required Complaints], [Total Escalation-Tracked Complaints])
+
+-- Table: bp8_gold_product_opportunity_flags
+Total Review Cases = COUNTROWS(bp8_gold_product_opportunity_flags)
+High Priority Review Cases =
+CALCULATE(COUNTROWS(bp8_gold_product_opportunity_flags), bp8_gold_product_opportunity_flags[review_priority_tier] = "HIGH")
+High Priority Case Rate = DIVIDE([High Priority Review Cases], [Total Review Cases])
+
+-- Table: bp8_gold_root_cause_field_driver_ranking
+-- Card visual: top-ranked real driver of BP3's intervention_required outcome.
+-- Confirm the exact text of [outcome_field] in Data view before pasting —
+-- the earlier scan only printed "outcome_1_intervention_required" for row 1;
+-- verify rather than assume.
+Top Root Cause Driver =
+CALCULATE(
+    SELECTEDVALUE(bp8_gold_root_cause_field_driver_ranking[driver_field]),
+    bp8_gold_root_cause_field_driver_ranking[outcome_field] = "outcome_1_intervention_required",
+    bp8_gold_root_cause_field_driver_ranking[rank] = 1
+)
+
+-- Table: bp8_gold_decision_engine_action_breakdown
+Escalate-Cluster Share of Population =
+CALCULATE(
+    SUM(bp8_gold_decision_engine_action_breakdown[pct_of_population]),
+    bp8_gold_decision_engine_action_breakdown[recommended_action] = "ESCALATE_ROOT_CAUSE_REVIEW_RECURRING_CLUSTER"
+) / 100
+
+
+-- ==================== Page 2: Customer Friction ====================
+-- (reuses Total Friction-Tracked Complaints / High Friction Rate from Page 1)
+
+-- Table: bp8_gold_customer_intent_taxonomy_trends
+Total Taxonomy-Tracked Complaints = SUM(bp8_gold_customer_intent_taxonomy_trends[n_complaints])
+
+-- GAP — see POWERBI_BUILD_GUIDE.md "Known gaps": none of the 11 Gold tables
+-- carry a channel/"Submitted via" column, so no Channels measure is defined
+-- here. Do not fabricate one.
+
+
+-- ==================== Page 3: Customer Journey ====================
+-- GAP — see POWERBI_BUILD_GUIDE.md "Known gaps": no dedicated journey-stage
+-- Gold table exists. The measures below use bp8_gold_decision_engine_tier_crosstab
+-- and bp8_gold_product_opportunity_flags[review_priority_tier] as an honest,
+-- real proxy for "where in the review funnel a case sits" — they are NOT a
+-- literal multi-touchpoint customer journey.
+
+-- Table: bp8_gold_decision_engine_tier_crosstab
+Total Tiered Population = SUM(bp8_gold_decision_engine_tier_crosstab[n_rows])
+Tier Intervention Rate =
+DIVIDE(
+    CALCULATE(SUM(bp8_gold_decision_engine_tier_crosstab[n_rows]), bp8_gold_decision_engine_tier_crosstab[intervention_flag] = TRUE),
+    [Total Tiered Population]
+)
+
+-- Table: bp8_gold_product_opportunity_flags (tier distribution across the
+-- 37,160 real review cases — same tier vocabulary minus UNSPECIFIED)
+High Tier Case Share = DIVIDE([High Priority Review Cases], [Total Review Cases])
+
+
+-- ==================== Page 4: Root Cause ====================
+
+-- Table: bp8_gold_root_cause_field_driver_ranking
+-- Real Pareto pattern: cumulative Cramer's V by rank, within outcome_field.
+Cumulative Cramers V =
+VAR CurrentRank = SELECTEDVALUE(bp8_gold_root_cause_field_driver_ranking[rank])
+VAR CurrentOutcome = SELECTEDVALUE(bp8_gold_root_cause_field_driver_ranking[outcome_field])
+RETURN
+CALCULATE(
+    SUM(bp8_gold_root_cause_field_driver_ranking[cramers_v]),
+    FILTER(
+        ALL(bp8_gold_root_cause_field_driver_ranking),
+        bp8_gold_root_cause_field_driver_ranking[outcome_field] = CurrentOutcome
+            && bp8_gold_root_cause_field_driver_ranking[rank] <= CurrentRank
+    )
+)
+
+Total Cramers V (Outcome) =
+VAR CurrentOutcome = SELECTEDVALUE(bp8_gold_root_cause_field_driver_ranking[outcome_field])
+RETURN
+CALCULATE(
+    SUM(bp8_gold_root_cause_field_driver_ranking[cramers_v]),
+    FILTER(ALL(bp8_gold_root_cause_field_driver_ranking), bp8_gold_root_cause_field_driver_ranking[outcome_field] = CurrentOutcome)
+)
+
+Cumulative Cramers V Pct = DIVIDE([Cumulative Cramers V], [Total Cramers V (Outcome)])
+
+-- Table: bp8_gold_root_cause_outcome_trends
+Total Root-Cause-Tracked Complaints = SUM(bp8_gold_root_cause_outcome_trends[n_complaints])
+Timely Response Failure Complaints =
+CALCULATE(
+    SUM(bp8_gold_root_cause_outcome_trends[n_complaints]),
+    bp8_gold_root_cause_outcome_trends[outcome_2_status] = "TIMELY_RESPONSE_FAILURE"
+)
+Timely Response Failure Rate = DIVIDE([Timely Response Failure Complaints], [Total Root-Cause-Tracked Complaints])
+
+
+-- ==================== Page 5: Decision Engine ====================
+
+-- Table: bp8_gold_decision_engine_action_breakdown
+Total Decisioned Rows = SUM(bp8_gold_decision_engine_action_breakdown[n_rows])
+Weighted Avg Priority Score =
+DIVIDE(
+    SUMX(bp8_gold_decision_engine_action_breakdown, bp8_gold_decision_engine_action_breakdown[n_rows] * bp8_gold_decision_engine_action_breakdown[mean_priority_score]),
+    [Total Decisioned Rows]
+)
+
+-- Table: bp8_gold_decision_engine_summary
+Avg Reason Codes Per Case = MAX(bp8_gold_decision_engine_summary[avg_reason_codes_per_row])
+BP3 Agreement Rate = MAX(bp8_gold_decision_engine_summary[bp3_agreement_rate])
+
+-- Table: bp8_gold_product_opportunity_reason_codes_exploded (derived query
+-- from queries.pq — build this one before pasting the measure below)
+Reason Code Occurrences = COUNTROWS(bp8_gold_product_opportunity_reason_codes_exploded)
+
+
+-- ==================== Page 6: Fairness ====================
+
+-- Table: bp8_gold_decision_engine_disparate_impact
+Total Tagged Population = SUM(bp8_gold_decision_engine_disparate_impact[n_rows])
+Avg Selection Rate = AVERAGE(bp8_gold_decision_engine_disparate_impact[selection_rate])
+
+-- Table: bp8_gold_decision_engine_summary
+Four-Fifths Rule Status =
+IF(
+    MAX(bp8_gold_decision_engine_summary[flagged_four_fifths_rule]) = TRUE,
+    "Flagged — below 80% threshold",
+    "OK — no four-fifths-rule breach"
+)
+Lowest Selection Rate Group = MAX(bp8_gold_decision_engine_summary[lowest_selection_rate_group])
+Highest Selection Rate Group = MAX(bp8_gold_decision_engine_summary[highest_selection_rate_group])
+
+-- "Monitoring status" card — this is data-freshness, NOT a live system feed.
+-- Label it honestly on the visual itself: "Gold layer as of {date}", not
+-- "System status: live". Real live monitoring is the separate BP7
+-- Prometheus/Grafana stack in monitoring/ (see MONITORING.md) — a different
+-- system, not embeddable inside a .pbix.
+Gold Layer As Of = MAX(bp8_gold_decision_engine_summary[GeneratedDate])
+
+
+-- ==================== Page 7: Product Opportunities ====================
+
+-- Table: bp8_gold_product_opportunity_flags
+Recurring Issue Cases =
+CALCULATE(COUNTROWS(bp8_gold_product_opportunity_flags), bp8_gold_product_opportunity_flags[recurring_flag] = TRUE)
+Elevated Lag Cases =
+CALCULATE(COUNTROWS(bp8_gold_product_opportunity_flags), bp8_gold_product_opportunity_flags[elevated_lag_flag] = TRUE)
+High Volume Cases =
+CALCULATE(COUNTROWS(bp8_gold_product_opportunity_flags), bp8_gold_product_opportunity_flags[high_volume_flag] = TRUE)
+Recurring Issue Rate = DIVIDE([Recurring Issue Cases], [Total Review Cases])
+Total Complaint Volume (Flagged Cases) = SUM(bp8_gold_product_opportunity_flags[n_complaints_total])
