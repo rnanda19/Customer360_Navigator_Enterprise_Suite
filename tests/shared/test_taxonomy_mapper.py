@@ -18,15 +18,17 @@ import yaml
 
 from taxonomy import taxonomy_mapper as tm
 
-
 # ---------------------------------------------------------------------------
 # Fixtures - small, real, schema-correct mapping/data (never fabricated numbers baked into
 # the module itself - these are test-local synthetic fixtures, same discipline as the
 # notebook-level synthetic-fixture dry-runs used to verify every BP1 notebook this session).
 # ---------------------------------------------------------------------------
 
+
 def _make_valid_mapping_dict(n_categories: int = 77) -> dict:
-    banking77_category_to_bucket = {f"intent_{i}": "BUCKET_A" if i % 2 == 0 else "BUCKET_B" for i in range(n_categories)}
+    banking77_category_to_bucket = {
+        f"intent_{i}": "BUCKET_A" if i % 2 == 0 else "BUCKET_B" for i in range(n_categories)
+    }
     return {
         "cfpb_product_distribution": [
             {"product": "Checking or savings account", "count": 100},
@@ -35,7 +37,9 @@ def _make_valid_mapping_dict(n_categories: int = 77) -> dict:
         ],
         "common_taxonomy_buckets": {
             "BUCKET_A": {"cfpb_product_candidates": ["Checking or savings account"]},
-            "BUCKET_B": {"cfpb_product_candidates": ["Credit card or prepaid card", "Checking or savings account"]},
+            "BUCKET_B": {
+                "cfpb_product_candidates": ["Credit card or prepaid card", "Checking or savings account"]
+            },
         },
         "banking77_category_to_bucket": banking77_category_to_bucket,
     }
@@ -57,6 +61,7 @@ def mapping_config_path(tmp_path, valid_mapping):
 # ---------------------------------------------------------------------------
 # load_mapping_config
 # ---------------------------------------------------------------------------
+
 
 def test_load_mapping_config_missing_file_raises(tmp_path):
     with pytest.raises(FileNotFoundError, match="Taxonomy mapping config not found"):
@@ -90,6 +95,7 @@ def test_load_mapping_config_valid_returns_dict(mapping_config_path):
 # bucket_for_banking77_category
 # ---------------------------------------------------------------------------
 
+
 def test_bucket_for_banking77_category_found(valid_mapping):
     assert tm.bucket_for_banking77_category("intent_0", valid_mapping) == "BUCKET_A"
     assert tm.bucket_for_banking77_category("intent_1", valid_mapping) == "BUCKET_B"
@@ -104,6 +110,7 @@ def test_bucket_for_banking77_category_not_found_returns_none(valid_mapping):
 # directly since its documented "first bucket wins" tie-break rule is easy to silently break).
 # ---------------------------------------------------------------------------
 
+
 def test_product_to_bucket_lookup_first_bucket_wins(valid_mapping):
     lookup = tm._product_to_bucket_lookup(valid_mapping)
     # "Checking or savings account" is a candidate under BOTH BUCKET_A and BUCKET_B - the
@@ -116,15 +123,18 @@ def test_product_to_bucket_lookup_first_bucket_wins(valid_mapping):
 # cfpb_bucket_expr
 # ---------------------------------------------------------------------------
 
+
 def test_cfpb_bucket_expr_maps_known_out_of_scope_and_unknown(valid_mapping):
-    df = pl.DataFrame({
-        "Product": [
-            "Checking or savings account",  # mapped -> BUCKET_A
-            "Credit card or prepaid card",  # mapped -> BUCKET_B
-            "Some other product",           # known product, not a candidate for any bucket -> OUT_OF_SCOPE
-            "A totally new product",        # never seen in cfpb_product_distribution at all -> UNMAPPED
-        ]
-    })
+    df = pl.DataFrame(
+        {
+            "Product": [
+                "Checking or savings account",  # mapped -> BUCKET_A
+                "Credit card or prepaid card",  # mapped -> BUCKET_B
+                "Some other product",  # known product, not a candidate for any bucket -> OUT_OF_SCOPE
+                "A totally new product",  # never seen in cfpb_product_distribution at all -> UNMAPPED
+            ]
+        }
+    )
     result = df.with_columns(tm.cfpb_bucket_expr(valid_mapping))["common_taxonomy_bucket"].to_list()
     assert result == [
         "BUCKET_A",
@@ -138,6 +148,7 @@ def test_cfpb_bucket_expr_maps_known_out_of_scope_and_unknown(valid_mapping):
 # load_banking77_with_bucket
 # ---------------------------------------------------------------------------
 
+
 def _write_banking77_fixture(tmp_path, mapping, n_rows_per_split=3):
     categories = list(mapping["banking77_category_to_bucket"].keys())
     categories_path = tmp_path / "banking77_categories.json"
@@ -145,8 +156,14 @@ def _write_banking77_fixture(tmp_path, mapping, n_rows_per_split=3):
 
     train_path = tmp_path / "banking77_train.csv"
     test_path = tmp_path / "banking77_test.csv"
-    train_rows = [{"text": f"train utterance {i}", "category": categories[i % len(categories)]} for i in range(n_rows_per_split)]
-    test_rows = [{"text": f"test utterance {i}", "category": categories[i % len(categories)]} for i in range(n_rows_per_split)]
+    train_rows = [
+        {"text": f"train utterance {i}", "category": categories[i % len(categories)]}
+        for i in range(n_rows_per_split)
+    ]
+    test_rows = [
+        {"text": f"test utterance {i}", "category": categories[i % len(categories)]}
+        for i in range(n_rows_per_split)
+    ]
     pl.DataFrame(train_rows).write_csv(train_path)
     pl.DataFrame(test_rows).write_csv(test_path)
     return train_path, test_path, categories_path
@@ -171,7 +188,9 @@ def test_load_banking77_with_bucket_unmapped_category_raises(tmp_path, valid_map
 
 
 def test_load_banking77_with_bucket_success(tmp_path, valid_mapping):
-    train_path, test_path, categories_path = _write_banking77_fixture(tmp_path, valid_mapping, n_rows_per_split=4)
+    train_path, test_path, categories_path = _write_banking77_fixture(
+        tmp_path, valid_mapping, n_rows_per_split=4
+    )
     result = tm.load_banking77_with_bucket(train_path, test_path, categories_path, valid_mapping)
     assert result.height == 8  # 4 train + 4 test
     assert set(result["split"].unique().to_list()) == {"train", "test"}
@@ -185,25 +204,28 @@ def test_load_banking77_with_bucket_success(tmp_path, valid_mapping):
 # load_cfpb_with_bucket
 # ---------------------------------------------------------------------------
 
+
 def test_load_cfpb_with_bucket_is_lazy_and_adds_column(tmp_path, valid_mapping):
     cfpb_path = tmp_path / "cfpb_complaints.csv"
-    pl.DataFrame({
-        "Date received": ["2026-01-01"],
-        "Product": ["Checking or savings account"],
-        "Sub-product": ["Checking account"],
-        "Issue": ["Some issue"],
-        "Sub-issue": ["Some sub-issue"],
-        "Company public response": [""],
-        "Company": ["Bank A"],
-        "State": ["CA"],
-        "ZIP code": ["90001"],
-        "Tags": [""],
-        "Submitted via": ["Web"],
-        "Date sent to company": ["2026-01-02"],
-        "Company response to consumer": ["Closed"],
-        "Timely response?": ["Yes"],
-        "Complaint ID": [1],
-    }).write_csv(cfpb_path)
+    pl.DataFrame(
+        {
+            "Date received": ["2026-01-01"],
+            "Product": ["Checking or savings account"],
+            "Sub-product": ["Checking account"],
+            "Issue": ["Some issue"],
+            "Sub-issue": ["Some sub-issue"],
+            "Company public response": [""],
+            "Company": ["Bank A"],
+            "State": ["CA"],
+            "ZIP code": ["90001"],
+            "Tags": [""],
+            "Submitted via": ["Web"],
+            "Date sent to company": ["2026-01-02"],
+            "Company response to consumer": ["Closed"],
+            "Timely response?": ["Yes"],
+            "Complaint ID": [1],
+        }
+    ).write_csv(cfpb_path)
 
     lazy = tm.load_cfpb_with_bucket(cfpb_path, valid_mapping)
     assert isinstance(lazy, pl.LazyFrame)
@@ -215,17 +237,22 @@ def test_load_cfpb_with_bucket_is_lazy_and_adds_column(tmp_path, valid_mapping):
 # mapping_coverage_report
 # ---------------------------------------------------------------------------
 
+
 def test_mapping_coverage_report_counts_and_fractions_sum_to_one(tmp_path, valid_mapping):
     cfpb_path = tmp_path / "cfpb.csv"
-    pl.DataFrame({
-        "Product": ["Checking or savings account", "Checking or savings account", "Some other product"],
-    }).write_csv(cfpb_path)
+    pl.DataFrame(
+        {
+            "Product": ["Checking or savings account", "Checking or savings account", "Some other product"],
+        }
+    ).write_csv(cfpb_path)
     cfpb_lazy = pl.scan_csv(cfpb_path).with_columns(tm.cfpb_bucket_expr(valid_mapping))
 
-    b77_df = pl.DataFrame({
-        "category": ["intent_0", "intent_0", "intent_1"],
-        "common_taxonomy_bucket": ["BUCKET_A", "BUCKET_A", "BUCKET_B"],
-    })
+    b77_df = pl.DataFrame(
+        {
+            "category": ["intent_0", "intent_0", "intent_1"],
+            "common_taxonomy_bucket": ["BUCKET_A", "BUCKET_A", "BUCKET_B"],
+        }
+    )
 
     report = tm.mapping_coverage_report(cfpb_lazy, b77_df, valid_mapping)
     assert report["cfpb_fraction"].sum() == pytest.approx(1.0)
@@ -239,15 +266,18 @@ def test_mapping_coverage_report_counts_and_fractions_sum_to_one(tmp_path, valid
 # build_common_taxonomy_layer
 # ---------------------------------------------------------------------------
 
+
 def test_build_common_taxonomy_layer_writes_parquet_and_returns_counts(tmp_path, valid_mapping):
     cfpb_path = tmp_path / "cfpb.csv"
     pl.DataFrame({"Product": ["Checking or savings account", "Some other product"]}).write_csv(cfpb_path)
     cfpb_lazy = pl.scan_csv(cfpb_path).with_columns(tm.cfpb_bucket_expr(valid_mapping))
 
-    b77_df = pl.DataFrame({
-        "category": ["intent_0", "intent_1", "intent_2"],
-        "common_taxonomy_bucket": ["BUCKET_A", "BUCKET_B", "BUCKET_A"],
-    })
+    b77_df = pl.DataFrame(
+        {
+            "category": ["intent_0", "intent_1", "intent_2"],
+            "common_taxonomy_bucket": ["BUCKET_A", "BUCKET_B", "BUCKET_A"],
+        }
+    )
 
     out_dir = tmp_path / "gold"
     result = tm.build_common_taxonomy_layer(cfpb_lazy, b77_df, out_dir)

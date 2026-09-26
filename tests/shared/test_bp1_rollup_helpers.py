@@ -20,10 +20,10 @@ import pytest
 
 from reporting import bp1_rollup_helpers as rh
 
-
 # ---------------------------------------------------------------------------
 # per_class_report_to_df / worst_best_intents
 # ---------------------------------------------------------------------------
+
 
 def _make_classification_report():
     return {
@@ -60,10 +60,12 @@ def test_worst_best_intents_returns_correct_ends():
 # top_confused_pairs
 # ---------------------------------------------------------------------------
 
+
 def test_top_confused_pairs_excludes_diagonal_and_zero_counts():
     df = pd.DataFrame(
         [[10, 3, 0], [1, 8, 0], [0, 0, 5]],
-        index=["a", "b", "c"], columns=["a", "b", "c"],
+        index=["a", "b", "c"],
+        columns=["a", "b", "c"],
     )
     result = rh.top_confused_pairs(df, n=10)
     assert not any((result["true_intent"] == result["predicted_intent"]))
@@ -76,7 +78,8 @@ def test_top_confused_pairs_excludes_diagonal_and_zero_counts():
 def test_top_confused_pairs_respects_n_limit():
     df = pd.DataFrame(
         [[0, 5, 4, 3], [1, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]],
-        index=["a", "b", "c", "d"], columns=["a", "b", "c", "d"],
+        index=["a", "b", "c", "d"],
+        columns=["a", "b", "c", "d"],
     )
     result = rh.top_confused_pairs(df, n=2)
     assert len(result) == 2
@@ -87,17 +90,44 @@ def test_top_confused_pairs_respects_n_limit():
 # build_smart_suggestions
 # ---------------------------------------------------------------------------
 
+
 def _make_bundle_for_suggestions(near_random=True, high_variance=True):
     rows = [
-        {"model": "logistic_regression", "status": "OK", "elapsed_seconds": 5.0, "mean_f1_macro": 0.80, "std_f1_macro": 0.01},
+        {
+            "model": "logistic_regression",
+            "status": "OK",
+            "elapsed_seconds": 5.0,
+            "mean_f1_macro": 0.80,
+            "std_f1_macro": 0.01,
+        },
     ]
     if near_random:
-        rows.append({"model": "hist_gradient_boosting", "status": "OK", "elapsed_seconds": 1730.0, "mean_f1_macro": 0.013, "std_f1_macro": 0.026})
+        rows.append(
+            {
+                "model": "hist_gradient_boosting",
+                "status": "OK",
+                "elapsed_seconds": 1730.0,
+                "mean_f1_macro": 0.013,
+                "std_f1_macro": 0.026,
+            }
+        )
     if high_variance:
-        rows.append({"model": "lightgbm", "status": "OK", "elapsed_seconds": 17.0, "mean_f1_macro": 0.44, "std_f1_macro": 0.355})
+        rows.append(
+            {
+                "model": "lightgbm",
+                "status": "OK",
+                "elapsed_seconds": 17.0,
+                "mean_f1_macro": 0.44,
+                "std_f1_macro": 0.355,
+            }
+        )
     return {
         "gate3_cv_df": pd.DataFrame(rows),
-        "gate5_summary": {"overlap_count_with_gate4": 4, "n_with_reason_codes": 150, "n_decision_records": 3080},
+        "gate5_summary": {
+            "overlap_count_with_gate4": 4,
+            "n_with_reason_codes": 150,
+            "n_decision_records": 3080,
+        },
         "model_inventory": {"held_out_test_accuracy": 0.8224, "n_classes": 77},
         "gate4": {"shap_sample_size": 150},
     }
@@ -111,7 +141,9 @@ def test_build_smart_suggestions_flags_near_random_and_high_variance_when_presen
 
 
 def test_build_smart_suggestions_omits_anomaly_items_when_absent():
-    suggestions = rh.build_smart_suggestions(_make_bundle_for_suggestions(near_random=False, high_variance=False))
+    suggestions = rh.build_smart_suggestions(
+        _make_bundle_for_suggestions(near_random=False, high_variance=False)
+    )
     titles = " ".join(s["title"] for s in suggestions)
     assert "hist_gradient_boosting" not in titles
     assert "lightgbm" not in titles
@@ -130,25 +162,36 @@ def test_build_smart_suggestions_every_item_has_required_fields():
 # build_kpi_bundle
 # ---------------------------------------------------------------------------
 
+
 def _make_full_bundle():
     return {
         "model_inventory": {
-            "model_name": "logistic_regression", "held_out_test_accuracy": 0.8224,
-            "held_out_test_f1_macro": 0.8221, "cv_mean_f1_macro": 0.804,
-            "n_classes": 77, "n_train_rows": 10003, "n_test_rows": 3080,
+            "model_name": "logistic_regression",
+            "held_out_test_accuracy": 0.8224,
+            "held_out_test_f1_macro": 0.8221,
+            "cv_mean_f1_macro": 0.804,
+            "n_classes": 77,
+            "n_train_rows": 10003,
+            "n_test_rows": 3080,
         },
         "gate4": {"roc_auc_ovr_macro": 0.9933},
         "gate5_summary": {"n_decision_records": 3080, "n_with_reason_codes": 150},
         "gate6_summary": {
-            "pytest_all_passed": True, "pytest_counts": {"passed": 52, "failed": 0},
+            "pytest_all_passed": True,
+            "pytest_counts": {"passed": 52, "failed": 0},
             "notebook_syntax_all_passed": True,
             "n_gate3_near_random_anomalies_detected": 1,
             "n_gate3_high_variance_anomalies_detected": 2,
         },
-        "gate2_coverage_df": pd.DataFrame({
-            "common_taxonomy_bucket": ["OUT_OF_SCOPE_NO_BANKING77_OVERLAP", "CARD_ISSUANCE_AND_LIFECYCLE"],
-            "cfpb_fraction": [0.934, 0.031],
-        }),
+        "gate2_coverage_df": pd.DataFrame(
+            {
+                "common_taxonomy_bucket": [
+                    "OUT_OF_SCOPE_NO_BANKING77_OVERLAP",
+                    "CARD_ISSUANCE_AND_LIFECYCLE",
+                ],
+                "cfpb_fraction": [0.934, 0.031],
+            }
+        ),
     }
 
 
@@ -181,6 +224,7 @@ def test_build_kpi_bundle_has_no_financial_fields():
 # build_gate1_summary
 # ---------------------------------------------------------------------------
 
+
 def _make_policy():
     return {
         "target_definition": {
@@ -201,10 +245,14 @@ def _make_policy():
             "shared_columns_cfpb_banking77": [],
             "train_test_exact_text_overlap_rows": 0,
             "class_imbalance_77_class": {
-                "min_class_count": 35, "max_class_count": 187, "imbalance_ratio_max_over_min": 5.34,
+                "min_class_count": 35,
+                "max_class_count": 187,
+                "imbalance_ratio_max_over_min": 5.34,
             },
             "class_imbalance_9_bucket": {
-                "min_bucket_count": 460, "max_bucket_count": 1770, "imbalance_ratio_max_over_min": 3.85,
+                "min_bucket_count": 460,
+                "max_bucket_count": 1770,
+                "imbalance_ratio_max_over_min": 3.85,
             },
         },
         "generated_at_utc": "2026-09-22T04:53:54.488546+00:00",
@@ -230,6 +278,7 @@ def test_build_gate1_summary_shared_columns_is_the_real_list_not_just_a_count():
 # ---------------------------------------------------------------------------
 # build_gate6_governance_detail
 # ---------------------------------------------------------------------------
+
 
 def _make_gate6_bundle():
     return {
@@ -281,6 +330,7 @@ def test_build_gate6_governance_detail_handles_missing_gate3_block_gracefully():
 # ---------------------------------------------------------------------------
 # load_all_gate_artifacts
 # ---------------------------------------------------------------------------
+
 
 def test_load_all_gate_artifacts_missing_prerequisite_raises_named_error(tmp_path):
     with pytest.raises(FileNotFoundError, match="Gates 1-6 to be real-run confirmed"):

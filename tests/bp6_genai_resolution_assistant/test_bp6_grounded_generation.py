@@ -216,7 +216,9 @@ def _fake_generation_result(text="Escalation is warranted [EV-BP1-1].", finish_r
 
 def test_build_recommendation_artifact_shape_and_never_auto_applied():
     generation_result = _fake_generation_result()
-    citation_check = validate_citations_in_generated_text(generation_result["generated_text"], CITATION_LOOKUP)
+    citation_check = validate_citations_in_generated_text(
+        generation_result["generated_text"], CITATION_LOOKUP
+    )
     udaap_check = check_udaap_customer_facing_language_batch(
         split_into_sentences(generation_result["generated_text"])
     )
@@ -242,8 +244,12 @@ def test_build_recommendation_artifact_shape_and_never_auto_applied():
 def test_build_recommendation_artifact_preserves_finish_reason_field():
     """Regression test for the real thinking-token-truncation bug (issue #782): the artifact must
     always carry finish_reason so downstream gates can structurally detect MAX_TOKENS truncation."""
-    generation_result = _fake_generation_result(text=" and is recommended [EV-BP1-1].", finish_reason="MAX_TOKENS")
-    citation_check = validate_citations_in_generated_text(generation_result["generated_text"], CITATION_LOOKUP)
+    generation_result = _fake_generation_result(
+        text=" and is recommended [EV-BP1-1].", finish_reason="MAX_TOKENS"
+    )
+    citation_check = validate_citations_in_generated_text(
+        generation_result["generated_text"], CITATION_LOOKUP
+    )
     udaap_check = check_udaap_customer_facing_language_batch(
         split_into_sentences(generation_result["generated_text"])
     )

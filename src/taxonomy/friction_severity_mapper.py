@@ -110,15 +110,11 @@ def severity_crosstab_report(cfpb_lazy: pl.LazyFrame) -> pl.DataFrame:
 def severity_distribution_report(cfpb_lazy: pl.LazyFrame) -> pl.DataFrame:
     """Real row count and fraction per assigned friction_severity_class - the audit table Gate 2
     is required to produce, mirroring taxonomy_mapper.mapping_coverage_report's pattern."""
-    counts = (
-        cfpb_lazy.group_by("friction_severity_class")
-        .agg(pl.len().alias("row_count"))
-        .collect()
-    )
+    counts = cfpb_lazy.group_by("friction_severity_class").agg(pl.len().alias("row_count")).collect()
     total = counts["row_count"].sum()
-    return counts.with_columns(
-        (pl.col("row_count") / total).alias("fraction_of_total")
-    ).sort("row_count", descending=True)
+    return counts.with_columns((pl.col("row_count") / total).alias("fraction_of_total")).sort(
+        "row_count", descending=True
+    )
 
 
 def build_bp2_severity_gold_layer(cfpb_lazy: pl.LazyFrame, out_dir: str | Path) -> dict:

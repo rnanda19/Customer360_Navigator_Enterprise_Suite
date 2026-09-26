@@ -447,9 +447,7 @@ def test_bp3_fully_healthy_uses_pr_auc_metric_fields_not_accuracy(synthetic_bp3_
     """Proves the Step 4 generalization actually works for a non-accuracy metric: BP3's real
     persisted fields are fresh_refit_test_pr_auc / reload_pr_auc_diff, compared against
     gate5_decision_layer.held_out_test_pr_auc_recomputed - never accuracy-named fields."""
-    bundle_path = (
-        synthetic_bp3_project / "models" / "bp3_complaint_escalation_prediction" / "bundle.joblib"
-    )
+    bundle_path = synthetic_bp3_project / "models" / "bp3_complaint_escalation_prediction" / "bundle.joblib"
     stats, pr_auc = _fit_and_persist_bp3_bundle(bundle_path)
     _write_bp3_config(
         synthetic_bp3_project,
@@ -477,9 +475,7 @@ def test_bp3_fully_healthy_uses_pr_auc_metric_fields_not_accuracy(synthetic_bp3_
 
 
 def test_bp3_pr_auc_drift_between_gate_and_persistence_fails(synthetic_bp3_project):
-    bundle_path = (
-        synthetic_bp3_project / "models" / "bp3_complaint_escalation_prediction" / "bundle.joblib"
-    )
+    bundle_path = synthetic_bp3_project / "models" / "bp3_complaint_escalation_prediction" / "bundle.joblib"
     stats, pr_auc = _fit_and_persist_bp3_bundle(bundle_path)
     # Gate recorded a real PR-AUC well outside tolerance of the persistence notebook's own fresh
     # refit - a real, detectable metric-drift FAIL, exercised on BP3's PR-AUC field names rather

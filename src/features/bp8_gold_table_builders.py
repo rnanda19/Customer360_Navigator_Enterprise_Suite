@@ -55,6 +55,7 @@ Public functions:
       gate5_report_outcome_2_path) -> pl.DataFrame
   gold_table_manifest(tables_written) -> dict
 """
+
 from __future__ import annotations
 
 import json
@@ -169,9 +170,7 @@ def build_escalation_trends_gold(escalation_gold_path: Path) -> pl.DataFrame:
     result = (
         lf.with_columns(
             _complaint_month_expr(),
-            _three_way_status_expr(
-                "intervention_required", "exclusion_reason", "intervention_status"
-            ),
+            _three_way_status_expr("intervention_required", "exclusion_reason", "intervention_status"),
         )
         .group_by(["complaint_month", "Product", "intervention_status"])
         .agg(pl.len().alias("n_complaints"))

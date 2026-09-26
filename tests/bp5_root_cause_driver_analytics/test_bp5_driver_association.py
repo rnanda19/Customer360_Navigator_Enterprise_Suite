@@ -260,7 +260,10 @@ def test_check_udaap_language_masks_quoted_real_source_value_and_discloses_it_se
     result = bda.check_udaap_language(text)
     assert result["passed"] is True
     assert result["banned_terms_found"] == []
-    assert "Problem caused by your funds being low" in result["quoted_real_source_values_containing_banned_terms"]
+    assert (
+        "Problem caused by your funds being low"
+        in result["quoted_real_source_values_containing_banned_terms"]
+    )
 
 
 def test_check_udaap_language_batch_survives_unpaired_apostrophe_across_sentences():
@@ -276,7 +279,10 @@ def test_check_udaap_language_batch_survives_unpaired_apostrophe_across_sentence
     assert result["passed"] is True
     assert result["n_sentences_scanned"] == 2
     assert result["n_sentences_failing"] == 0
-    assert "Problem caused by your funds being low" in result["quoted_real_source_values_containing_banned_terms"]
+    assert (
+        "Problem caused by your funds being low"
+        in result["quoted_real_source_values_containing_banned_terms"]
+    )
 
 
 def test_check_udaap_language_batch_fails_on_a_genuine_authored_causal_claim():
@@ -304,8 +310,13 @@ def test_make_citation_schema_has_all_seven_bp6_fields():
         verification_method="test",
     )
     expected_keys = {
-        "source_bp", "source_gate", "source_artifact_relative_path", "source_field_or_metric",
-        "extracted_value", "retrieval_timestamp_utc", "verification_method",
+        "source_bp",
+        "source_gate",
+        "source_artifact_relative_path",
+        "source_field_or_metric",
+        "extracted_value",
+        "retrieval_timestamp_utc",
+        "verification_method",
     }
     assert set(citation.keys()) == expected_keys
     assert citation["source_bp"] == "bp5"
@@ -315,15 +326,42 @@ def test_make_citation_schema_has_all_seven_bp6_fields():
 def _synthetic_chi_square_df():
     return pd.DataFrame(
         [
-            {"driver_field": "Issue", "outcome_field": "outcome_1", "n_rows_tested": 100,
-             "n_distinct_levels": 3, "chi2_statistic": 50.0, "degrees_of_freedom": 2,
-             "p_value": 0.0, "cramers_v": 0.40, "association_strength": "moderate", "control_field": False},
-            {"driver_field": "Product", "outcome_field": "outcome_1", "n_rows_tested": 100,
-             "n_distinct_levels": 3, "chi2_statistic": 20.0, "degrees_of_freedom": 2,
-             "p_value": 0.01, "cramers_v": 0.20, "association_strength": "negligible", "control_field": False},
-            {"driver_field": "State", "outcome_field": "outcome_1", "n_rows_tested": 100,
-             "n_distinct_levels": 5, "chi2_statistic": 60.0, "degrees_of_freedom": 4,
-             "p_value": 0.0, "cramers_v": 0.60, "association_strength": "strong", "control_field": True},
+            {
+                "driver_field": "Issue",
+                "outcome_field": "outcome_1",
+                "n_rows_tested": 100,
+                "n_distinct_levels": 3,
+                "chi2_statistic": 50.0,
+                "degrees_of_freedom": 2,
+                "p_value": 0.0,
+                "cramers_v": 0.40,
+                "association_strength": "moderate",
+                "control_field": False,
+            },
+            {
+                "driver_field": "Product",
+                "outcome_field": "outcome_1",
+                "n_rows_tested": 100,
+                "n_distinct_levels": 3,
+                "chi2_statistic": 20.0,
+                "degrees_of_freedom": 2,
+                "p_value": 0.01,
+                "cramers_v": 0.20,
+                "association_strength": "negligible",
+                "control_field": False,
+            },
+            {
+                "driver_field": "State",
+                "outcome_field": "outcome_1",
+                "n_rows_tested": 100,
+                "n_distinct_levels": 5,
+                "chi2_statistic": 60.0,
+                "degrees_of_freedom": 4,
+                "p_value": 0.0,
+                "cramers_v": 0.60,
+                "association_strength": "strong",
+                "control_field": True,
+            },
         ]
     )
 
@@ -338,18 +376,45 @@ def test_build_field_ranking_excludes_control_field_and_sorts_descending():
 def test_build_category_findings_respects_min_n_and_top_k():
     log_odds_df = pd.DataFrame(
         [
-            {"driver_field": "Issue", "outcome_field": "outcome_1", "reference_category": "Ref",
-             "category": "Big", "n_rows": 100, "n_outcome_positive": 50, "n_outcome_negative": 50,
-             "odds_ratio_vs_reference": 5.0, "log_odds_ratio": 1.6, "ci_95_low": 1.0, "ci_95_high": 2.2,
-             "p_value": 0.0, "continuity_correction_applied": False},
-            {"driver_field": "Issue", "outcome_field": "outcome_1", "reference_category": "Ref",
-             "category": "TooSmall", "n_rows": 5, "n_outcome_positive": 2, "n_outcome_negative": 3,
-             "odds_ratio_vs_reference": 9.0, "log_odds_ratio": 2.2, "ci_95_low": 1.0, "ci_95_high": 3.0,
-             "p_value": 0.01, "continuity_correction_applied": False},
+            {
+                "driver_field": "Issue",
+                "outcome_field": "outcome_1",
+                "reference_category": "Ref",
+                "category": "Big",
+                "n_rows": 100,
+                "n_outcome_positive": 50,
+                "n_outcome_negative": 50,
+                "odds_ratio_vs_reference": 5.0,
+                "log_odds_ratio": 1.6,
+                "ci_95_low": 1.0,
+                "ci_95_high": 2.2,
+                "p_value": 0.0,
+                "continuity_correction_applied": False,
+            },
+            {
+                "driver_field": "Issue",
+                "outcome_field": "outcome_1",
+                "reference_category": "Ref",
+                "category": "TooSmall",
+                "n_rows": 5,
+                "n_outcome_positive": 2,
+                "n_outcome_negative": 3,
+                "odds_ratio_vs_reference": 9.0,
+                "log_odds_ratio": 2.2,
+                "ci_95_low": 1.0,
+                "ci_95_high": 3.0,
+                "p_value": 0.01,
+                "continuity_correction_applied": False,
+            },
         ]
     )
     findings = bda.build_category_findings(
-        log_odds_df, "outcome_1", ["Issue"], "y.csv", min_n_per_category=30, top_k_per_field=5,
+        log_odds_df,
+        "outcome_1",
+        ["Issue"],
+        "y.csv",
+        min_n_per_category=30,
+        top_k_per_field=5,
     )
     assert [f["category"] for f in findings["Issue"]] == ["Big"]
 
@@ -366,9 +431,7 @@ def test_map_shap_feature_company_freq_special_case():
 
 def test_map_shap_feature_prefix_matching_does_not_confuse_issue_and_sub_issue():
     fields = ["Issue", "Sub-issue"]
-    mapped_issue = bda.map_shap_feature_to_driver_field(
-        "Issue_Incorrect information on your report", fields
-    )
+    mapped_issue = bda.map_shap_feature_to_driver_field("Issue_Incorrect information on your report", fields)
     mapped_sub_issue = bda.map_shap_feature_to_driver_field(
         "Sub-issue_Information belongs to someone else", fields
     )
@@ -398,8 +461,11 @@ def test_build_shap_findings_sorted_desc_and_capped_at_top_k():
 
 def test_build_company_frequency_finding_extracts_real_fields():
     entry = {
-        "odds_ratio_per_1sd": 0.5, "ci_95_low_odds_ratio_per_1sd": 0.4,
-        "ci_95_high_odds_ratio_per_1sd": 0.6, "p_value": 0.001, "converged": True,
+        "odds_ratio_per_1sd": 0.5,
+        "ci_95_low_odds_ratio_per_1sd": 0.4,
+        "ci_95_high_odds_ratio_per_1sd": 0.6,
+        "p_value": 0.001,
+        "converged": True,
     }
     finding = bda.build_company_frequency_finding(entry, "outcome_1", "c.json")
     assert finding["driver_field"] == "Company"
@@ -408,23 +474,40 @@ def test_build_company_frequency_finding_extracts_real_fields():
 
 
 def test_build_field_narrative_contains_quoted_field_name_and_metric():
-    entry = {"driver_field": "Issue", "association_strength": "moderate", "cramers_v": 0.4123,
-              "p_value": 0.001, "n_rows_tested": 1000}
+    entry = {
+        "driver_field": "Issue",
+        "association_strength": "moderate",
+        "cramers_v": 0.4123,
+        "p_value": 0.001,
+        "n_rows_tested": 1000,
+    }
     text = bda.build_field_narrative(entry, "outcome_1")
     assert "'Issue'" in text
     assert "0.4123" in text
 
 
 def test_build_category_narrative_contains_both_quoted_categories():
-    entry = {"driver_field": "Issue", "category": "Foo", "odds_ratio_vs_reference": 5.0,
-              "reference_category": "Bar", "ci_95_low": 1.0, "ci_95_high": 10.0, "n_rows": 100}
+    entry = {
+        "driver_field": "Issue",
+        "category": "Foo",
+        "odds_ratio_vs_reference": 5.0,
+        "reference_category": "Bar",
+        "ci_95_low": 1.0,
+        "ci_95_high": 10.0,
+        "n_rows": 100,
+    }
     text = bda.build_category_narrative(entry, "outcome_1")
     assert "'Foo'" in text and "'Bar'" in text
 
 
 def test_build_shap_narrative_handles_company_freq_with_no_category():
-    entry = {"feature": "Company_freq_zscored", "driver_field": "Company", "category": None,
-              "rank": 1, "mean_abs_shap": 1.5}
+    entry = {
+        "feature": "Company_freq_zscored",
+        "driver_field": "Company",
+        "category": None,
+        "rank": 1,
+        "mean_abs_shap": 1.5,
+    }
     text = bda.build_shap_narrative(entry, "outcome_1")
     assert "Company" in text
     assert "(category" not in text

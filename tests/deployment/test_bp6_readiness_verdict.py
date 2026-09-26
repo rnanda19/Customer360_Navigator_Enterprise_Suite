@@ -153,9 +153,7 @@ def _write_gate3_artifact(project_root: Path, overrides: dict = None):
     report = dict(VALID_GATE3_REPORT)
     if overrides:
         report.update(overrides)
-    (artifacts_dir / rv.GATE3_RETRIEVAL_INVENTORY_FILENAME).write_text(
-        json.dumps(report), encoding="utf-8"
-    )
+    (artifacts_dir / rv.GATE3_RETRIEVAL_INVENTORY_FILENAME).write_text(json.dumps(report), encoding="utf-8")
 
 
 def _write_gate5_artifact(project_root: Path, overrides: dict = None):
@@ -272,9 +270,7 @@ def test_gate2_evidence_registry_missing_upstream_bp_fails_schema(tmp_path):
     _write_project_skeleton(tmp_path)
     artifacts_dir = tmp_path / rv.ARTIFACTS_RELATIVE_DIR
     artifacts_dir.mkdir(parents=True, exist_ok=True)
-    (artifacts_dir / rv.GATE2_PII_REPORT_FILENAME).write_text(
-        json.dumps(VALID_PII_REPORT), encoding="utf-8"
-    )
+    (artifacts_dir / rv.GATE2_PII_REPORT_FILENAME).write_text(json.dumps(VALID_PII_REPORT), encoding="utf-8")
     incomplete_registry = json.loads(json.dumps(VALID_EVIDENCE_REGISTRY))
     del incomplete_registry["upstream_bps"]["bp5"]
     (artifacts_dir / rv.GATE2_EVIDENCE_REGISTRY_FILENAME).write_text(

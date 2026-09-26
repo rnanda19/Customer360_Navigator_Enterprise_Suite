@@ -216,9 +216,9 @@ def test_gate5_report_missing_required_key_fails_schema_check(tmp_path):
 def test_outcome_field_filename_drift_is_caught(tmp_path):
     _write_project_skeleton(tmp_path)
     _write_reports(tmp_path, outcomes=("outcome_1_intervention_required",), matching_field=False)
-    outcome_2_path = tmp_path / rv.ARTIFACTS_RELATIVE_DIR / rv.REPORT_FILENAMES[
-        "outcome_2_timely_response_failure"
-    ]
+    outcome_2_path = (
+        tmp_path / rv.ARTIFACTS_RELATIVE_DIR / rv.REPORT_FILENAMES["outcome_2_timely_response_failure"]
+    )
     outcome_2_path.write_text(
         json.dumps({**VALID_REPORT, "outcome_field": "outcome_2_timely_response_failure"})
     )
@@ -301,9 +301,7 @@ def test_missing_route_fails_route_check(tmp_path):
     verdict = rv.assess_bp5_deployment_readiness(tmp_path, run_tests=False)
     by_name = {c.name: c.status for c in verdict.checks}
     assert by_name["service_required_routes_present"] == "FAIL"
-    assert "/rollup" in next(
-        c.detail for c in verdict.checks if c.name == "service_required_routes_present"
-    )
+    assert "/rollup" in next(c.detail for c in verdict.checks if c.name == "service_required_routes_present")
 
 
 def test_missing_dependency_declaration_fails(tmp_path):

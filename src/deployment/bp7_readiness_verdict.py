@@ -888,9 +888,7 @@ def assess_bp7_deployment_readiness(
         with open(config_path, "r", encoding="utf-8") as f:
             yaml.safe_load(f)
     except yaml.YAMLError as exc:
-        checks.append(
-            CheckResult("bp7_config_parses", CheckStatus.FAIL, f"{type(exc).__name__}: {exc}")
-        )
+        checks.append(CheckResult("bp7_config_parses", CheckStatus.FAIL, f"{type(exc).__name__}: {exc}"))
 
     gate5_csv_checks, gate5_csv_ready = _check_gate5_records_csv_schema(project_root)
     checks.extend(gate5_csv_checks)

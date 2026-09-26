@@ -137,7 +137,12 @@ REQUIRED_ROLLUP_OUTPUT_KEYS = ("dashboard_html", "report_docx", "workbook_xlsx",
 REQUIRED_RUNTIME_PACKAGES = ("fastapi", "pydantic")
 
 REQUIRED_ROUTES = (
-    "/", "/health", "/outcomes", "/report/{outcome}", "/report/{outcome}/top-drivers", "/rollup",
+    "/",
+    "/health",
+    "/outcomes",
+    "/report/{outcome}",
+    "/report/{outcome}/top-drivers",
+    "/rollup",
 )
 
 
@@ -272,8 +277,7 @@ def _check_gate5_reports(project_root: Path) -> tuple:
                 CheckResult(
                     f"gate5_report_exists[{outcome}]",
                     CheckStatus.FAIL,
-                    f"Found at {report_path} but failed to parse as JSON: "
-                    f"{type(exc).__name__}: {exc}",
+                    f"Found at {report_path} but failed to parse as JSON: " f"{type(exc).__name__}: {exc}",
                 )
             )
             all_ready = False
@@ -665,9 +669,7 @@ def assess_bp5_deployment_readiness(
         with open(config_path, "r", encoding="utf-8") as f:
             yaml.safe_load(f)
     except yaml.YAMLError as exc:
-        checks.append(
-            CheckResult("bp5_config_parses", CheckStatus.FAIL, f"{type(exc).__name__}: {exc}")
-        )
+        checks.append(CheckResult("bp5_config_parses", CheckStatus.FAIL, f"{type(exc).__name__}: {exc}"))
 
     gate5_checks, gate5_ready = _check_gate5_reports(project_root)
     checks.extend(gate5_checks)

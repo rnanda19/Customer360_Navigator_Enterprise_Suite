@@ -47,6 +47,7 @@ def bp1_config(project_root):
 # Gate 1 - target definition
 # ---------------------------------------------------------------------------
 
+
 def test_gate1_target_definition_present(bp1_config):
     target_def = bp1_config.get("target_definition")
     if target_def is None:
@@ -59,12 +60,21 @@ def test_gate1_target_definition_present(bp1_config):
 # Gate 3 - model benchmark
 # ---------------------------------------------------------------------------
 
+
 def test_gate3_cv_results_schema_and_champion(artifacts_dir, bp1_config):
     csv_path = artifacts_dir / "gate3_cv_benchmark_results.csv"
     if not csv_path.exists():
         pytest.skip("Gate 3 has not run yet.")
     df = pd.read_csv(csv_path)
-    expected_cols = {"model", "status", "elapsed_seconds", "mean_f1_macro", "std_f1_macro", "mean_f1_weighted", "mean_accuracy"}
+    expected_cols = {
+        "model",
+        "status",
+        "elapsed_seconds",
+        "mean_f1_macro",
+        "std_f1_macro",
+        "mean_f1_weighted",
+        "mean_accuracy",
+    }
     assert expected_cols.issubset(set(df.columns))
 
     gate3_block = bp1_config.get("gate3_model_benchmark")
@@ -83,6 +93,7 @@ def test_gate3_cv_results_schema_and_champion(artifacts_dir, bp1_config):
 # Gate 4 - statistical validation
 # ---------------------------------------------------------------------------
 
+
 def test_gate4_statistical_validation_schema(artifacts_dir, bp1_config):
     json_path = artifacts_dir / "gate4_statistical_validation.json"
     if not json_path.exists():
@@ -91,25 +102,32 @@ def test_gate4_statistical_validation_schema(artifacts_dir, bp1_config):
         gate4 = json.load(f)
 
     required_keys = {
-        "champion_model", "runner_up_model", "champion_fold_f1_macro", "runner_up_fold_f1_macro",
-        "held_out_test_f1_macro_point_estimate", "held_out_test_f1_macro_bootstrap_ci_95",
+        "champion_model",
+        "runner_up_model",
+        "champion_fold_f1_macro",
+        "runner_up_fold_f1_macro",
+        "held_out_test_f1_macro_point_estimate",
+        "held_out_test_f1_macro_bootstrap_ci_95",
     }
     assert required_keys.issubset(gate4.keys())
     assert len(gate4["champion_fold_f1_macro"]) == len(gate4["runner_up_fold_f1_macro"])
     ci_low, ci_high = gate4["held_out_test_f1_macro_bootstrap_ci_95"]
-    assert ci_low <= gate4["held_out_test_f1_macro_point_estimate"] <= ci_high or True  # CI need not always contain the point estimate; presence + ordering checked below
+    assert (
+        ci_low <= gate4["held_out_test_f1_macro_point_estimate"] <= ci_high or True
+    )  # CI need not always contain the point estimate; presence + ordering checked below
     assert ci_low <= ci_high
 
     gate3_block = bp1_config.get("gate3_model_benchmark")
     if gate3_block is not None:
-        assert gate4["champion_model"] == gate3_block["champion_model"], (
-            "Gate 4's recorded champion does not match Gate 3's - these must agree."
-        )
+        assert (
+            gate4["champion_model"] == gate3_block["champion_model"]
+        ), "Gate 4's recorded champion does not match Gate 3's - these must agree."
 
 
 # ---------------------------------------------------------------------------
 # Gate 5 - decision layer
 # ---------------------------------------------------------------------------
+
 
 def test_gate5_decision_records_schema_and_row_count(artifacts_dir):
     csv_path = artifacts_dir / "gate5_decision_records.csv"
@@ -122,9 +140,18 @@ def test_gate5_decision_records_schema_and_row_count(artifacts_dir):
         summary = json.load(f)
 
     expected_cols = {
-        "row_index", "true_label", "predicted_label", "correct", "confidence_top1",
-        "rank2_label", "rank2_confidence", "rank3_label", "rank3_confidence",
-        "in_shap_sample", "reason_codes", "text",
+        "row_index",
+        "true_label",
+        "predicted_label",
+        "correct",
+        "confidence_top1",
+        "rank2_label",
+        "rank2_confidence",
+        "rank3_label",
+        "rank3_confidence",
+        "in_shap_sample",
+        "reason_codes",
+        "text",
     }
     assert expected_cols.issubset(set(df.columns))
     assert len(df) == summary["n_decision_records"]
@@ -135,9 +162,9 @@ def test_gate5_decision_records_schema_and_row_count(artifacts_dir):
     # to be empty only if that row genuinely had zero nonzero-weight TF-IDF terms (rare edge case,
     # not asserted here as an error - only that OUT-of-sample rows are never populated).
     out_of_sample = df[~df["in_shap_sample"]]
-    assert (out_of_sample["reason_codes"].fillna("") == "").all(), (
-        "A row marked outside the SHAP sample has non-empty reason_codes - grounding boundary violated."
-    )
+    assert (
+        out_of_sample["reason_codes"].fillna("") == ""
+    ).all(), "A row marked outside the SHAP sample has non-empty reason_codes - grounding boundary violated."
 
 
 def test_gate5_compliance_touchpoint_documented(artifacts_dir):
@@ -153,6 +180,7 @@ def test_gate5_compliance_touchpoint_documented(artifacts_dir):
 # ---------------------------------------------------------------------------
 # Cross-gate model inventory consistency
 # ---------------------------------------------------------------------------
+
 
 def test_model_inventory_entry_accumulates_all_completed_gates(artifacts_dir):
     inventory_path = artifacts_dir / "model_inventory_entry.json"

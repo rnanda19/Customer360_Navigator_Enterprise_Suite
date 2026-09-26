@@ -100,7 +100,13 @@ def test_gate2_candidate_driver_null_counts_covers_exactly_the_seven_real_fields
     if null_counts is None:
         pytest.skip("BP5 Gate 2 has not run yet.")
     assert set(null_counts.keys()) == {
-        "Product", "Sub-product", "Issue", "Sub-issue", "Submitted via", "Company", "State",
+        "Product",
+        "Sub-product",
+        "Issue",
+        "Sub-issue",
+        "Submitted via",
+        "Company",
+        "State",
     }
 
 
@@ -109,8 +115,14 @@ def test_gate2_outcome_counts_match_gate1_policy_json(bp5_config):
         pytest.skip("BP5 Gate 2 has not run yet.")
     assert bp5_config["outcome_1_matches_gate1_policy_json"] is True
     assert bp5_config["outcome_2_matches_gate1_policy_json"] is True
-    assert bp5_config["n_outcome_1_positive"] + bp5_config["n_outcome_1_negative"] == bp5_config["n_outcome_1_trainable"]
-    assert bp5_config["n_outcome_2_positive"] + bp5_config["n_outcome_2_negative"] == bp5_config["n_outcome_2_trainable"]
+    assert (
+        bp5_config["n_outcome_1_positive"] + bp5_config["n_outcome_1_negative"]
+        == bp5_config["n_outcome_1_trainable"]
+    )
+    assert (
+        bp5_config["n_outcome_2_positive"] + bp5_config["n_outcome_2_negative"]
+        == bp5_config["n_outcome_2_trainable"]
+    )
 
 
 def test_gate2_no_barred_column_used_as_driver(bp5_config):
@@ -141,16 +153,20 @@ def test_gate3_held_out_metrics_in_valid_range(bp5_config):
     if bp5_config.get("champion_outcome_1_held_out_roc_auc") is None:
         pytest.skip("BP5 Gate 3 has not run yet.")
     for key in (
-        "champion_outcome_1_held_out_roc_auc", "champion_outcome_1_held_out_pr_auc",
-        "champion_outcome_2_held_out_roc_auc", "champion_outcome_2_held_out_pr_auc",
+        "champion_outcome_1_held_out_roc_auc",
+        "champion_outcome_1_held_out_pr_auc",
+        "champion_outcome_2_held_out_roc_auc",
+        "champion_outcome_2_held_out_pr_auc",
     ):
         assert 0.0 <= bp5_config[key] <= 1.0
 
 
 def test_gate3_artifact_files_referenced_in_config_actually_exist(project_root, bp5_config):
     path_keys = [
-        "chi_square_cramers_v_path", "log_odds_ratio_by_category_path",
-        "company_freq_univariate_logistic_path", "barred_field_diagnostics_path",
+        "chi_square_cramers_v_path",
+        "log_odds_ratio_by_category_path",
+        "company_freq_univariate_logistic_path",
+        "barred_field_diagnostics_path",
         "champion_held_out_performance_path",
     ]
     if bp5_config.get(path_keys[0]) is None:
@@ -193,8 +209,10 @@ def test_gate4_confusion_matrix_recall_precision_in_valid_range(bp5_config):
     if bp5_config.get("champion_outcome_1_recall_at_0.5") is None:
         pytest.skip("BP5 Gate 4 has not run yet.")
     for key in (
-        "champion_outcome_1_recall_at_0.5", "champion_outcome_1_precision_at_0.5",
-        "champion_outcome_2_recall_at_0.5", "champion_outcome_2_precision_at_0.5",
+        "champion_outcome_1_recall_at_0.5",
+        "champion_outcome_1_precision_at_0.5",
+        "champion_outcome_2_recall_at_0.5",
+        "champion_outcome_2_precision_at_0.5",
     ):
         assert 0.0 <= bp5_config[key] <= 1.0
 
@@ -222,8 +240,13 @@ def test_gate5_report_json_has_the_citation_schema_on_every_field_finding(projec
         pytest.skip("BP5 Gate 5 has not run yet.")
     report = _load_json(project_root / bp5_config[path_key])
     expected_citation_keys = {
-        "source_bp", "source_gate", "source_artifact_relative_path", "source_field_or_metric",
-        "extracted_value", "retrieval_timestamp_utc", "verification_method",
+        "source_bp",
+        "source_gate",
+        "source_artifact_relative_path",
+        "source_field_or_metric",
+        "extracted_value",
+        "retrieval_timestamp_utc",
+        "verification_method",
     }
     assert len(report["field_level_ranking"]) > 0
     for finding in report["field_level_ranking"]:

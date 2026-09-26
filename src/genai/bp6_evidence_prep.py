@@ -49,7 +49,6 @@ from typing import Any
 
 import pandas as pd
 
-
 # ---------------------------------------------------------------------------
 # PII detection / masking
 # ---------------------------------------------------------------------------
@@ -59,9 +58,7 @@ import pandas as pd
 
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 
-_PHONE_RE = re.compile(
-    r"(?<!\d)(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}(?!\d)"
-)
+_PHONE_RE = re.compile(r"(?<!\d)(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}(?!\d)")
 
 _SSN_LIKE_RE = re.compile(r"(?<!\d)\d{3}-\d{2}-\d{4}(?!\d)")
 
@@ -126,8 +123,10 @@ def mask_pii(text: str) -> tuple[str, list[str]]:
         masked = _SSN_LIKE_RE.sub("[SSN_REDACTED]", masked)
     if "card_like" in categories:
         for pattern in (_CARD_GROUPED_RE, _CARD_UNBROKEN_RE):
+
             def _sub(m: re.Match) -> str:
                 return "[CARD_REDACTED]" if _luhn_valid(m.group(0)) else m.group(0)
+
             masked = pattern.sub(_sub, masked)
     return masked, categories
 
@@ -263,7 +262,10 @@ def build_evidence_source_registry(project_root: Path) -> dict[str, Any]:
     notebooks/<bp>/artifacts/ so far, plus each BP's own config-status string. Generic by
     construction - never hardcodes any upstream BP's internal field names, only enumerates what
     real files and top-level keys/columns actually exist right now."""
-    registry: dict[str, Any] = {"generated_at_utc": datetime.now(timezone.utc).isoformat(), "upstream_bps": {}}
+    registry: dict[str, Any] = {
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "upstream_bps": {},
+    }
     for bp_id, bp_name in UPSTREAM_BP_NAMES.items():
         config_path = project_root / "configs" / f"{bp_name}.yaml"
         artifacts_dir = project_root / "notebooks" / bp_name / "artifacts"

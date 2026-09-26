@@ -850,9 +850,7 @@ def fig_champion_benchmark_bar(bundle: dict) -> bytes:
     for bar, v in zip(bars, df["bp3_agreement_rate"]):
         ax.text(v + 0.005, bar.get_y() + bar.get_height() / 2, f"{v:.4f}", va="center", fontsize=9)
     ax.set_xlabel("Real BP3-agreement rate (reference, not ground truth)")
-    ax.set_title(
-        "Gate 3 — Decision-Rule-Scheme Benchmark: 4 Real Candidates (champion in navy)", fontsize=11
-    )
+    ax.set_title("Gate 3 — Decision-Rule-Scheme Benchmark: 4 Real Candidates (champion in navy)", fontsize=11)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
     return _fig_to_png_bytes(fig)
@@ -1133,9 +1131,7 @@ def write_docx_report(
 
     doc.add_heading("Gate 4 — Statistical Validation & Explainability", level=1)
     doc.add_picture(
-        io_bytes(
-            figures["bootstrap_ci_intervention"]
-        ),
+        io_bytes(figures["bootstrap_ci_intervention"]),
         width=Inches(3.4),
     )
     doc.add_picture(io_bytes(figures["bootstrap_ci_agreement"]), width=Inches(3.4))
@@ -1452,9 +1448,7 @@ def write_pptx_deck(bundle: dict, kpis: dict, suggestions: list[dict], figures: 
     _add_image_slide(
         prs, "Gate 4 — Bootstrap 95% CI: intervention_flag Rate", figures["bootstrap_ci_intervention"]
     )
-    _add_image_slide(
-        prs, "Gate 4 — Bootstrap 95% CI: BP3-Agreement Rate", figures["bootstrap_ci_agreement"]
-    )
+    _add_image_slide(prs, "Gate 4 — Bootstrap 95% CI: BP3-Agreement Rate", figures["bootstrap_ci_agreement"])
     _add_image_slide(
         prs,
         "Gate 4 — Exact Contribution Decomposition (BP7's transparent stand-in for SHAP)",

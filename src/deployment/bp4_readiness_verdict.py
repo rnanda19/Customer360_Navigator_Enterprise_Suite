@@ -281,9 +281,7 @@ def _check_decision_artifact_persistence(project_root: Path, config_yaml: dict) 
 
     parquet_relative_path = block.get("parquet_relative_path")
     parquet_path = (
-        _resolve_config_relative_path(project_root, parquet_relative_path)
-        if parquet_relative_path
-        else None
+        _resolve_config_relative_path(project_root, parquet_relative_path) if parquet_relative_path else None
     )
     if parquet_path is None or not parquet_path.exists():
         checks.append(
@@ -311,9 +309,7 @@ def _check_decision_artifact_persistence(project_root: Path, config_yaml: dict) 
             )
         )
         return checks, parquet_path, False
-    checks.append(
-        CheckResult("parquet_integrity_sha256", CheckStatus.PASS, f"{real_sha256} matches config.")
-    )
+    checks.append(CheckResult("parquet_integrity_sha256", CheckStatus.PASS, f"{real_sha256} matches config."))
 
     try:
         frame = pl.read_parquet(parquet_path)

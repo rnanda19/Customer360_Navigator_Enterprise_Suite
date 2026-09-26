@@ -426,9 +426,7 @@ def _check_gate2_artifacts(project_root: Path) -> tuple:
             )
 
     registry_path = artifacts_dir / GATE2_EVIDENCE_REGISTRY_FILENAME
-    registry_checks, registry = _load_json_artifact(
-        registry_path, "gate2_evidence_source_registry_exists"
-    )
+    registry_checks, registry = _load_json_artifact(registry_path, "gate2_evidence_source_registry_exists")
     checks.extend(registry_checks)
     if registry is None:
         all_ready = False
@@ -556,9 +554,7 @@ def _check_gate5_artifact(project_root: Path) -> tuple:
     checks: list = []
     artifacts_dir = project_root / ARTIFACTS_RELATIVE_DIR
     report_path = artifacts_dir / GATE5_RECOMMENDATION_FILENAME
-    load_checks, report = _load_json_artifact(
-        report_path, "gate5_recommendation_artifact_exists"
-    )
+    load_checks, report = _load_json_artifact(report_path, "gate5_recommendation_artifact_exists")
     checks.extend(load_checks)
     if report is None:
         return checks, False
@@ -984,9 +980,7 @@ def assess_bp6_deployment_readiness(
         with open(config_path, "r", encoding="utf-8") as f:
             yaml.safe_load(f)
     except yaml.YAMLError as exc:
-        checks.append(
-            CheckResult("bp6_config_parses", CheckStatus.FAIL, f"{type(exc).__name__}: {exc}")
-        )
+        checks.append(CheckResult("bp6_config_parses", CheckStatus.FAIL, f"{type(exc).__name__}: {exc}"))
 
     gate2_checks, gate2_ready = _check_gate2_artifacts(project_root)
     checks.extend(gate2_checks)

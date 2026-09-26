@@ -431,13 +431,13 @@ def test_self_test_reconciliation_wiring_never_invokes_the_real_function(tmp_pat
     real call would require the real 540MB Gate 5 CSV read into a polars frame, well outside what
     a readiness-verdict check should ever do. A function that raises if called (but is otherwise
     present/callable) must still PASS this check."""
-    calling_features_source = '''
+    calling_features_source = """
 DEFAULT_INTERVENTION_THRESHOLD: float = 0.5
 
 
 def summarize_contribution_decomposition(rows):
     raise AssertionError("summarize_contribution_decomposition must never be invoked by the readiness check")
-'''
+"""
     _write_project_skeleton(tmp_path, features_source=calling_features_source)
     _write_gate5_records_csv(tmp_path)
     _write_gate5_summary(tmp_path)

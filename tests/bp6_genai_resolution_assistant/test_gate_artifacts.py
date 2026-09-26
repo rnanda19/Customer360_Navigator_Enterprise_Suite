@@ -45,9 +45,7 @@ def _load_or_skip(path: Path, what: str) -> dict:
 
 
 def test_gate5_recommendation_artifact_has_required_fields(artifacts_dir):
-    artifact = _load_or_skip(
-        artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5"
-    )
+    artifact = _load_or_skip(artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5")
     required_fields = {
         "bp_id",
         "gate",
@@ -71,9 +69,7 @@ def test_gate5_recommendation_artifact_has_required_fields(artifacts_dir):
 
 
 def test_gate5_recommendation_never_auto_applied(artifacts_dir):
-    artifact = _load_or_skip(
-        artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5"
-    )
+    artifact = _load_or_skip(artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5")
     assert artifact["approval_status"] == "PENDING_HUMAN_REVIEW"
     assert artifact["auto_applied"] is False
 
@@ -81,33 +77,25 @@ def test_gate5_recommendation_never_auto_applied(artifacts_dir):
 def test_gate5_response_not_truncated(artifacts_dir):
     """Real regression test for the thinking-token truncation bug (issue #782): the currently
     saved real artifact must never carry finish_reason == MAX_TOKENS."""
-    artifact = _load_or_skip(
-        artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5"
-    )
+    artifact = _load_or_skip(artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5")
     assert artifact.get("finish_reason") != "MAX_TOKENS"
 
 
 def test_gate5_citation_and_udaap_checks_passed(artifacts_dir):
-    artifact = _load_or_skip(
-        artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5"
-    )
+    artifact = _load_or_skip(artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5")
     assert artifact["citation_check"]["passed"] is True
     assert artifact["udaap_check"]["passed"] is True
 
 
 def test_gate5_nist_risk_category_is_medium_or_high_never_low(artifacts_dir):
-    artifact = _load_or_skip(
-        artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5"
-    )
+    artifact = _load_or_skip(artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5")
     assert artifact["nist_ai_rmf_risk_category"]["risk_category_value"] in ("MEDIUM", "HIGH")
 
 
 def test_gate5_cited_evidence_ids_all_real(artifacts_dir):
     """No phantom evidence ID: every id the model actually cited must exist in the real citation
     table retrieved for that same run."""
-    artifact = _load_or_skip(
-        artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5"
-    )
+    artifact = _load_or_skip(artifacts_dir / "gate5_recommendation_pending_human_review.json", "BP6 Gate 5")
     real_ids = {c["evidence_id"] for c in artifact["citation_table"]}
     cited_ids = set(artifact["citation_check"]["cited_evidence_ids"])
     assert cited_ids.issubset(real_ids)
@@ -119,17 +107,13 @@ def test_gate5_cited_evidence_ids_all_real(artifacts_dir):
 
 
 def test_gate3_gate4_champion_retrieval_strategy_agree(artifacts_dir):
-    gate3 = _load_or_skip(
-        artifacts_dir / "gate3_retrieval_strategy_inventory_entry.json", "BP6 Gate 3"
-    )
+    gate3 = _load_or_skip(artifacts_dir / "gate3_retrieval_strategy_inventory_entry.json", "BP6 Gate 3")
     gate4 = _load_or_skip(artifacts_dir / "gate4_independent_validation_record.json", "BP6 Gate 4")
     assert gate4["champion_strategy_under_validation"] == gate3["champion_strategy"]
 
 
 def test_gate4_independently_reproduces_gate3_coverage(artifacts_dir):
-    gate3 = _load_or_skip(
-        artifacts_dir / "gate3_retrieval_strategy_inventory_entry.json", "BP6 Gate 3"
-    )
+    gate3 = _load_or_skip(artifacts_dir / "gate3_retrieval_strategy_inventory_entry.json", "BP6 Gate 3")
     gate4 = _load_or_skip(artifacts_dir / "gate4_independent_validation_record.json", "BP6 Gate 4")
     assert gate4["coverage_reproduces_exactly"] is True
     assert gate4["gate4_independently_reproduced_coverage"] == pytest.approx(gate3["champion_coverage"])
