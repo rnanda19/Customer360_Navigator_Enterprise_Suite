@@ -188,20 +188,15 @@ def outcome_overlap_report(cfpb_lazy_tagged: pl.LazyFrame) -> dict:
     outcome_2's positive class. Computed fresh against the real, currently-tagged data (never
     trusted from Gate 1's policy.json without re-measuring) so Gate 2's own drift check has a real
     number to compare against."""
-    counts = (
-        cfpb_lazy_tagged.select(
-            [
-                (pl.col("Company response to consumer") == "Untimely response").alias("is_untimely_response"),
-                (pl.col("Timely response?") == "No").alias("is_timely_no"),
-                (pl.col("outcome_1_intervention_required") == 1).alias("is_outcome_1_positive"),
-            ]
-        )
-        .collect()
-    )
+    counts = cfpb_lazy_tagged.select(
+        [
+            (pl.col("Company response to consumer") == "Untimely response").alias("is_untimely_response"),
+            (pl.col("Timely response?") == "No").alias("is_timely_no"),
+            (pl.col("outcome_1_intervention_required") == 1).alias("is_outcome_1_positive"),
+        ]
+    ).collect()
     n_untimely_response_rows = int(counts["is_untimely_response"].sum())
-    n_untimely_response_and_timely_no = int(
-        (counts["is_untimely_response"] & counts["is_timely_no"]).sum()
-    )
+    n_untimely_response_and_timely_no = int((counts["is_untimely_response"] & counts["is_timely_no"]).sum())
     n_untimely_response_and_timely_yes = n_untimely_response_rows - n_untimely_response_and_timely_no
     n_timely_no_rows = int(counts["is_timely_no"].sum())
     n_outcome_1_positive_rows = int(counts["is_outcome_1_positive"].fill_null(False).sum())
@@ -283,7 +278,9 @@ def feature_lineage_table() -> pl.DataFrame:
         {
             "driver_field": "outcome_1_intervention_required (TARGET 1 of 2, not a driver)",
             "source_column": "Company response to consumer",
-            "transform": "binary outcome rule, reused verbatim from BP3 Gate 1 - never used as an input driver",
+            "transform": (
+                "binary outcome rule, reused verbatim from BP3 Gate 1 - " "never used as an input driver"
+            ),
             "null_handling": "n/a - this is outcome 1, not an input driver field",
         }
     )
@@ -300,7 +297,10 @@ def feature_lineage_table() -> pl.DataFrame:
             {
                 "driver_field": "(none - barred)",
                 "source_column": barred_col,
-                "transform": "EXCLUDED from the candidate driver set entirely - see BP5 Gate 1 policy.json leakage_rules",
+                "transform": (
+                    "EXCLUDED from the candidate driver set entirely - "
+                    "see BP5 Gate 1 policy.json leakage_rules"
+                ),
                 "null_handling": "n/a - column is never read into any candidate driver field",
             }
         )

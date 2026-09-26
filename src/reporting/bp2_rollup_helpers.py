@@ -57,8 +57,12 @@ PALETTE = {
     "ink_muted": "#4B5468",
 }
 CATEGORICAL_SEQUENCE = [
-    PALETTE["primary_navy"], PALETTE["accent_blue"], PALETTE["success_green"],
-    PALETTE["warning_amber"], PALETTE["danger_red"], PALETTE["neutral_gray"],
+    PALETTE["primary_navy"],
+    PALETTE["accent_blue"],
+    PALETTE["success_green"],
+    PALETTE["warning_amber"],
+    PALETTE["danger_red"],
+    PALETTE["neutral_gray"],
 ]
 
 
@@ -164,7 +168,12 @@ def confusion_pairs(confusion_df: pd.DataFrame, n: int = 12) -> pd.DataFrame:
             count = int(confusion_df.loc[true_label, pred_label])
             if count > 0:
                 rows.append({"true_class": true_label, "predicted_class": pred_label, "count": count})
-    df = pd.DataFrame(rows).sort_values("count", ascending=False, kind="mergesort").head(n).reset_index(drop=True)
+    df = (
+        pd.DataFrame(rows)
+        .sort_values("count", ascending=False, kind="mergesort")
+        .head(n)
+        .reset_index(drop=True)
+    )
     return df
 
 
@@ -184,19 +193,21 @@ def build_smart_suggestions(bundle: dict[str, Any]) -> list[dict[str, str]]:
     failed = gate3_cv_df[gate3_cv_df["status"] != "OK"]
     if len(failed) > 0:
         row = failed.iloc[0]
-        suggestions.append({
-            "title": f"Root-cause {row['model']}'s real Gate 3 failure",
-            "specific": (
-                f"{row['model']} failed Gate 3's CV benchmark with a real, already-recorded error: "
-                f"\"{row['status']}\". Root-cause investigation was explicitly deferred by the user "
-                "at Gate 3 in order to proceed with the 5 passing candidates."
-            ),
-            "measurable": "Target: either a fix that lets this candidate complete the 5-fold CV "
-                           "benchmark cleanly, or a documented decision to permanently exclude it "
-                           "from future BP2 model refresh cycles.",
-            "timebound": "Before the next BP2 model refresh cycle.",
-            "owner_placeholder": "ML engineering owner - assign.",
-        })
+        suggestions.append(
+            {
+                "title": f"Root-cause {row['model']}'s real Gate 3 failure",
+                "specific": (
+                    f"{row['model']} failed Gate 3's CV benchmark with a real, already-recorded error: "
+                    f"\"{row['status']}\". Root-cause investigation was explicitly deferred by the user "
+                    "at Gate 3 in order to proceed with the 5 passing candidates."
+                ),
+                "measurable": "Target: either a fix that lets this candidate complete the 5-fold CV "
+                "benchmark cleanly, or a documented decision to permanently exclude it "
+                "from future BP2 model refresh cycles.",
+                "timebound": "Before the next BP2 model refresh cycle.",
+                "owner_placeholder": "ML engineering owner - assign.",
+            }
+        )
 
     worst = class_perf.tail(2)
     if len(worst) >= 1:
@@ -205,76 +216,86 @@ def build_smart_suggestions(bundle: dict[str, Any]) -> list[dict[str, str]]:
             f"support {int(r.support):,})"
             for r in worst.itertuples()
         )
-        suggestions.append({
-            "title": "Close the minority-class recall gap on the two smallest severity classes",
-            "specific": (
-                f"Despite reasonably strong real precision, the two lowest-support real severity "
-                f"classes show much weaker real recall on the held-out test set: {worst_lines}. "
-                f"With a real 152:1 class-imbalance ratio (majority/minority), the champion "
-                "under-predicts these classes far more than the headline 75.6% accuracy suggests."
-            ),
-            "measurable": (
-                f"Target: real recall above 30% for both {worst.iloc[-1]['severity_class']} and "
-                f"{worst.iloc[0]['severity_class']} at the next Gate 3 re-benchmark (e.g. via class "
-                "weighting adjustments, threshold tuning, or a resampling strategy), without "
-                "materially reducing macro-F1 on the majority classes."
-            ),
-            "timebound": "Next BP2 Gate 3 re-benchmark cycle.",
-            "owner_placeholder": "ML engineering owner - assign.",
-        })
+        suggestions.append(
+            {
+                "title": "Close the minority-class recall gap on the two smallest severity classes",
+                "specific": (
+                    f"Despite reasonably strong real precision, the two lowest-support real severity "
+                    f"classes show much weaker real recall on the held-out test set: {worst_lines}. "
+                    f"With a real 152:1 class-imbalance ratio (majority/minority), the champion "
+                    "under-predicts these classes far more than the headline 75.6% accuracy suggests."
+                ),
+                "measurable": (
+                    f"Target: real recall above 30% for both {worst.iloc[-1]['severity_class']} and "
+                    f"{worst.iloc[0]['severity_class']} at the next Gate 3 re-benchmark (e.g. via class "
+                    "weighting adjustments, threshold tuning, or a resampling strategy), without "
+                    "materially reducing macro-F1 on the majority classes."
+                ),
+                "timebound": "Next BP2 Gate 3 re-benchmark cycle.",
+                "owner_placeholder": "ML engineering owner - assign.",
+            }
+        )
 
     overlap = gate5_summary["overlap_count_with_gate4"]
-    suggestions.append({
-        "title": "Increase SHAP sample size for more stable global explanations",
-        "specific": (
-            f"Gate 4 and Gate 5 independently computed SHAP importance from two different "
-            f"{gate4['shap_sample_size']}-row samples of real held-out data, and only "
-            f"{overlap}/10 top terms overlapped — lower than BP1's equivalent 4/10 overlap, "
-            "consistent with a structured-feature space having many more near-tied low-signal "
-            "one-hot columns than BP1's TF-IDF vocabulary."
-        ),
-        "measurable": "Target: overlap of 6/10 or higher at a larger, fixed sample size (re-run "
-                       "both gates with an increased SHAP_SAMPLE_SIZE and compare).",
-        "timebound": "Next explainability review cycle.",
-        "owner_placeholder": "Model risk / explainability owner - assign.",
-    })
+    suggestions.append(
+        {
+            "title": "Increase SHAP sample size for more stable global explanations",
+            "specific": (
+                f"Gate 4 and Gate 5 independently computed SHAP importance from two different "
+                f"{gate4['shap_sample_size']}-row samples of real held-out data, and only "
+                f"{overlap}/10 top terms overlapped — lower than BP1's equivalent 4/10 overlap, "
+                "consistent with a structured-feature space having many more near-tied low-signal "
+                "one-hot columns than BP1's TF-IDF vocabulary."
+            ),
+            "measurable": "Target: overlap of 6/10 or higher at a larger, fixed sample size (re-run "
+            "both gates with an increased SHAP_SAMPLE_SIZE and compare).",
+            "timebound": "Next explainability review cycle.",
+            "owner_placeholder": "Model risk / explainability owner - assign.",
+        }
+    )
 
-    open_ablation = bundle["bp2_config"].get("gate3_model_benchmark", {}).get(
-        "open_item_company_public_response_ablation_not_run", False
+    open_ablation = (
+        bundle["bp2_config"]
+        .get("gate3_model_benchmark", {})
+        .get("open_item_company_public_response_ablation_not_run", False)
     )
     if open_ablation:
-        suggestions.append({
-            "title": "Run the deferred Company public response leakage/predictive-value ablation",
-            "specific": (
-                "`Company public response` (~54% null, real, live-checked at Gate 1) was "
-                "deliberately excluded from Gate 3's feature set as an open item, never tested for "
-                "leakage against the target or for genuine predictive value."
-            ),
-            "measurable": "Target: a documented ablation run (with vs. without the field) reporting "
-                           "the real macro-F1 delta and a leakage-risk verdict, before it is ever "
-                           "added to the production feature set.",
-            "timebound": "Before any production feature-set change is proposed.",
-            "owner_placeholder": "ML engineering / compliance owner - assign.",
-        })
+        suggestions.append(
+            {
+                "title": "Run the deferred Company public response leakage/predictive-value ablation",
+                "specific": (
+                    "`Company public response` (~54% null, real, live-checked at Gate 1) was "
+                    "deliberately excluded from Gate 3's feature set as an open item, never tested for "
+                    "leakage against the target or for genuine predictive value."
+                ),
+                "measurable": "Target: a documented ablation run (with vs. without the field) reporting "
+                "the real macro-F1 delta and a leakage-risk verdict, before it is ever "
+                "added to the production feature set.",
+                "timebound": "Before any production feature-set change is proposed.",
+                "owner_placeholder": "ML engineering / compliance owner - assign.",
+            }
+        )
 
     n_with_reason_codes = gate5_summary["n_with_reason_codes"]
     n_records = gate5_summary["n_decision_records"]
-    suggestions.append({
-        "title": "Expand grounded reason-code coverage beyond the current SHAP sample bound",
-        "specific": (
-            f"Only {n_with_reason_codes:,} of {n_records:,} real decision records "
-            f"({n_with_reason_codes / n_records:.2%}) currently carry a grounded per-instance "
-            "reason code, bounded by the 150-row SHAP sample size for laptop safety — a much "
-            f"thinner relative real coverage than BP1's {n_with_reason_codes}/3,080 "
-            f"({n_with_reason_codes / 3080:.1%}) on the same sample-size bound, simply because "
-            "BP2's real held-out test set (163,344 rows) is ~53x larger."
-        ),
-        "measurable": "Target: 100% reason-code coverage once compute budget allows removing the "
-                       "sample bound, or a documented, deliberate sampling policy (e.g. stratified "
-                       "by severity class) if full coverage is not pursued.",
-        "timebound": "Next Gate 5 hardening pass.",
-        "owner_placeholder": "ML engineering owner - assign.",
-    })
+    suggestions.append(
+        {
+            "title": "Expand grounded reason-code coverage beyond the current SHAP sample bound",
+            "specific": (
+                f"Only {n_with_reason_codes:,} of {n_records:,} real decision records "
+                f"({n_with_reason_codes / n_records:.2%}) currently carry a grounded per-instance "
+                "reason code, bounded by the 150-row SHAP sample size for laptop safety — a much "
+                f"thinner relative real coverage than BP1's {n_with_reason_codes}/3,080 "
+                f"({n_with_reason_codes / 3080:.1%}) on the same sample-size bound, simply because "
+                "BP2's real held-out test set (163,344 rows) is ~53x larger."
+            ),
+            "measurable": "Target: 100% reason-code coverage once compute budget allows removing the "
+            "sample bound, or a documented, deliberate sampling policy (e.g. stratified "
+            "by severity class) if full coverage is not pursued.",
+            "timebound": "Next Gate 5 hardening pass.",
+            "owner_placeholder": "ML engineering owner - assign.",
+        }
+    )
 
     return suggestions
 
@@ -407,8 +428,7 @@ def build_gate1_summary(bundle: dict[str, Any]) -> dict[str, Any]:
             for r in lc["company_response_to_consumer_distribution"]
         ],
         "timely_response_distribution": [
-            {"label": r["Timely response?"], "n": r["n"]}
-            for r in lc["timely_response_distribution"]
+            {"label": r["Timely response?"], "n": r["n"]} for r in lc["timely_response_distribution"]
         ],
         "company_public_response_null_rows": lc["company_public_response_null_rows"],
         "generated_at_utc": policy["generated_at_utc"],
@@ -426,9 +446,7 @@ def build_gate6_governance_detail(bundle: dict[str, Any]) -> dict[str, Any]:
     gate3_block = bundle["bp2_config"].get("gate3_model_benchmark", {}) or {}
     gate3_cv_df = bundle["gate3_cv_df"]
     failed_rows = gate3_cv_df[gate3_cv_df["status"] != "OK"]
-    failed_detail = [
-        {"model": r.model, "status": r.status} for r in failed_rows.itertuples()
-    ]
+    failed_detail = [{"model": r.model, "status": r.status} for r in failed_rows.itertuples()]
     return {
         "pytest_summary_line": g6.get("pytest_summary_line"),
         "pytest_counts": g6["pytest_counts"],
@@ -459,6 +477,7 @@ def build_gate6_governance_detail(bundle: dict[str, Any]) -> dict[str, Any]:
 # Matplotlib static figure builders (WARP: rendered once, reused as PNG bytes across DOCX + PPTX).
 # ============================================================================
 
+
 def _fig_to_png_bytes(fig, dpi: int = 150) -> bytes:
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight", facecolor="white")
@@ -468,8 +487,12 @@ def _fig_to_png_bytes(fig, dpi: int = 150) -> bytes:
 
 
 def fig_model_comparison_bar(gate3_cv_df: pd.DataFrame, champion_model: str) -> bytes:
-    df = gate3_cv_df[gate3_cv_df["status"] == "OK"].sort_values("mean_f1_macro", ascending=True, kind="mergesort")
-    colors = [PALETTE["primary_navy"] if m == champion_model else PALETTE["neutral_gray"] for m in df["model"]]
+    df = gate3_cv_df[gate3_cv_df["status"] == "OK"].sort_values(
+        "mean_f1_macro", ascending=True, kind="mergesort"
+    )
+    colors = [
+        PALETTE["primary_navy"] if m == champion_model else PALETTE["neutral_gray"] for m in df["model"]
+    ]
     fig, ax = plt.subplots(figsize=(8, 4.2))
     bars = ax.barh(df["model"], df["mean_f1_macro"], xerr=df["std_f1_macro"], color=colors, capsize=3)
     ax.set_xlabel("CV mean F1-macro (real, error bars = real fold std)")
@@ -497,8 +520,11 @@ def fig_severity_distribution_pie(gate2_severity_df: pd.DataFrame) -> bytes:
     colors = (CATEGORICAL_SEQUENCE * ((len(df) // len(CATEGORICAL_SEQUENCE)) + 1))[: len(df)]
     fig, ax = plt.subplots(figsize=(6.5, 6.5))
     ax.pie(
-        df["row_count"], labels=df["friction_severity_class"], autopct="%1.1f%%",
-        colors=colors, textprops={"fontsize": 8},
+        df["row_count"],
+        labels=df["friction_severity_class"],
+        autopct="%1.1f%%",
+        colors=colors,
+        textprops={"fontsize": 8},
     )
     ax.set_title("Real CFPB Row Distribution by Friction-Severity Class")
     fig.tight_layout()
@@ -509,8 +535,12 @@ def fig_confidence_distribution(gate5_decision_df: pd.DataFrame) -> bytes:
     fig, ax = plt.subplots(figsize=(7.5, 4.2))
     correct = gate5_decision_df[gate5_decision_df["correct"]]["confidence_top1"]
     incorrect = gate5_decision_df[~gate5_decision_df["correct"]]["confidence_top1"]
-    ax.hist(correct, bins=30, alpha=0.75, label=f"Correct (n={len(correct):,})", color=PALETTE["success_green"])
-    ax.hist(incorrect, bins=30, alpha=0.75, label=f"Incorrect (n={len(incorrect):,})", color=PALETTE["danger_red"])
+    ax.hist(
+        correct, bins=30, alpha=0.75, label=f"Correct (n={len(correct):,})", color=PALETTE["success_green"]
+    )
+    ax.hist(
+        incorrect, bins=30, alpha=0.75, label=f"Incorrect (n={len(incorrect):,})", color=PALETTE["danger_red"]
+    )
     ax.set_xlabel("Top-1 prediction confidence (real, Gate 5 decision records)")
     ax.set_ylabel("Count")
     ax.set_title("Confidence Distribution — Correct vs. Incorrect Predictions")
@@ -532,8 +562,15 @@ def fig_confusion_heatmap(confusion_df: pd.DataFrame) -> bytes:
     for i in range(len(confusion_df.index)):
         for j in range(len(confusion_df.columns)):
             val = confusion_df.values[i, j]
-            ax.text(j, i, f"{val:,}", ha="center", va="center",
-                     color="white" if val > confusion_df.values.max() / 2 else PALETTE["ink"], fontsize=8)
+            ax.text(
+                j,
+                i,
+                f"{val:,}",
+                ha="center",
+                va="center",
+                color="white" if val > confusion_df.values.max() / 2 else PALETTE["ink"],
+                fontsize=8,
+            )
     ax.set_title("Full Real 4×4 Confusion Matrix — Held-Out Test Set")
     fig.colorbar(im, ax=ax, shrink=0.8, label="Real count")
     fig.tight_layout()
@@ -548,9 +585,21 @@ def fig_class_performance_bar(class_perf_df: pd.DataFrame) -> bytes:
     fig, ax = plt.subplots(figsize=(7.5, 4.2))
     y = range(len(df))
     height = 0.25
-    ax.barh([i + height for i in y], df["precision"], height=height, label="Precision", color=PALETTE["accent_blue"])
+    ax.barh(
+        [i + height for i in y],
+        df["precision"],
+        height=height,
+        label="Precision",
+        color=PALETTE["accent_blue"],
+    )
     ax.barh([i for i in y], df["recall"], height=height, label="Recall", color=PALETTE["warning_amber"])
-    ax.barh([i - height for i in y], df["f1-score"], height=height, label="F1-score", color=PALETTE["primary_navy"])
+    ax.barh(
+        [i - height for i in y],
+        df["f1-score"],
+        height=height,
+        label="F1-score",
+        color=PALETTE["primary_navy"],
+    )
     ax.set_yticks(list(y))
     ax.set_yticklabels(df["severity_class"], fontsize=9)
     ax.set_xlabel("Real held-out test score")
@@ -565,6 +614,7 @@ def fig_class_performance_bar(class_perf_df: pd.DataFrame) -> bytes:
 # DOCX export (python-docx). US Letter page size set explicitly, Calibri professional font.
 # Covers all 6 BP2 gates' real recorded output.
 # ============================================================================
+
 
 def write_docx_report(
     bundle: dict[str, Any],
@@ -623,14 +673,27 @@ def write_docx_report(
         ("Held-out F1-weighted (real)", f"{kpis['held_out_test_f1_weighted']:.4f}"),
         ("CV mean F1-macro (real)", f"{kpis['cv_mean_f1_macro']:.4f}"),
         ("ROC-AUC, one-vs-rest macro (real)", f"{kpis['roc_auc_ovr_macro']:.4f}"),
-        ("Classes / Train rows / Test rows (real)", f"{kpis['n_classes']} / {kpis['n_train_rows']:,} / {kpis['n_test_rows']:,}"),
+        (
+            "Classes / Train rows / Test rows (real)",
+            f"{kpis['n_classes']} / {kpis['n_train_rows']:,} / {kpis['n_test_rows']:,}",
+        ),
         ("Class imbalance ratio, majority/minority (real)", f"{kpis['class_imbalance_ratio']}:1"),
         ("Decision records (real)", f"{kpis['n_decision_records']:,}"),
         ("Reason-code coverage (real)", f"{kpis['reason_code_coverage']:.2%}"),
-        ("Governance — pytest (real)", f"{kpis['pytest_counts']['passed']} passed / {kpis['pytest_counts']['failed']} failed"),
-        ("Governance — notebook syntax audit (real)", "all passed" if kpis["notebook_syntax_all_passed"] else "issues found"),
-        ("Open governance items — Gate 3 near-random / high-variance / failed (real)",
-         f"{kpis['n_gate3_near_random_anomalies']} / {kpis['n_gate3_high_variance_anomalies']} / {kpis['n_gate3_failed_candidates']}"),
+        (
+            "Governance — pytest (real)",
+            f"{kpis['pytest_counts']['passed']} passed / {kpis['pytest_counts']['failed']} failed",
+        ),
+        (
+            "Governance — notebook syntax audit (real)",
+            "all passed" if kpis["notebook_syntax_all_passed"] else "issues found",
+        ),
+        (
+            "Open governance items — Gate 3 near-random / high-variance / failed (real)",
+            f"{kpis['n_gate3_near_random_anomalies']} / "
+            f"{kpis['n_gate3_high_variance_anomalies']} / "
+            f"{kpis['n_gate3_failed_candidates']}",
+        ),
         ("Governance gates complete (real)", f"{kpis['governance_gates_complete']}/6"),
     ]
     t = doc.add_table(rows=1, cols=2)
@@ -642,8 +705,14 @@ def write_docx_report(
 
     doc.add_heading("Gate 1 — Business Understanding & Policy (real)", level=1)
     doc.add_paragraph(f"Primary target: {gate1['primary_target']} — {gate1['primary_target_description']}")
-    doc.add_paragraph(f"Sentiment-proxy signal (Master Plan's 3-signal taxonomy) — scoped OUT: {gate1['sentiment_proxy_scope']}")
-    doc.add_paragraph(f"Repeat-contact signal (Master Plan's 3-signal taxonomy) — scoped OUT: {gate1['repeat_contact_scope']}")
+    doc.add_paragraph(
+        f"Sentiment-proxy signal (Master Plan's 3-signal taxonomy) — scoped OUT: "
+        f"{gate1['sentiment_proxy_scope']}"
+    )
+    doc.add_paragraph(
+        f"Repeat-contact signal (Master Plan's 3-signal taxonomy) — scoped OUT: "
+        f"{gate1['repeat_contact_scope']}"
+    )
     doc.add_paragraph(f"Feature variable candidates: {gate1['feature_variable_candidates']}")
     doc.add_paragraph(f"Train/test split source: {gate1['train_test_split_source']}")
     doc.add_paragraph(f"Compliance touchpoint — {gate1['compliance_requirement']}:")
@@ -657,12 +726,17 @@ def write_docx_report(
     doc.add_heading("Live Target-Field Distributions (real, re-verified every Gate 1 run)", level=2)
     dq_table = doc.add_table(rows=1, cols=2)
     dq_table.style = "Light Grid Accent 1"
-    dq_table.rows[0].cells[0].text, dq_table.rows[0].cells[1].text = "Company response to consumer", "Real count"
+    dq_table.rows[0].cells[0].text, dq_table.rows[0].cells[1].text = (
+        "Company response to consumer",
+        "Real count",
+    )
     for r in gate1["company_response_distribution"]:
         row = dq_table.add_row().cells
         row[0].text, row[1].text = str(r["label"]), f"{r['n']:,}"
-    doc.add_paragraph(f"Real CFPB row count at Gate 1: {gate1['cfpb_row_count']:,}. "
-                       f"Company public response null rows: {gate1['company_public_response_null_rows']:,}.")
+    doc.add_paragraph(
+        f"Real CFPB row count at Gate 1: {gate1['cfpb_row_count']:,}. "
+        f"Company public response null rows: {gate1['company_public_response_null_rows']:,}."
+    )
 
     doc.add_heading("Model Benchmark — Gate 3 (real 5-fold CV)", level=1)
     doc.add_picture(io.BytesIO(figures["model_benchmark"]), width=Inches(6.2))
@@ -670,21 +744,32 @@ def write_docx_report(
     bt.style = "Light List Accent 1"
     for i, h in enumerate(["Model", "Mean F1-macro", "Std F1-macro", "Mean Accuracy"]):
         bt.rows[0].cells[i].text = h
-    cv_ok = bundle["gate3_cv_df"][bundle["gate3_cv_df"]["status"] == "OK"].sort_values("mean_f1_macro", ascending=False)
+    cv_ok = bundle["gate3_cv_df"][bundle["gate3_cv_df"]["status"] == "OK"].sort_values(
+        "mean_f1_macro", ascending=False
+    )
     for r in cv_ok.itertuples():
         row = bt.add_row().cells
-        row[0].text, row[1].text, row[2].text, row[3].text = r.model, f"{r.mean_f1_macro:.4f}", f"{r.std_f1_macro:.4f}", f"{r.mean_accuracy:.4f}"
-    doc.add_paragraph(f"Real Gate 3 candidate failure (not investigated further, per explicit user instruction): "
-                       f"{kpis['gate3_failed_candidates']}.")
+        row[0].text, row[1].text, row[2].text, row[3].text = (
+            r.model,
+            f"{r.mean_f1_macro:.4f}",
+            f"{r.std_f1_macro:.4f}",
+            f"{r.mean_accuracy:.4f}",
+        )
+    doc.add_paragraph(
+        f"Real Gate 3 candidate failure (not investigated further, per explicit user instruction): "
+        f"{kpis['gate3_failed_candidates']}."
+    )
 
     doc.add_heading("Explainability & Statistical Validation — Gate 4 (real)", level=1)
     doc.add_picture(io.BytesIO(figures["shap_top"]), width=Inches(6.0))
     g4 = bundle["gate4"]
     doc.add_paragraph(
         f"Champion {g4['champion_model']} vs. runner-up {g4['runner_up_model']}: paired t-test statistic "
-        f"{g4.get('paired_ttest_statistic')}, p-value {g4.get('paired_ttest_pvalue')} (n={len(g4.get('champion_fold_f1_macro', []))} "
-        f"real CV folds — {g4.get('statistical_test_limitation', '')}). Held-out test F1-macro "
-        f"{g4['held_out_test_f1_macro_point_estimate']}, 95% bootstrap CI {g4['held_out_test_f1_macro_bootstrap_ci_95']} "
+        f"{g4.get('paired_ttest_statistic')}, p-value {g4.get('paired_ttest_pvalue')} "
+        f"(n={len(g4.get('champion_fold_f1_macro', []))} real CV folds — "
+        f"{g4.get('statistical_test_limitation', '')}). Held-out test F1-macro "
+        f"{g4['held_out_test_f1_macro_point_estimate']}, 95% bootstrap CI "
+        f"{g4['held_out_test_f1_macro_bootstrap_ci_95']} "
         f"({g4.get('bootstrap_n_iterations')} resamples). SHAP sample size {g4.get('shap_sample_size')}, "
         f"background size {g4.get('shap_background_size')}."
     )
@@ -697,7 +782,11 @@ def write_docx_report(
         ct.rows[0].cells[i].text = h
     for _, r in class_perf.iterrows():
         row = ct.add_row().cells
-        row[0].text, row[1].text, row[2].text = r["severity_class"], f"{r['precision']:.3f}", f"{r['recall']:.3f}"
+        row[0].text, row[1].text, row[2].text = (
+            r["severity_class"],
+            f"{r['precision']:.3f}",
+            f"{r['recall']:.3f}",
+        )
         row[3].text, row[4].text = f"{r['f1-score']:.3f}", f"{int(r['support']):,}"
 
     doc.add_heading("Decision Layer — Gate 5 (real)", level=1)
@@ -712,7 +801,10 @@ def write_docx_report(
     )
     ct5 = g5.get("compliance_touchpoint", {})
     if ct5:
-        doc.add_paragraph(f"Compliance — GenAI API used: {ct5.get('genai_api_used')}. {ct5.get('udaap_language_review', '')}")
+        doc.add_paragraph(
+            f"Compliance — GenAI API used: {ct5.get('genai_api_used')}. "
+            f"{ct5.get('udaap_language_review', '')}"
+        )
 
     doc.add_heading("Severity Distribution — Gate 2 (real)", level=1)
     doc.add_picture(io.BytesIO(figures["severity_pie"]), width=Inches(5.3))
@@ -729,9 +821,12 @@ def write_docx_report(
 
     doc.add_heading("Gate 6 — Governance, Known Limitations & Compliance (real)", level=1)
     doc.add_paragraph(
-        f"pytest suite: {gate6['pytest_counts']['passed']} passed / {gate6['pytest_counts']['failed']} failed "
+        f"pytest suite: {gate6['pytest_counts']['passed']} passed / "
+        f"{gate6['pytest_counts']['failed']} failed "
         f"(skipped {gate6['pytest_counts'].get('skipped', 0)}). Notebook syntax audit: "
-        f"{gate6['notebook_syntax_check_n_passed']}/{gate6['notebook_syntax_check_n_passed'] + gate6['notebook_syntax_check_n_failed']} passed."
+        f"{gate6['notebook_syntax_check_n_passed']}/"
+        f"{gate6['notebook_syntax_check_n_passed'] + gate6['notebook_syntax_check_n_failed']} "
+        "passed."
     )
     doc.add_paragraph(
         "Open items — Gate 3 candidate-level issues detected live: "
@@ -743,9 +838,13 @@ def write_docx_report(
         doc.add_paragraph(f"Real recorded failure — {fd['model']}: {fd['status']}", style="List Bullet")
     doc.add_paragraph(f"Model card: {gate6['model_card_path']} | Changelog: {gate6['changelog_path']}")
     if gate6.get("model_inventory_compliance_touchpoint"):
-        doc.add_paragraph(f"Model inventory compliance touchpoint: {gate6['model_inventory_compliance_touchpoint']}")
+        doc.add_paragraph(
+            f"Model inventory compliance touchpoint: {gate6['model_inventory_compliance_touchpoint']}"
+        )
     if gate6.get("model_family"):
-        doc.add_paragraph(f"Model family: {gate6['model_family']}. Training data: {gate6.get('training_data', '')}")
+        doc.add_paragraph(
+            f"Model family: {gate6['model_family']}. Training data: {gate6.get('training_data', '')}"
+        )
     doc.add_paragraph(f"Gate 3 candidates evaluated (real): {', '.join(gate6['candidates_evaluated'])}.")
     if gate6["candidates_failed"]:
         doc.add_paragraph(f"Gate 3 candidates failed (real): {', '.join(gate6['candidates_failed'])}.")
@@ -771,6 +870,7 @@ def write_docx_report(
 # ============================================================================
 # XLSX export (openpyxl). Every sheet is built from a real Gate 1-6 artifact.
 # ============================================================================
+
 
 def write_xlsx_workbook(
     bundle: dict[str, Any],
@@ -837,15 +937,32 @@ def write_xlsx_workbook(
     ws["A6"].font = Font(bold=True, color="1E2761")
     sheets_index = [
         ("01_Executive_KPIs", "Top-line real KPIs across all 6 gates."),
-        ("02_Gate1_Business_Policy", "Gate 1 real target definition, scoped-out signals, leakage rules, assumptions, compliance, live distributions."),
-        ("03_Model_Benchmark", "Gate 3 real 6-model 5-fold CV benchmark, including the real recorded failure."),
-        ("04_Statistical_Validation", "Gate 4 real paired t-test, Wilcoxon test, bootstrap CI, ROC-AUC, per-fold CV scores."),
+        (
+            "02_Gate1_Business_Policy",
+            "Gate 1 real target definition, scoped-out signals, leakage rules, "
+            "assumptions, compliance, live distributions.",
+        ),
+        (
+            "03_Model_Benchmark",
+            "Gate 3 real 6-model 5-fold CV benchmark, including the real recorded failure.",
+        ),
+        (
+            "04_Statistical_Validation",
+            "Gate 4 real paired t-test, Wilcoxon test, bootstrap CI, ROC-AUC, per-fold CV scores.",
+        ),
         ("05_Explainability_SHAP", "Gate 4 real global SHAP top features."),
-        ("06_Decision_Layer", "Gate 5 real decision-record summary, compliance touchpoint + full 163,344-row export."),
+        (
+            "06_Decision_Layer",
+            "Gate 5 real decision-record summary, compliance touchpoint + full 163,344-row export.",
+        ),
         ("07_Severity_Distribution", "Gate 2 real CFPB row distribution by friction-severity class."),
         ("08_Confusion_Analysis", "Gate 3 real full 4x4 confusion matrix and off-diagonal pairs."),
         ("09_Class_Performance", "Gate 3 real per-severity-class precision/recall/F1/support."),
-        ("10_Gate6_Governance_Limitations", "Gate 6 real governance status, open items (incl. the real Gate 3 failure), model card/changelog refs."),
+        (
+            "10_Gate6_Governance_Limitations",
+            "Gate 6 real governance status, open items (incl. the real Gate 3 "
+            "failure), model card/changelog refs.",
+        ),
         ("11_SMART_Suggestions", "Data-grounded SMART recommendations."),
     ]
     for i, (name, desc) in enumerate(sheets_index):
@@ -912,15 +1029,20 @@ def write_xlsx_workbook(
         ws.cell(row=row_idx, column=1, value=_safe(rule))
         row_idx += 1
     row_idx += 1
-    ws.cell(row=row_idx, column=1, value="Scope Assumptions Documented at Gate 1 (real)").font = Font(bold=True, color="1E2761")
+    ws.cell(row=row_idx, column=1, value="Scope Assumptions Documented at Gate 1 (real)").font = Font(
+        bold=True, color="1E2761"
+    )
     row_idx += 1
     for a in gate1["assumptions"]:
         ws.cell(row=row_idx, column=1, value=_safe(a))
         row_idx += 1
     row_idx += 1
-    ws.cell(row=row_idx, column=1, value="Live Company response to consumer distribution (real)").font = Font(bold=True, color="1E2761")
+    ws.cell(row=row_idx, column=1, value="Live Company response to consumer distribution (real)").font = Font(
+        bold=True, color="1E2761"
+    )
     row_idx += 1
-    ws.cell(row=row_idx, column=1, value="Label"); ws.cell(row=row_idx, column=2, value="Real count")
+    ws.cell(row=row_idx, column=1, value="Label")
+    ws.cell(row=row_idx, column=2, value="Real count")
     row_idx += 1
     for r in gate1["company_response_distribution"]:
         ws.cell(row=row_idx, column=1, value=_safe(str(r["label"])))
@@ -934,7 +1056,15 @@ def write_xlsx_workbook(
 
     # --- 03_Model_Benchmark ---
     ws = wb.create_sheet("03_Model_Benchmark")
-    cols = ["model", "status", "elapsed_seconds", "mean_f1_macro", "std_f1_macro", "mean_f1_weighted", "mean_accuracy"]
+    cols = [
+        "model",
+        "status",
+        "elapsed_seconds",
+        "mean_f1_macro",
+        "std_f1_macro",
+        "mean_f1_weighted",
+        "mean_accuracy",
+    ]
     ws.append(cols)
     _style_header(ws, 1, len(cols))
     for r in bundle["gate3_cv_df"][cols].itertuples(index=False):
@@ -948,15 +1078,31 @@ def write_xlsx_workbook(
     ws.append(["Field", "Value"])
     _style_header(ws, 1, 2)
     for k in [
-        "champion_model", "runner_up_model", "recomputed_champion_mean_cv_f1_macro",
-        "gate3_recorded_champion_mean_cv_f1_macro", "consistency_check_diff",
-        "paired_ttest_statistic", "paired_ttest_pvalue", "wilcoxon_statistic", "wilcoxon_pvalue",
-        "statistical_test_limitation", "held_out_test_f1_macro_point_estimate", "bootstrap_n_iterations",
-        "roc_auc_ovr_macro", "n_classes", "shap_sample_size", "shap_background_size", "shap_error",
+        "champion_model",
+        "runner_up_model",
+        "recomputed_champion_mean_cv_f1_macro",
+        "gate3_recorded_champion_mean_cv_f1_macro",
+        "consistency_check_diff",
+        "paired_ttest_statistic",
+        "paired_ttest_pvalue",
+        "wilcoxon_statistic",
+        "wilcoxon_pvalue",
+        "statistical_test_limitation",
+        "held_out_test_f1_macro_point_estimate",
+        "bootstrap_n_iterations",
+        "roc_auc_ovr_macro",
+        "n_classes",
+        "shap_sample_size",
+        "shap_background_size",
+        "shap_error",
         "generated_at_utc",
     ]:
         ws.append(_safe_row([k, str(g4.get(k))]))
-    ws.append(_safe_row(["held_out_test_f1_macro_bootstrap_ci_95", str(g4.get("held_out_test_f1_macro_bootstrap_ci_95"))]))
+    ws.append(
+        _safe_row(
+            ["held_out_test_f1_macro_bootstrap_ci_95", str(g4.get("held_out_test_f1_macro_bootstrap_ci_95"))]
+        )
+    )
     ws.append([])
     fold_header_row = ws.max_row + 1
     ws.cell(row=fold_header_row, column=1, value="Real per-fold CV F1-macro (5-fold)")
@@ -991,22 +1137,43 @@ def write_xlsx_workbook(
     ws.append(["Field", "Value"])
     _style_header(ws, 1, 2)
     for k in [
-        "champion_model", "n_decision_records", "n_with_reason_codes", "shap_sample_size_bound",
-        "n_reason_codes_per_record", "shap_error", "overall_test_accuracy_recomputed",
-        "gate3_recorded_test_accuracy", "accuracy_consistency_diff",
-        "mean_confidence_correct_predictions", "mean_confidence_incorrect_predictions",
-        "overlap_count_with_gate4", "reason_code_grounding_failures",
-        "reason_code_grounding_method", "generated_at_utc",
+        "champion_model",
+        "n_decision_records",
+        "n_with_reason_codes",
+        "shap_sample_size_bound",
+        "n_reason_codes_per_record",
+        "shap_error",
+        "overall_test_accuracy_recomputed",
+        "gate3_recorded_test_accuracy",
+        "accuracy_consistency_diff",
+        "mean_confidence_correct_predictions",
+        "mean_confidence_incorrect_predictions",
+        "overlap_count_with_gate4",
+        "reason_code_grounding_failures",
+        "reason_code_grounding_method",
+        "generated_at_utc",
     ]:
         ws.append(_safe_row([k, str(g5.get(k))]))
-    ws.append(_safe_row(["gate5_aggregated_top_reason_code_terms", ", ".join(g5.get("gate5_aggregated_top_reason_code_terms", []))]))
+    ws.append(
+        _safe_row(
+            [
+                "gate5_aggregated_top_reason_code_terms",
+                ", ".join(g5.get("gate5_aggregated_top_reason_code_terms", [])),
+            ]
+        )
+    )
     ws.append(_safe_row(["gate4_global_top10_terms", ", ".join(g5.get("gate4_global_top10_terms", []))]))
     ws.append(_safe_row(["overlap_terms_with_gate4", ", ".join(g5.get("overlap_terms_with_gate4", []))]))
     ct5 = g5.get("compliance_touchpoint", {}) or {}
     ws.append([])
     ws.append(["Compliance touchpoint (real)", ""])
     ws.cell(row=ws.max_row, column=1).font = Font(bold=True, color="1E2761")
-    for k in ["genai_api_used", "udaap_language_review", "nist_ai_rmf_measure_manage", "scope_decision_confirmed_by_user_utc"]:
+    for k in [
+        "genai_api_used",
+        "udaap_language_review",
+        "nist_ai_rmf_measure_manage",
+        "scope_decision_confirmed_by_user_utc",
+    ]:
         ws.append(_safe_row([k, str(ct5.get(k))]))
     ws.append([])
     # Full real decision-record export (163,344 rows) — a lean column set (row_index, labels,
@@ -1014,7 +1181,15 @@ def write_xlsx_workbook(
     # rank2/rank3 confidence columns and the verbose per-row feature_summary text are left out of
     # this sheet to keep the workbook a manageable size; the full 12-column CSV (including
     # feature_summary) remains available in the real artifacts folder on disk for deeper drill-down.
-    dec_cols = ["row_index", "true_label", "predicted_label", "correct", "confidence_top1", "in_shap_sample", "reason_codes"]
+    dec_cols = [
+        "row_index",
+        "true_label",
+        "predicted_label",
+        "correct",
+        "confidence_top1",
+        "in_shap_sample",
+        "reason_codes",
+    ]
     header_row_idx = ws.max_row + 1
     ws.append(dec_cols)
     _style_header(ws, header_row_idx, len(dec_cols))
@@ -1054,7 +1229,9 @@ def write_xlsx_workbook(
             ws.cell(row=header_row + 1 + i, column=2 + j, value=int(conf_df.loc[idx, col]))
     _autosize(ws, len(conf_df.columns) + 1, width=22)
     pairs_header_row = header_row + len(conf_df.index) + 3
-    ws.cell(row=pairs_header_row, column=1, value="Real off-diagonal confusion pairs").font = Font(bold=True, color="1E2761")
+    ws.cell(row=pairs_header_row, column=1, value="Real off-diagonal confusion pairs").font = Font(
+        bold=True, color="1E2761"
+    )
     ws.cell(row=pairs_header_row + 1, column=1, value="true_class")
     ws.cell(row=pairs_header_row + 1, column=2, value="predicted_class")
     ws.cell(row=pairs_header_row + 1, column=3, value="count")
@@ -1089,8 +1266,14 @@ def write_xlsx_workbook(
         ("Notebook syntax check — passed", gate6["notebook_syntax_check_n_passed"]),
         ("Notebook syntax check — failed", gate6["notebook_syntax_check_n_failed"]),
         ("Notebook syntax all passed", gate6["notebook_syntax_all_passed"]),
-        ("Open item — Gate 3 near-random anomalies detected", gate6["n_gate3_near_random_anomalies_detected"]),
-        ("Open item — Gate 3 high-variance anomalies detected", gate6["n_gate3_high_variance_anomalies_detected"]),
+        (
+            "Open item — Gate 3 near-random anomalies detected",
+            gate6["n_gate3_near_random_anomalies_detected"],
+        ),
+        (
+            "Open item — Gate 3 high-variance anomalies detected",
+            gate6["n_gate3_high_variance_anomalies_detected"],
+        ),
         ("Open item — Gate 3 failed candidates detected", gate6["n_gate3_failed_candidates_detected"]),
         ("Model card path", gate6["model_card_path"]),
         ("Changelog path", gate6["changelog_path"]),
@@ -1099,14 +1282,19 @@ def write_xlsx_workbook(
         ("Training data", gate6.get("training_data")),
         ("Gate 3 candidates evaluated", ", ".join(gate6.get("candidates_evaluated", []))),
         ("Gate 3 candidates failed", ", ".join(gate6.get("candidates_failed", [])) or "none"),
-        ("Demographic-adjacent Tags values found (real)", ", ".join(gate6.get("demographic_adjacent_tags_found", [])) or "none"),
+        (
+            "Demographic-adjacent Tags values found (real)",
+            ", ".join(gate6.get("demographic_adjacent_tags_found", [])) or "none",
+        ),
         ("Generated at (UTC)", gate6["generated_at_utc"]),
     ]:
         ws.cell(row=row_idx, column=1, value=_safe(label))
         ws.cell(row=row_idx, column=2, value=_safe(val))
         row_idx += 1
     row_idx += 1
-    ws.cell(row=row_idx, column=1, value="Real recorded Gate 3 candidate failure detail").font = Font(bold=True, color="1E2761")
+    ws.cell(row=row_idx, column=1, value="Real recorded Gate 3 candidate failure detail").font = Font(
+        bold=True, color="1E2761"
+    )
     row_idx += 1
     for fd in gate6["gate3_failed_candidates_detail"]:
         ws.cell(row=row_idx, column=1, value=_safe(fd["model"]))
@@ -1123,7 +1311,9 @@ def write_xlsx_workbook(
     ws.append(["Title", "Specific", "Measurable", "Time-bound", "Owner"])
     _style_header(ws, 1, 5)
     for s in suggestions:
-        ws.append(_safe_row([s["title"], s["specific"], s["measurable"], s["timebound"], s["owner_placeholder"]]))
+        ws.append(
+            _safe_row([s["title"], s["specific"], s["measurable"], s["timebound"], s["owner_placeholder"]])
+        )
     for col in "ABCDE":
         ws.column_dimensions[col].width = 42
         for cell in ws[col]:
@@ -1137,6 +1327,7 @@ def write_xlsx_workbook(
 # ============================================================================
 # PPTX export (python-pptx). Reuses the same shared matplotlib PNGs as the DOCX export.
 # ============================================================================
+
 
 def write_pptx_deck(
     bundle: dict[str, Any],
@@ -1181,14 +1372,16 @@ def write_pptx_deck(
         run.font.bold = True
         run.font.color.rgb = WHITE if dark else NAVY
         if subtitle:
-            box2 = slide.shapes.add_textbox(PptxInches(0.6), PptxInches(1.05), PptxInches(12.1), PptxInches(0.5))
+            box2 = slide.shapes.add_textbox(
+                PptxInches(0.6), PptxInches(1.05), PptxInches(12.1), PptxInches(0.5)
+            )
             tf2 = box2.text_frame
             tf2.word_wrap = True
             p2 = tf2.paragraphs[0]
             r2 = p2.add_run()
             r2.text = subtitle
             r2.font.size = PptxPt(14)
-            r2.font.color.rgb = (WHITE if dark else GRAY)
+            r2.font.color.rgb = WHITE if dark else GRAY
 
     def _fill_bg(slide, color: PptxRGBColor):
         slide.background.fill.solid()
@@ -1214,7 +1407,9 @@ def write_pptx_deck(
         r2.font.color.rgb = GRAY
 
     def _add_bullets(slide, lines, top=PptxInches(1.4), color=None, size=15):
-        box = slide.shapes.add_textbox(PptxInches(0.6), top, PptxInches(12.1), PptxInches(7.5) - top - PptxInches(0.4))
+        box = slide.shapes.add_textbox(
+            PptxInches(0.6), top, PptxInches(12.1), PptxInches(7.5) - top - PptxInches(0.4)
+        )
         tf = box.text_frame
         tf.word_wrap = True
         for i, line in enumerate(lines):
@@ -1227,12 +1422,18 @@ def write_pptx_deck(
     # --- Slide 1: Title ---
     s = _add_slide()
     _fill_bg(s, NAVY)
-    _add_title(s, "BP2 Customer Friction Classification", "Executive Rollup — Customer360 Navigator Enterprise Suite", dark=True)
+    _add_title(
+        s,
+        "BP2 Customer Friction Classification",
+        "Executive Rollup — Customer360 Navigator Enterprise Suite",
+        dark=True,
+    )
     box = s.shapes.add_textbox(PptxInches(0.6), PptxInches(5.6), PptxInches(11), PptxInches(1.2))
     p = box.text_frame.paragraphs[0]
     r = p.add_run()
     r.text = (
-        f"Champion model: {kpis['champion_model']}  |  Held-out accuracy: {kpis['held_out_test_accuracy']:.2%} (real)  |  "
+        f"Champion model: {kpis['champion_model']}  |  "
+        f"Held-out accuracy: {kpis['held_out_test_accuracy']:.2%} (real)  |  "
         f"Generated {kpis['generated_at_utc'][:10]}"
     )
     r.font.size = PptxPt(15)
@@ -1255,7 +1456,12 @@ def write_pptx_deck(
         ("Class Imbalance Ratio", f"{kpis['class_imbalance_ratio']}:1"),
         ("Decision Records", f"{kpis['n_decision_records']:,}"),
         ("pytest", f"{kpis['pytest_counts']['passed']} passed"),
-        ("Gate 3 Open Items", f"{kpis['n_gate3_near_random_anomalies']} near-random / {kpis['n_gate3_high_variance_anomalies']} high-var / {kpis['n_gate3_failed_candidates']} failed"),
+        (
+            "Gate 3 Open Items",
+            f"{kpis['n_gate3_near_random_anomalies']} near-random / "
+            f"{kpis['n_gate3_high_variance_anomalies']} high-var / "
+            f"{kpis['n_gate3_failed_candidates']} failed",
+        ),
     ]
     cols = 4
     cell_w = PptxInches(2.9)
@@ -1269,20 +1475,25 @@ def write_pptx_deck(
     # --- Slide 3: Gate 1 Business Understanding & Policy ---
     s = _add_slide()
     _add_title(s, "Gate 1 — Business Understanding & Policy (real)")
-    _add_bullets(s, [
-        f"Primary target: {gate1['primary_target']}",
-        f"Sentiment-proxy signal — scoped OUT: {gate1['sentiment_proxy_scope'][:140]}...",
-        f"Repeat-contact signal — scoped OUT: {gate1['repeat_contact_scope'][:140]}...",
-        f"Feature variable candidates: {gate1['feature_variable_candidates'][:140]}...",
-        f"Compliance touchpoint: {gate1['compliance_requirement']}",
-        f"Live check — real CFPB row count: {gate1['cfpb_row_count']:,}",
-        f"Live check — Company public response null rows: {gate1['company_public_response_null_rows']:,}",
-    ])
+    _add_bullets(
+        s,
+        [
+            f"Primary target: {gate1['primary_target']}",
+            f"Sentiment-proxy signal — scoped OUT: {gate1['sentiment_proxy_scope'][:140]}...",
+            f"Repeat-contact signal — scoped OUT: {gate1['repeat_contact_scope'][:140]}...",
+            f"Feature variable candidates: {gate1['feature_variable_candidates'][:140]}...",
+            f"Compliance touchpoint: {gate1['compliance_requirement']}",
+            f"Live check — real CFPB row count: {gate1['cfpb_row_count']:,}",
+            f"Live check — Company public response null rows: {gate1['company_public_response_null_rows']:,}",
+        ],
+    )
 
     # --- Slide 4: Model benchmark ---
     s = _add_slide()
     _add_title(s, "Model Benchmark — Gate 3 (real 5-fold CV)")
-    _add_picture_bytes(s, figures["model_benchmark"], PptxInches(1.3), PptxInches(1.5), width=PptxInches(10.7))
+    _add_picture_bytes(
+        s, figures["model_benchmark"], PptxInches(1.3), PptxInches(1.5), width=PptxInches(10.7)
+    )
 
     # --- Slide 5: Explainability ---
     s = _add_slide()
@@ -1292,12 +1503,16 @@ def write_pptx_deck(
     # --- Slide 6: Per-class performance ---
     s = _add_slide()
     _add_title(s, "Per-Severity-Class Performance — Gate 3 (real)")
-    _add_picture_bytes(s, figures["class_performance"], PptxInches(2.0), PptxInches(1.4), width=PptxInches(9.3))
+    _add_picture_bytes(
+        s, figures["class_performance"], PptxInches(2.0), PptxInches(1.4), width=PptxInches(9.3)
+    )
 
     # --- Slide 7: Decision layer ---
     s = _add_slide()
     _add_title(s, "Decision Layer — Gate 5 (real)")
-    _add_picture_bytes(s, figures["confidence_dist"], PptxInches(1.3), PptxInches(1.5), width=PptxInches(10.7))
+    _add_picture_bytes(
+        s, figures["confidence_dist"], PptxInches(1.3), PptxInches(1.5), width=PptxInches(10.7)
+    )
 
     # --- Slide 8: Severity distribution ---
     s = _add_slide()
@@ -1307,7 +1522,9 @@ def write_pptx_deck(
     # --- Slide 9: Confusion analysis ---
     s = _add_slide()
     _add_title(s, "Confusion Analysis — Gate 3 (real, full 4×4 matrix)")
-    _add_picture_bytes(s, figures["confusion_heatmap"], PptxInches(3.3), PptxInches(1.3), width=PptxInches(6.7))
+    _add_picture_bytes(
+        s, figures["confusion_heatmap"], PptxInches(3.3), PptxInches(1.3), width=PptxInches(6.7)
+    )
 
     # --- Slide 10: SMART suggestions ---
     s = _add_slide()
@@ -1338,19 +1555,30 @@ def write_pptx_deck(
     s = _add_slide()
     _fill_bg(s, NAVY)
     _add_title(s, "Gate 6 — Governance & Known Limitations (real)", dark=True)
-    failed_line = "; ".join(f"{fd['model']}: {fd['status'][:90]}..." for fd in gate6["gate3_failed_candidates_detail"]) or "none"
-    _add_bullets(s, [
-        f"pytest suite: {gate6['pytest_counts']['passed']} passed / {gate6['pytest_counts']['failed']} failed",
-        f"Notebook syntax audit: {gate6['notebook_syntax_check_n_passed']}/{gate6['notebook_syntax_check_n_passed'] + gate6['notebook_syntax_check_n_failed']} passed",
-        f"Open item: {gate6['n_gate3_near_random_anomalies_detected']} near-random + "
-        f"{gate6['n_gate3_high_variance_anomalies_detected']} high-variance + "
-        f"{gate6['n_gate3_failed_candidates_detected']} failed Gate 3 candidate(s)",
-        f"Real failure detail: {failed_line}",
-        f"Model card: {gate6['model_card_path']}",
-        f"Changelog: {gate6['changelog_path']}",
-        f"Gate 3 candidates evaluated: {', '.join(gate6.get('candidates_evaluated', []))}",
-        f"BP2 governance gates complete: {kpis['governance_gates_complete']}/6",
-    ], top=PptxInches(1.6), color=WHITE, size=15)
+    failed_line = (
+        "; ".join(f"{fd['model']}: {fd['status'][:90]}..." for fd in gate6["gate3_failed_candidates_detail"])
+        or "none"
+    )
+    _add_bullets(
+        s,
+        [
+            f"pytest suite: {gate6['pytest_counts']['passed']} passed / "
+            f"{gate6['pytest_counts']['failed']} failed",
+            f"Notebook syntax audit: {gate6['notebook_syntax_check_n_passed']}/"
+            f"{gate6['notebook_syntax_check_n_passed'] + gate6['notebook_syntax_check_n_failed']} passed",
+            f"Open item: {gate6['n_gate3_near_random_anomalies_detected']} near-random + "
+            f"{gate6['n_gate3_high_variance_anomalies_detected']} high-variance + "
+            f"{gate6['n_gate3_failed_candidates_detected']} failed Gate 3 candidate(s)",
+            f"Real failure detail: {failed_line}",
+            f"Model card: {gate6['model_card_path']}",
+            f"Changelog: {gate6['changelog_path']}",
+            f"Gate 3 candidates evaluated: {', '.join(gate6.get('candidates_evaluated', []))}",
+            f"BP2 governance gates complete: {kpis['governance_gates_complete']}/6",
+        ],
+        top=PptxInches(1.6),
+        color=WHITE,
+        size=15,
+    )
 
     # --- Slide 12: Recommended for Production ---
     s = _add_slide()

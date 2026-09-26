@@ -61,8 +61,22 @@ flake8>=7.1
 # (Hardening Step 3, 2026-09-22). Not a runtime dependency of src/ itself - testing-only, so it
 # lives here rather than in pyproject.toml's dependencies.
 httpx>=0.27
-isort>=5.13
-mypy>=1.11
+# Hygiene pass (2026-09-26 CI incident): black/flake8/isort/mypy/bandit are pinned EXACTLY here,
+# and ci.yml's lint/security jobs now install these exact pins instead of an unversioned
+# `pip install black flake8 isort mypy` - that unpinned install silently picked up whatever each
+# tool's newest PyPI release happened to be at CI run time, and a routine black release (26.5.1)
+# changed its target-version auto-detection and broke `black --check` against this entire,
+# already-correctly-formatted codebase with no code change on this project's side at all. Pinned
+# exactly (not >=) so a CI run next month behaves identically to one today.
+black==24.10.0
+flake8==7.4.1
+isort==9.0.1
+# mypy pinned below 2.x deliberately: mypy 2.3.1 (the version an unpinned install would currently
+# resolve to) crashes with an INTERNAL ERROR against this codebase (verified directly, 2026-09-26)
+# - not a real type-checking finding, a genuine mypy regression on this combination of files.
+# 1.11.2 is the newest 1.x release verified to run cleanly here.
+mypy==1.11.2
+bandit==1.9.4
 pre-commit>=3.8
 # pydantic-settings: src/utils/settings.py (hygiene pass, 2026-09-26) - pydantic v2 split
 # BaseSettings out of pydantic core into this separate package.

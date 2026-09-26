@@ -57,9 +57,7 @@ class TestC360SettingsRealValues:
 
 
 class TestC360SettingsValidation:
-    def test_project_root_override_pointing_at_nonexistent_directory_fails_fast(
-        self, monkeypatch, tmp_path
-    ):
+    def test_project_root_override_pointing_at_nonexistent_directory_fails_fast(self, monkeypatch, tmp_path):
         monkeypatch.chdir(tmp_path)
         monkeypatch.setenv("C360_PROJECT_ROOT", str(tmp_path / "does_not_exist_at_all"))
 

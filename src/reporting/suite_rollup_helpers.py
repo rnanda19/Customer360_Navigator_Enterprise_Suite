@@ -61,11 +61,11 @@ from pathlib import Path
 from typing import Any, Optional
 
 import matplotlib
+
 matplotlib.use("Agg")  # headless rendering -- this module never opens a GUI window
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 import yaml  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # Design-system constants
@@ -183,6 +183,7 @@ OUTPUT_PATHS_KEY_CANDIDATES = ("outputs", "output_paths")
 # ---------------------------------------------------------------------------
 # Small data holders
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class FileFingerprint:
@@ -302,6 +303,7 @@ def resolve_project_root(
 # File fingerprinting (defense-in-depth: prove no mutation occurred)
 # ---------------------------------------------------------------------------
 
+
 def fingerprint_file(path: Path) -> FileFingerprint:
     """MD5 + size fingerprint of one file. Read-only; never writes."""
     path = Path(path)
@@ -311,7 +313,9 @@ def fingerprint_file(path: Path) -> FileFingerprint:
     return FileFingerprint(
         path=str(path),
         exists=True,
-        md5=hashlib.md5(data).hexdigest(),
+        md5=hashlib.md5(
+            data, usedforsecurity=False
+        ).hexdigest(),  # nosec B324 - content fingerprint, not security
         size_bytes=len(data),
     )
 
@@ -340,6 +344,7 @@ def assert_no_mutation(before: dict[str, dict], after: dict[str, dict]) -> None:
 # ---------------------------------------------------------------------------
 # Low-level, defensive readers
 # ---------------------------------------------------------------------------
+
 
 def load_json(path: Path) -> dict:
     """Load a JSON file. Returns {} if the file does not exist (callers that
@@ -376,6 +381,7 @@ def load_gate6_governance_block(config_path: Path) -> dict:
 # BP1/BP2 tier derivation (the ONE place this module derives rather than
 # directly reads a value)
 # ---------------------------------------------------------------------------
+
 
 def derive_bp1_bp2_tier(
     gate6_pytest_all_passed: Optional[bool],
@@ -426,8 +432,7 @@ def cross_check_tier_in_html(html_path: Path, tier_string: str, bp_label: str) -
     html_path = Path(html_path)
     if not html_path.exists():
         raise AssertionError(
-            f"Cross-check failed for {bp_label}: dashboard HTML not found at "
-            f"{html_path}"
+            f"Cross-check failed for {bp_label}: dashboard HTML not found at " f"{html_path}"
         )
     text = html_path.read_text(encoding="utf-8")
     assert tier_string in text, (
@@ -439,6 +444,7 @@ def cross_check_tier_in_html(html_path: Path, tier_string: str, bp_label: str) -
 # ---------------------------------------------------------------------------
 # Per-BP field extraction (defensive: dict.get(), never dict[...])
 # ---------------------------------------------------------------------------
+
 
 def extract_champion(manifest: dict) -> tuple[Optional[Any], Optional[str]]:
     """Return (value, field_name_used) for whichever champion-* key is
@@ -541,6 +547,7 @@ def compute_dashboard_relative_link(manifest: dict) -> Optional[str]:
 # `derive_bp1_bp2_tier` above. No dollar figure, forecast, or speculative
 # claim ever appears in a Smart Suggestion.
 
+
 def compute_smart_suggestion(bp_key: str, tier: Optional[str], disparate_impact_status: str) -> str:
     """Deterministic recommended-next-step text for one BP1-BP7, derived
     only from that BP's own already-loaded real `tier` and
@@ -590,7 +597,7 @@ def compute_smart_suggestion(bp_key: str, tier: Optional[str], disparate_impact_
         )
     if "RECOMMENDED" in tier_text:
         return (
-            f"Proceed under this BP's own stated qualification -- \"{tier}\" -- "
+            f'Proceed under this BP\'s own stated qualification -- "{tier}" -- '
             "rather than treating it as an unconditional production-ready result; "
             "keep the monitoring it calls for active."
         )
@@ -621,6 +628,7 @@ def compute_bp8_smart_suggestion(bp8: dict) -> str:
 # Top-level loader: BP1-BP7
 # ---------------------------------------------------------------------------
 
+
 def load_bp_record(
     project_root: Path,
     bp_key: str,
@@ -633,9 +641,7 @@ def load_bp_record(
     read-only file list -- see `load_all_bp_summaries`).
     """
     folder = BP_FOLDER_NAMES[bp_key]
-    manifest_path = (
-        project_root / "notebooks" / folder / "artifacts" / "executive_rollup_manifest.json"
-    )
+    manifest_path = project_root / "notebooks" / folder / "artifacts" / "executive_rollup_manifest.json"
     manifest = load_json(manifest_path)
 
     champion, champion_field = extract_champion(manifest)
@@ -686,6 +692,7 @@ def load_bp_record(
 # BP8 loader
 # ---------------------------------------------------------------------------
 
+
 def load_bp8_summary(project_root: Path) -> dict:
     """Load BP8's own Gate1 (policy.json), Gate2 (gold table manifest), and
     Gate3 (KPI manifest, which may not exist yet) artifacts.
@@ -733,9 +740,7 @@ def load_bp8_summary(project_root: Path) -> dict:
         "gate3_exists": gate3_exists,
         "gate3": gate3,
         "gate3_status": (
-            "delivered as source, not yet real-run"
-            if not gate3_exists
-            else "real-run confirmed"
+            "delivered as source, not yet real-run" if not gate3_exists else "real-run confirmed"
         ),
         "gate3_generated_at_utc": gate3.get("generated_at_utc") if gate3_exists else None,
         "gate3_n_kpi_tables_ready": gate3.get("n_kpi_tables_ready") if gate3_exists else None,
@@ -751,6 +756,7 @@ def load_bp8_summary(project_root: Path) -> dict:
 # ---------------------------------------------------------------------------
 # Top-level bundle loader
 # ---------------------------------------------------------------------------
+
 
 def load_all_bp_summaries(project_root: Path) -> dict:
     """Load BP1-BP7's executive rollup manifests and BP8's Gate1/2/3 status
@@ -788,6 +794,7 @@ def load_all_bp_summaries(project_root: Path) -> dict:
 # ---------------------------------------------------------------------------
 # Suite-level KPIs
 # ---------------------------------------------------------------------------
+
 
 def compute_suite_kpis(bundle: dict) -> dict:
     """Compute suite-wide KPIs. Every number here is a live sum/count over
@@ -898,6 +905,7 @@ def assert_no_financial_or_assumption_content(bundle: dict) -> None:
 # Status DataFrame
 # ---------------------------------------------------------------------------
 
+
 def build_status_dataframe(bundle: dict) -> pd.DataFrame:
     """Build a per-BP status table (BP1-BP7) as a pandas DataFrame."""
     rows = []
@@ -934,6 +942,7 @@ def build_status_dataframe(bundle: dict) -> pd.DataFrame:
 # from the embedded JSON payload -- see `build_suite_chart_payload` and the
 # template's own <script> block.
 
+
 def fig_tier_distribution(df: pd.DataFrame):
     """Bar chart of production-recommendation-tier distribution across BP1-7."""
     counts = df["tier"].value_counts()
@@ -941,9 +950,7 @@ def fig_tier_distribution(df: pd.DataFrame):
     colors = [CATEGORICAL_SEQUENCE[i % len(CATEGORICAL_SEQUENCE)] for i in range(len(counts))]
     ax.bar(range(len(counts)), counts.values, color=colors)
     ax.set_xticks(range(len(counts)))
-    ax.set_xticklabels(
-        [_wrap_label(t) for t in counts.index], rotation=20, ha="right", fontsize=8
-    )
+    ax.set_xticklabels([_wrap_label(t) for t in counts.index], rotation=20, ha="right", fontsize=8)
     ax.set_ylabel("Number of BPs", color=PALETTE["ink"])
     ax.set_title("Production-Recommendation Tier Distribution (BP1-BP7)", color=PALETTE["ink"])
     ax.set_facecolor(PALETTE["surface_light"])
@@ -958,10 +965,7 @@ def fig_pytest_passed_per_bp(bundle: dict):
     """Bar chart of pytest-passed counts per BP, over only the BPs whose
     gate6_governance block this deliverable actually read (bp1/bp2)."""
     gate6_blocks = bundle.get("_gate6_blocks", {})
-    bp_keys = [
-        k for k in BP_ORDER
-        if k in gate6_blocks and gate6_blocks[k].get("pytest_passed") is not None
-    ]
+    bp_keys = [k for k in BP_ORDER if k in gate6_blocks and gate6_blocks[k].get("pytest_passed") is not None]
     values = [gate6_blocks[k]["pytest_passed"] for k in bp_keys]
 
     fig, ax = plt.subplots(figsize=(6, 4))
@@ -1023,6 +1027,7 @@ def png_bytes_to_base64(png_bytes: bytes) -> str:
 # already built from real, live-read data) -- never a hardcoded sentence
 # with numbers dropped in, and never a claim not directly backed by one of
 # those fields.
+
 
 def story_tier(kpis: dict) -> str:
     n_rec = kpis["n_bps_recommended_for_production"]
@@ -1088,6 +1093,7 @@ def story_generated_dates(bundle: dict) -> str:
 # interactive SVG charts, filters, and animated counters
 # ---------------------------------------------------------------------------
 
+
 def build_suite_chart_payload(bundle: dict, kpis: dict, df: pd.DataFrame) -> dict:
     """Assemble one JSON-serializable dict containing every value the
     template's client-side JavaScript needs to draw its interactive charts,
@@ -1097,10 +1103,7 @@ def build_suite_chart_payload(bundle: dict, kpis: dict, df: pd.DataFrame) -> dic
     no new data source and performs no re-derivation of its own beyond
     plain reshaping (e.g. dict-of-counts -> list-of-{label,value} for the
     chart-drawing JS to iterate over)."""
-    tier_series = [
-        {"label": tier, "value": count}
-        for tier, count in kpis["tier_counts"].items()
-    ]
+    tier_series = [{"label": tier, "value": count} for tier, count in kpis["tier_counts"].items()]
     di_labels = {
         "flagged": "Flagged",
         "not_flagged": "Checked, Not Flagged",
@@ -1213,6 +1216,7 @@ def build_suite_chart_payload(bundle: dict, kpis: dict, df: pd.DataFrame) -> dic
 # HTML dashboard rendering
 # ---------------------------------------------------------------------------
 
+
 def render_dashboard_html(
     template_path: Path,
     bundle: dict,
@@ -1244,9 +1248,7 @@ def render_dashboard_html(
         # record count) into NaN rather than None -- pd.isna() catches both
         # NaN and None so a genuinely-missing value never gets formatted
         # (formatting NaN with ":," silently prints the literal text "nan").
-        record_cell = (
-            f"<td>{int(rc):,}</td>" if not pd.isna(rc) else "<td>&mdash;</td>"
-        )
+        record_cell = f"<td>{int(rc):,}</td>" if not pd.isna(rc) else "<td>&mdash;</td>"
         rows_html.append(
             "<tr>"
             f"<td>{_esc(row['bp'])}</td>"
@@ -1255,32 +1257,35 @@ def render_dashboard_html(
             f"<td>{_esc(row['tier'])}</td>"
             f"<td>{_esc(row['tier_source'])}</td>"
             f"<td>{_esc(row['disparate_impact_status'])}</td>"
-            + record_cell +
-            f"<td>{_esc(row['generated_at_utc'])}</td>"
+            + record_cell
+            + f"<td>{_esc(row['generated_at_utc'])}</td>"
             f"<td>{_esc(row['smart_suggestion'])}</td>"
             "</tr>"
         )
     bp_table_rows = "\n".join(rows_html)
 
     tier_counts_rows = "\n".join(
-        f"<tr><td>{_esc(tier)}</td><td>{count}</td></tr>"
-        for tier, count in kpis["tier_counts"].items()
+        f"<tr><td>{_esc(tier)}</td><td>{count}</td></tr>" for tier, count in kpis["tier_counts"].items()
     )
 
     bp8 = bundle.get("bp8", {})
 
-    bp8_gold_rows = "\n".join(
-        f"<tr><td>{_esc(t.get('category', t.get('filename', '?')))}</td>"
-        f"<td>{_esc(t.get('filename'))}</td><td>{_esc(t.get('n_rows'))}</td>"
-        f"<td>Gate 2</td></tr>"
-        for t in (bp8.get("gold_tables") or [])
-        if isinstance(t, dict)
-    ) + "\n" + "\n".join(
-        f"<tr><td>{_esc(t.get('category', t.get('filename', '?')))}</td>"
-        f"<td>{_esc(t.get('filename'))}</td><td>{_esc(t.get('n_rows'))}</td>"
-        f"<td>Gate 3</td></tr>"
-        for t in (bp8.get("gate3_gold_tables") or [])
-        if isinstance(t, dict)
+    bp8_gold_rows = (
+        "\n".join(
+            f"<tr><td>{_esc(t.get('category', t.get('filename', '?')))}</td>"
+            f"<td>{_esc(t.get('filename'))}</td><td>{_esc(t.get('n_rows'))}</td>"
+            f"<td>Gate 2</td></tr>"
+            for t in (bp8.get("gold_tables") or [])
+            if isinstance(t, dict)
+        )
+        + "\n"
+        + "\n".join(
+            f"<tr><td>{_esc(t.get('category', t.get('filename', '?')))}</td>"
+            f"<td>{_esc(t.get('filename'))}</td><td>{_esc(t.get('n_rows'))}</td>"
+            f"<td>Gate 3</td></tr>"
+            for t in (bp8.get("gate3_gold_tables") or [])
+            if isinstance(t, dict)
+        )
     )
 
     chart_payload = build_suite_chart_payload(bundle, kpis, df)
@@ -1352,16 +1357,13 @@ def _esc(value: Any) -> str:
     if is_missing:
         return "&mdash;"
     text = str(value)
-    return (
-        text.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-    )
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 # ---------------------------------------------------------------------------
 # DOCX report
 # ---------------------------------------------------------------------------
+
 
 def write_docx_report(output_path: Path, bundle: dict, kpis: dict, df: pd.DataFrame) -> None:
     """Write a short (~4-8 page) executive DOCX report. python-docx is used,
@@ -1436,8 +1438,7 @@ def write_docx_report(output_path: Path, bundle: dict, kpis: dict, df: pd.DataFr
             else "Production tier: not present in this BP's own Gate 7 manifest (real schema gap). "
         )
         detail.add_run(
-            champion_text + tier_text +
-            f"Disparate-impact status: {r.disparate_impact_status}. "
+            champion_text + tier_text + f"Disparate-impact status: {r.disparate_impact_status}. "
             f"Gate 7 generated: {r.generated_at_utc}."
         )
 
@@ -1493,6 +1494,7 @@ def write_docx_report(output_path: Path, bundle: dict, kpis: dict, df: pd.DataFr
 # authored document, so its content always matches the DOCX exactly)
 # ---------------------------------------------------------------------------
 
+
 def write_pdf_report(docx_path: Path, pdf_path: Path) -> dict:
     """Convert the already-written DOCX report to PDF.
 
@@ -1538,7 +1540,11 @@ def write_pdf_report(docx_path: Path, pdf_path: Path) -> dict:
     soffice_bin = shutil.which("soffice") or shutil.which("libreoffice")
     if soffice_bin:
         try:
-            result = subprocess.run(
+            # No shell=True: args are a fixed list built from shutil.which()'s own resolved
+            # binary path plus this function's own Path arguments (never external/untrusted
+            # input) - same verified-safe shape as src/deployment/readiness_verdict.py's own
+            # subprocess.run call. Suppressed on the flagged line, below.
+            result = subprocess.run(  # nosec B603
                 [
                     soffice_bin,
                     "--headless",
@@ -1557,9 +1563,7 @@ def write_pdf_report(docx_path: Path, pdf_path: Path) -> dict:
                 converted.replace(pdf_path)
             if pdf_path.exists() and pdf_path.stat().st_size > 0:
                 return {"status": "written", "method": "soffice", "path": str(pdf_path)}
-            soffice_error = (
-                f"soffice exited {result.returncode}; stderr: {result.stderr[-500:]}"
-            )
+            soffice_error = f"soffice exited {result.returncode}; stderr: {result.stderr[-500:]}"
         except Exception as exc:  # noqa: BLE001
             soffice_error = str(exc)
     else:
@@ -1580,6 +1584,7 @@ def write_pdf_report(docx_path: Path, pdf_path: Path) -> dict:
 # ---------------------------------------------------------------------------
 # XLSX workbook
 # ---------------------------------------------------------------------------
+
 
 def write_xlsx_workbook(output_path: Path, bundle: dict, kpis: dict, df: pd.DataFrame) -> None:
     """Write a suite-KPI sheet plus a per-BP status sheet."""
@@ -1607,9 +1612,7 @@ def write_xlsx_workbook(output_path: Path, bundle: dict, kpis: dict, df: pd.Data
     ]
     kpi_df = pd.DataFrame(kpi_rows)
 
-    tier_df = pd.DataFrame(
-        [{"tier": t, "n_bps": c} for t, c in kpis["tier_counts"].items()]
-    )
+    tier_df = pd.DataFrame([{"tier": t, "n_bps": c} for t, c in kpis["tier_counts"].items()])
 
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
         kpi_df.to_excel(writer, sheet_name="suite_kpis", index=False)
@@ -1621,6 +1624,7 @@ def write_xlsx_workbook(output_path: Path, bundle: dict, kpis: dict, df: pd.Data
 # PPTX deck
 # ---------------------------------------------------------------------------
 
+
 def write_pptx_deck(
     output_path: Path,
     bundle: dict,
@@ -1630,8 +1634,8 @@ def write_pptx_deck(
 ) -> None:
     """Write a ~6-10 slide executive deck."""
     from pptx import Presentation
-    from pptx.util import Inches, Pt
     from pptx.dml.color import RGBColor
+    from pptx.util import Inches, Pt
 
     prs = Presentation()
     blank = prs.slide_layouts[6]
@@ -1700,9 +1704,7 @@ def write_pptx_deck(
     tb.text_frame.paragraphs[0].font.size = Pt(24)
     tb.text_frame.paragraphs[0].font.bold = True
     tb.text_frame.paragraphs[0].font.color.rgb = navy
-    slide.shapes.add_picture(
-        BytesIO(tier_chart_png_bytes), Inches(1.0), Inches(1.2), width=Inches(8)
-    )
+    slide.shapes.add_picture(BytesIO(tier_chart_png_bytes), Inches(1.0), Inches(1.2), width=Inches(8))
 
     # Slide 6: BP8
     slide = prs.slides.add_slide(bullet_layout)
@@ -1752,6 +1754,7 @@ def write_pptx_deck(
 # gate3_manifest() shape)
 # ---------------------------------------------------------------------------
 
+
 def suite_rollup_manifest(
     bundle: dict,
     kpis: dict,
@@ -1790,9 +1793,7 @@ def suite_rollup_manifest(
         "total_pytest_passed_across_suite": kpis["total_pytest_passed_across_suite"],
         "n_pytest_passed_contributing_bps": kpis["n_pytest_passed_contributing_bps"],
         "pytest_passed_contributing_bps": kpis["pytest_passed_contributing_bps"],
-        "total_decision_or_gold_records_across_suite": kpis[
-            "total_decision_or_gold_records_across_suite"
-        ],
+        "total_decision_or_gold_records_across_suite": kpis["total_decision_or_gold_records_across_suite"],
         "n_record_count_contributing_bps": kpis["n_record_count_contributing_bps"],
         "record_count_contributing_bps": kpis["record_count_contributing_bps"],
         "financial_assumption_audit": kpis["financial_assumption_audit"],

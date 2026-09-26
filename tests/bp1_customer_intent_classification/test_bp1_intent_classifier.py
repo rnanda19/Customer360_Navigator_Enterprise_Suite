@@ -12,17 +12,17 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import scipy.sparse as sp
-from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 
 from models import bp1_intent_classifier as bic
 
-
 # ---------------------------------------------------------------------------
 # Constants - must exactly match what Gates 3/4/5's delivered notebooks define inline.
 # ---------------------------------------------------------------------------
+
 
 def test_tfidf_kwargs_matches_gate3_4_5_definitions():
     assert bic.TFIDF_KWARGS == dict(
@@ -38,11 +38,16 @@ def test_needs_dense_matches_gate3_4_5_definitions():
 # make_candidates
 # ---------------------------------------------------------------------------
 
+
 def test_make_candidates_returns_all_six_models():
     candidates = bic.make_candidates(random_state=42)
     assert set(candidates.keys()) == {
-        "logistic_regression", "random_forest", "hist_gradient_boosting",
-        "xgboost", "lightgbm", "catboost",
+        "logistic_regression",
+        "random_forest",
+        "hist_gradient_boosting",
+        "xgboost",
+        "lightgbm",
+        "catboost",
     }
 
 
@@ -63,6 +68,7 @@ def test_make_candidates_hist_gradient_boosting_is_correct_type():
 # to_dense
 # ---------------------------------------------------------------------------
 
+
 def test_to_dense_converts_sparse():
     sparse_matrix = sp.csr_matrix(np.array([[1.0, 0.0], [0.0, 2.0]]))
     dense = bic.to_dense(sparse_matrix)
@@ -79,6 +85,7 @@ def test_to_dense_passthrough_for_already_dense():
 # ---------------------------------------------------------------------------
 # make_pipeline
 # ---------------------------------------------------------------------------
+
 
 def test_make_pipeline_no_densify_for_logistic_regression():
     candidates = bic.make_candidates(random_state=42)
@@ -119,6 +126,7 @@ def test_make_pipeline_end_to_end_fit_predict():
 # reason_codes_for_row (BP1 Gate 5's grounding rule)
 # ---------------------------------------------------------------------------
 
+
 def test_reason_codes_for_row_only_returns_nonzero_weight_terms():
     feature_names = np.array(["card", "lost", "transfer", "unrelated"])
     shap_values = np.array([0.9, 0.5, 0.1, 5.0])  # 'unrelated' has the HIGHEST |shap| ...
@@ -145,6 +153,4 @@ def test_reason_codes_for_row_empty_when_no_nonzero_weights():
 
 def test_reason_codes_for_row_shape_mismatch_raises():
     with pytest.raises(ValueError, match="Shape mismatch"):
-        bic.reason_codes_for_row(
-            np.array([0.1, 0.2]), np.array([0.1, 0.2, 0.3]), np.array(["a", "b", "c"])
-        )
+        bic.reason_codes_for_row(np.array([0.1, 0.2]), np.array([0.1, 0.2, 0.3]), np.array(["a", "b", "c"]))

@@ -11,17 +11,16 @@ just the happy path.
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 from utils import performance_setup as ps
 
-
 # ---------------------------------------------------------------------------
 # resolve_project_root
 # ---------------------------------------------------------------------------
+
 
 def test_resolve_project_root_env_override_valid(tmp_path, monkeypatch):
     marker = tmp_path / "PROJECT_STRUCTURE_LOCKED.md"
@@ -74,6 +73,7 @@ def test_resolve_project_root_raises_when_not_found(tmp_path, monkeypatch):
 # load_resource_limits
 # ---------------------------------------------------------------------------
 
+
 def test_load_resource_limits_missing_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         ps.load_resource_limits(tmp_path)
@@ -95,6 +95,7 @@ def test_load_resource_limits_loads_valid_yaml(tmp_path):
 # configure_performance
 # ---------------------------------------------------------------------------
 
+
 def _make_project_root(tmp_path, never_target_100=True, cpu_fraction=0.95, ram_fraction=0.92):
     configs_dir = tmp_path / "configs"
     configs_dir.mkdir()
@@ -109,11 +110,17 @@ def _make_project_root(tmp_path, never_target_100=True, cpu_fraction=0.95, ram_f
 def test_configure_performance_sets_env_vars_and_returns_summary(tmp_path, monkeypatch):
     project_root = _make_project_root(tmp_path, cpu_fraction=0.5)
 
-    fake_vmem = SimpleNamespace(total=16 * (1024 ** 3), available=8 * (1024 ** 3))
+    fake_vmem = SimpleNamespace(total=16 * (1024**3), available=8 * (1024**3))
     monkeypatch.setattr("psutil.cpu_count", lambda logical=True: 8)
     monkeypatch.setattr("psutil.virtual_memory", lambda: fake_vmem)
 
-    for var in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
+    for var in (
+        "OMP_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS",
+        "VECLIB_MAXIMUM_THREADS",
+    ):
         monkeypatch.delenv(var, raising=False)
 
     summary = ps.configure_performance(project_root=project_root, verbose=False)
@@ -133,7 +140,7 @@ def test_configure_performance_sets_env_vars_and_returns_summary(tmp_path, monke
 def test_configure_performance_min_one_thread_never_zero(tmp_path, monkeypatch):
     # A tiny ceiling fraction must never round down to 0 threads (max(1, ...) guard).
     project_root = _make_project_root(tmp_path, cpu_fraction=0.01)
-    fake_vmem = SimpleNamespace(total=8 * (1024 ** 3), available=4 * (1024 ** 3))
+    fake_vmem = SimpleNamespace(total=8 * (1024**3), available=4 * (1024**3))
     monkeypatch.setattr("psutil.cpu_count", lambda logical=True: 2)
     monkeypatch.setattr("psutil.virtual_memory", lambda: fake_vmem)
     summary = ps.configure_performance(project_root=project_root, verbose=False)
@@ -145,7 +152,9 @@ def test_configure_performance_raises_without_safety_flag(tmp_path, monkeypatch)
     # refused outright, never silently defaulted to a "safe-ish" value.
     project_root = _make_project_root(tmp_path, never_target_100=False)
     monkeypatch.setattr("psutil.cpu_count", lambda logical=True: 8)
-    monkeypatch.setattr("psutil.virtual_memory", lambda: SimpleNamespace(total=16 * (1024 ** 3), available=8 * (1024 ** 3)))
+    monkeypatch.setattr(
+        "psutil.virtual_memory", lambda: SimpleNamespace(total=16 * (1024**3), available=8 * (1024**3))
+    )
     with pytest.raises(RuntimeError, match="never_target_100_percent"):
         ps.configure_performance(project_root=project_root, verbose=False)
 
@@ -153,6 +162,7 @@ def test_configure_performance_raises_without_safety_flag(tmp_path, monkeypatch)
 # ---------------------------------------------------------------------------
 # pin_core_affinity
 # ---------------------------------------------------------------------------
+
 
 def test_pin_core_affinity_applies_and_returns_target(monkeypatch):
     calls = {}
@@ -192,8 +202,9 @@ def test_pin_core_affinity_returns_none_on_oserror(monkeypatch):
 # memory_headroom_gb
 # ---------------------------------------------------------------------------
 
+
 def test_memory_headroom_gb_default_ceiling(monkeypatch):
-    fake_vmem = SimpleNamespace(total=16 * (1024 ** 3), available=4 * (1024 ** 3))
+    fake_vmem = SimpleNamespace(total=16 * (1024**3), available=4 * (1024**3))
     monkeypatch.setattr("psutil.virtual_memory", lambda: fake_vmem)
     headroom = ps.memory_headroom_gb()
     # ceiling = 16*0.92 = 14.72 GB; used = 12 GB; headroom = 2.72 GB
@@ -201,7 +212,7 @@ def test_memory_headroom_gb_default_ceiling(monkeypatch):
 
 
 def test_memory_headroom_gb_custom_ceiling(monkeypatch):
-    fake_vmem = SimpleNamespace(total=10 * (1024 ** 3), available=1 * (1024 ** 3))
+    fake_vmem = SimpleNamespace(total=10 * (1024**3), available=1 * (1024**3))
     monkeypatch.setattr("psutil.virtual_memory", lambda: fake_vmem)
     headroom = ps.memory_headroom_gb(ceiling_fraction=0.5)
     # ceiling = 5 GB; used = 9 GB -> already over ceiling -> clamped to 0.0, never negative
@@ -212,14 +223,15 @@ def test_memory_headroom_gb_custom_ceiling(monkeypatch):
 # assert_within_ram_ceiling
 # ---------------------------------------------------------------------------
 
+
 def test_assert_within_ram_ceiling_passes_when_below(monkeypatch):
-    fake_vmem = SimpleNamespace(total=16 * (1024 ** 3), available=8 * (1024 ** 3))  # 50% used
+    fake_vmem = SimpleNamespace(total=16 * (1024**3), available=8 * (1024**3))  # 50% used
     monkeypatch.setattr("psutil.virtual_memory", lambda: fake_vmem)
     ps.assert_within_ram_ceiling({"ceilings": {"max_ram_fraction": 0.92}})  # must not raise
 
 
 def test_assert_within_ram_ceiling_raises_when_above(monkeypatch):
-    fake_vmem = SimpleNamespace(total=16 * (1024 ** 3), available=1 * (1024 ** 3))  # ~93.75% used
+    fake_vmem = SimpleNamespace(total=16 * (1024**3), available=1 * (1024**3))  # ~93.75% used
     monkeypatch.setattr("psutil.virtual_memory", lambda: fake_vmem)
     with pytest.raises(AssertionError, match="CHECK FAILED"):
         ps.assert_within_ram_ceiling({"ceilings": {"max_ram_fraction": 0.92}})

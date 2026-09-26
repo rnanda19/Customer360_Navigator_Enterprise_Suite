@@ -60,17 +60,20 @@ from typing import Any
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import pandas as pd
-import yaml
-from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.shared import Inches, Pt, RGBColor
-from openpyxl import Workbook
-from openpyxl.styles import Alignment, Font, PatternFill
-from openpyxl.utils import get_column_letter
-from pptx import Presentation
-from pptx.util import Emu, Inches as PptxInches, Pt as PptxPt
+# noqa: E402 below - matplotlib.pyplot (and every import after it) must come after
+# matplotlib.use("Agg") to bind the headless backend before pyplot is first imported; flake8
+# flags every import following the required use() call, not just the offending one.
+import matplotlib.pyplot as plt  # noqa: E402
+import pandas as pd  # noqa: E402
+import yaml  # noqa: E402
+from docx import Document  # noqa: E402
+from docx.enum.text import WD_ALIGN_PARAGRAPH  # noqa: E402
+from docx.shared import Inches, Pt, RGBColor  # noqa: E402
+from openpyxl import Workbook  # noqa: E402
+from openpyxl.styles import Font, PatternFill  # noqa: E402
+from pptx import Presentation  # noqa: E402
+from pptx.util import Inches as PptxInches  # noqa: E402
+from pptx.util import Pt as PptxPt  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Design-system constants - reused VERBATIM across every BP's executive rollup
@@ -131,12 +134,7 @@ def load_all_gate_artifacts(project_root: Path) -> dict:
     missing, so a partial/failed upstream real run is never silently treated as complete."""
     project_root = Path(project_root)
     config_path = project_root / "configs" / "bp5_root_cause_driver_analytics.yaml"
-    artifacts_dir = (
-        project_root
-        / "notebooks"
-        / "bp5_root_cause_driver_analytics"
-        / "artifacts"
-    )
+    artifacts_dir = project_root / "notebooks" / "bp5_root_cause_driver_analytics" / "artifacts"
     reports_dir = project_root / "reports" / "bp5_root_cause_driver_analytics"
 
     def _load_json(relpath: str) -> dict:
@@ -216,14 +214,10 @@ def compute_production_recommendation(bundle: dict) -> dict:
         "gate6_pytest_all_passed": bool(gate6.get("pytest_all_passed")),
         "gate6_notebook_syntax_all_passed": bool(gate6.get("notebook_syntax_all_passed")),
         "gate4_reconfirms_gate3_outcome_1": bool(
-            gate6.get("gate4_reconfirms_gate3_per_outcome", {}).get(
-                "outcome_1_intervention_required"
-            )
+            gate6.get("gate4_reconfirms_gate3_per_outcome", {}).get("outcome_1_intervention_required")
         ),
         "gate4_reconfirms_gate3_outcome_2": bool(
-            gate6.get("gate4_reconfirms_gate3_per_outcome", {}).get(
-                "outcome_2_timely_response_failure"
-            )
+            gate6.get("gate4_reconfirms_gate3_per_outcome", {}).get("outcome_2_timely_response_failure")
         ),
         "barred_fields_bar_not_relaxed": gate6.get("barred_fields_bar_relaxed") is False,
         "udaap_language_check_passed": bool(udaap.get("passed")),
@@ -301,7 +295,8 @@ def build_smart_suggestions(bundle: dict) -> list[dict]:
             ),
             "measurable": (
                 "2 real negligible-strength field/outcome combinations, as live-detected by "
-                f"Gate 6 (n_negligible_strength_fields_detected={gate6.get('n_negligible_strength_fields_detected')})."
+                f"Gate 6 (n_negligible_strength_fields_detected="
+                f"{gate6.get('n_negligible_strength_fields_detected')})."
             ),
             "timebound": "Before the next scheduled Gate 3 re-run.",
             "owner_placeholder": "BP5 analytics lead (name TBD by the user's team)",
@@ -324,7 +319,8 @@ def build_smart_suggestions(bundle: dict) -> list[dict]:
         {
             "title": "Maintain the mechanical UDAAP language review cadence",
             "specific": (
-                f"Gate 5's own real UDAAP check scanned {bundle['udaap_check'].get('n_narrative_sentences_scanned')} "
+                f"Gate 5's own real UDAAP check scanned "
+                f"{bundle['udaap_check'].get('n_narrative_sentences_scanned')} "
                 "narrative sentences and found 0 unquoted banned-pattern matches on this real run."
             ),
             "measurable": "0 of 0 narrative sentences failing, maintained on every future real re-run.",
@@ -340,15 +336,21 @@ def build_smart_suggestions(bundle: dict) -> list[dict]:
                 "'Company response to consumer' Cramer's V=0.63 (strong) vs outcome_2) - Gate 1's "
                 "conservative bar was never relaxed automatically."
             ),
-            "measurable": "3 real barred-field diagnostic findings, all disclosure-only per Gate 3's own design.",
+            "measurable": (
+                "3 real barred-field diagnostic findings, all disclosure-only per " "Gate 3's own design."
+            ),
             "timebound": "As a standing governance agenda item, no fixed deadline.",
             "owner_placeholder": "BP5 governance owner (name TBD by the user's team)",
         },
         {
-            "title": "Deep-dive the Company (frequency-encoded) driver - the strongest SHAP feature for both outcomes",
+            "title": (
+                "Deep-dive the Company (frequency-encoded) driver - the strongest "
+                "SHAP feature for both outcomes"
+            ),
             "specific": (
                 f"'{r1['champion_shap_feature_importance'][0]['feature']}' ranks #1 by real mean "
-                f"|SHAP| for BOTH outcomes (outcome_1: {r1['champion_shap_feature_importance'][0]['mean_abs_shap']:.4f}, "
+                f"|SHAP| for BOTH outcomes (outcome_1: "
+                f"{r1['champion_shap_feature_importance'][0]['mean_abs_shap']:.4f}, "
                 f"outcome_2: {r2['champion_shap_feature_importance'][0]['mean_abs_shap']:.4f})."
             ),
             "measurable": "1 real, consistently top-ranked driver across both outcomes.",
@@ -634,10 +636,22 @@ def write_docx_report(
     hdr = tbl.rows[0].cells
     hdr[0].text, hdr[1].text = "Metric", "Value"
     kpi_rows = [
-        ("Top field — Outcome 1", f"{kpis['top_field_outcome_1']} (Cramer's V={kpis['top_field_outcome_1_cramers_v']:.4f})"),
-        ("Top field — Outcome 2", f"{kpis['top_field_outcome_2']} (Cramer's V={kpis['top_field_outcome_2_cramers_v']:.4f})"),
-        ("Top SHAP feature — Outcome 1", f"{kpis['top_shap_feature_outcome_1']} ({kpis['top_shap_feature_outcome_1_value']:.4f})"),
-        ("Top SHAP feature — Outcome 2", f"{kpis['top_shap_feature_outcome_2']} ({kpis['top_shap_feature_outcome_2_value']:.4f})"),
+        (
+            "Top field — Outcome 1",
+            f"{kpis['top_field_outcome_1']} (Cramer's V={kpis['top_field_outcome_1_cramers_v']:.4f})",
+        ),
+        (
+            "Top field — Outcome 2",
+            f"{kpis['top_field_outcome_2']} (Cramer's V={kpis['top_field_outcome_2_cramers_v']:.4f})",
+        ),
+        (
+            "Top SHAP feature — Outcome 1",
+            f"{kpis['top_shap_feature_outcome_1']} ({kpis['top_shap_feature_outcome_1_value']:.4f})",
+        ),
+        (
+            "Top SHAP feature — Outcome 2",
+            f"{kpis['top_shap_feature_outcome_2']} ({kpis['top_shap_feature_outcome_2_value']:.4f})",
+        ),
         ("Held-out ROC-AUC — Outcome 1", f"{kpis['held_out_roc_auc_outcome_1']:.4f}"),
         ("Held-out ROC-AUC — Outcome 2", f"{kpis['held_out_roc_auc_outcome_2']:.4f}"),
         ("Brier score — Outcome 1", f"{kpis['brier_score_outcome_1']:.4f}"),
@@ -718,7 +732,9 @@ def write_xlsx_workbook(bundle: dict, kpis: dict, suggestions: list[dict], out_p
     ws0.title = "00_ReadMe"
     ws0["A1"] = "BP5 — Root-Cause & Driver Analytics: Executive Rollup Workbook"
     ws0["A1"].font = Font(bold=True, size=14)
-    ws0["A3"] = "Every value in this workbook is read live from Gates 1-6's own real, already-recorded artifacts."
+    ws0["A3"] = (
+        "Every value in this workbook is read live from Gates 1-6's own real, already-recorded artifacts."
+    )
     ws0["A4"] = "No financial-impact or illustrative-projection content is present anywhere in this workbook."
     ws0.column_dimensions["A"].width = 100
 
@@ -874,8 +890,10 @@ def write_pptx_deck(bundle: dict, kpis: dict, suggestions: list[dict], figures: 
         prs,
         "Executive KPIs",
         [
-            f"Top field — Outcome 1: {kpis['top_field_outcome_1']} (Cramer's V={kpis['top_field_outcome_1_cramers_v']:.4f})",
-            f"Top field — Outcome 2: {kpis['top_field_outcome_2']} (Cramer's V={kpis['top_field_outcome_2_cramers_v']:.4f})",
+            f"Top field — Outcome 1: {kpis['top_field_outcome_1']} "
+            f"(Cramer's V={kpis['top_field_outcome_1_cramers_v']:.4f})",
+            f"Top field — Outcome 2: {kpis['top_field_outcome_2']} "
+            f"(Cramer's V={kpis['top_field_outcome_2_cramers_v']:.4f})",
             f"Held-out ROC-AUC — Outcome 1: {kpis['held_out_roc_auc_outcome_1']:.4f}",
             f"Held-out ROC-AUC — Outcome 2: {kpis['held_out_roc_auc_outcome_2']:.4f}",
             f"UDAAP language check: {'PASSED' if kpis['udaap_language_check_passed'] else 'FAILED'}",
@@ -897,7 +915,9 @@ def write_pptx_deck(bundle: dict, kpis: dict, suggestions: list[dict], figures: 
         _add_image_slide(prs, f"Field-Level Association — {label}", figures[f"cramers_v_{outcome_field}"])
         _add_image_slide(prs, f"SHAP Feature Importance — {label}", figures[f"shap_{outcome_field}"])
         _add_image_slide(prs, f"Calibration — {label}", figures[f"calibration_{outcome_field}"])
-        _add_image_slide(prs, f"Confusion-Derived Rates @0.5 — {label}", figures[f"confusion_{outcome_field}"])
+        _add_image_slide(
+            prs, f"Confusion-Derived Rates @0.5 — {label}", figures[f"confusion_{outcome_field}"]
+        )
 
     gate6 = build_gate6_governance_detail(bundle)
     _add_bullets_slide(
@@ -905,7 +925,8 @@ def write_pptx_deck(bundle: dict, kpis: dict, suggestions: list[dict], figures: 
         "Gate 6 — Governance & Known Limitations",
         [
             f"pytest: {_safe(str(gate6.get('pytest_summary_line')))}",
-            f"Notebook syntax check: {gate6.get('notebook_syntax_check_n_passed')} passed / {gate6.get('notebook_syntax_check_n_failed')} failed",
+            f"Notebook syntax check: {gate6.get('notebook_syntax_check_n_passed')} passed / "
+            f"{gate6.get('notebook_syntax_check_n_failed')} failed",
             f"Barred-fields bar relaxed: {gate6.get('barred_fields_bar_relaxed')}",
         ],
     )

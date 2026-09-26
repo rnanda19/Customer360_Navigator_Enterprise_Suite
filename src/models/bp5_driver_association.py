@@ -304,13 +304,17 @@ def build_champion_model(
     roc_auc = float(roc_auc_score(y_test, y_test_proba))
     pr_auc = float(average_precision_score(y_test, y_test_proba))
 
-    coef_table = pd.DataFrame(
-        {
-            "feature": feature_names,
-            "coefficient": clf.coef_.ravel(),
-            "odds_ratio": np.exp(clf.coef_.ravel()),
-        }
-    ).sort_values("coefficient", ascending=False).reset_index(drop=True)
+    coef_table = (
+        pd.DataFrame(
+            {
+                "feature": feature_names,
+                "coefficient": clf.coef_.ravel(),
+                "odds_ratio": np.exp(clf.coef_.ravel()),
+            }
+        )
+        .sort_values("coefficient", ascending=False)
+        .reset_index(drop=True)
+    )
 
     return {
         "transformer": transformer,
@@ -369,10 +373,7 @@ def run_shap_on_champion(
         f"the champion's own feature-name array ({len(feature_names)})."
     )
     order = np.argsort(mean_abs_shap)[::-1]
-    top = [
-        {"feature": str(feature_names[i]), "mean_abs_shap": float(mean_abs_shap[i])}
-        for i in order[:20]
-    ]
+    top = [{"feature": str(feature_names[i]), "mean_abs_shap": float(mean_abs_shap[i])} for i in order[:20]]
     return {
         "sample_size": int(sample_n),
         "background_size": int(bg_n),
@@ -564,8 +565,12 @@ def compute_confusion_matrix_at_threshold(
 # per-instance framing BP5's own Gate 1 policy never asked for.
 # ============================================================================
 
-import re
-from datetime import datetime, timezone
+# noqa: E402 below - this Gate 5 section was added after the module's Gate 3 toolkit code
+# (which itself has no need for `re`/`datetime`), so these two imports sit at their first real
+# point of use rather than at the top of a file that predates them. Matches the same disclosed
+# pattern already used in src/reporting/bp5_rollup_helpers.py for its own late-added imports.
+import re  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
 
 # ---- UDAAP customer-facing-language mechanical check -----------------------------------
 # Operationalizes the generic Master Plan Gate 5 compliance touchpoint ("UDAAP language
@@ -574,10 +579,23 @@ from datetime import datetime, timezone
 # causal-claim assertion language specifically; this project's own established term "driver
 # field" (a defined label, not a causal verb) is deliberately NOT banned.
 UDAAP_BANNED_CAUSAL_PATTERNS: list[str] = [
-    "causes", "cause of", "caused by", "due to", "because of", "results from",
-    "results in", "resulting in", "leads to", "led to", "is responsible for",
-    "are responsible for", "the reason for", "the reason is", "attributable to",
-    "on account of", "as a result of",
+    "causes",
+    "cause of",
+    "caused by",
+    "due to",
+    "because of",
+    "results from",
+    "results in",
+    "resulting in",
+    "leads to",
+    "led to",
+    "is responsible for",
+    "are responsible for",
+    "the reason for",
+    "the reason is",
+    "attributable to",
+    "on account of",
+    "as a result of",
 ]
 
 
@@ -606,10 +624,7 @@ def check_udaap_language(text: str) -> dict[str, Any]:
     lowered = masked.lower()
     found = [p for p in UDAAP_BANNED_CAUSAL_PATTERNS if p in lowered]
     quoted_hits = sorted(
-        {
-            span for span in quoted_spans
-            if any(p in span.lower() for p in UDAAP_BANNED_CAUSAL_PATTERNS)
-        }
+        {span for span in quoted_spans if any(p in span.lower() for p in UDAAP_BANNED_CAUSAL_PATTERNS)}
     )
     return {
         "passed": len(found) == 0,
@@ -699,9 +714,11 @@ def build_field_ranking(
     `State` (control_field=True) is excluded here - it is never a named driver finding per
     BP5 Gate 1's own policy wording, reported separately as a control-only association if
     the caller wants it."""
-    sub = chi_square_df[
-        (chi_square_df["outcome_field"] == outcome_field) & (~chi_square_df["control_field"])
-    ].sort_values("cramers_v", ascending=False).reset_index(drop=True)
+    sub = (
+        chi_square_df[(chi_square_df["outcome_field"] == outcome_field) & (~chi_square_df["control_field"])]
+        .sort_values("cramers_v", ascending=False)
+        .reset_index(drop=True)
+    )
 
     records = []
     for rank, row in enumerate(sub.itertuples(index=False), start=1):
@@ -810,7 +827,7 @@ def map_shap_feature_to_driver_field(
         if feature_name.startswith(prefix):
             return {
                 "driver_field": field,
-                "category": feature_name[len(prefix):],
+                "category": feature_name[len(prefix) :],
                 "encoding": "one_hot",
             }
     return {"driver_field": None, "category": feature_name, "encoding": "unknown"}
@@ -956,34 +973,48 @@ def build_champion_validation_snapshot(
         ),
         "citations": [
             make_citation(
-                source_gate="gate3", source_artifact_relative_path=gate3_perf_path,
+                source_gate="gate3",
+                source_artifact_relative_path=gate3_perf_path,
                 source_field_or_metric="held_out_roc_auc",
                 extracted_value=float(held_out_perf_entry["held_out_roc_auc"]),
-                verification_method=f"direct read from Gate 3's real champion_held_out_performance.json, key={outcome_field!r}",
+                verification_method=(
+                    "direct read from Gate 3's real champion_held_out_performance.json, "
+                    f"key={outcome_field!r}"
+                ),
             ),
             make_citation(
-                source_gate="gate4", source_artifact_relative_path=gate4_bootstrap_path,
+                source_gate="gate4",
+                source_artifact_relative_path=gate4_bootstrap_path,
                 source_field_or_metric="roc_auc.ci_95",
                 extracted_value=[
                     float(bootstrap_ci_entry["roc_auc"]["ci_95_low"]),
                     float(bootstrap_ci_entry["roc_auc"]["ci_95_high"]),
                 ],
-                verification_method=f"direct read from Gate 4's real gate4_bootstrap_ci.json, key={outcome_field!r}.roc_auc",
+                verification_method=(
+                    "direct read from Gate 4's real gate4_bootstrap_ci.json, "
+                    f"key={outcome_field!r}.roc_auc"
+                ),
             ),
             make_citation(
-                source_gate="gate4", source_artifact_relative_path=gate4_calibration_path,
+                source_gate="gate4",
+                source_artifact_relative_path=gate4_calibration_path,
                 source_field_or_metric="brier_score",
                 extracted_value=float(calibration_entry["brier_score"]),
-                verification_method=f"direct read from Gate 4's real gate4_calibration_curve.json, key={outcome_field!r}",
+                verification_method=(
+                    "direct read from Gate 4's real gate4_calibration_curve.json, " f"key={outcome_field!r}"
+                ),
             ),
             make_citation(
-                source_gate="gate4", source_artifact_relative_path=gate4_confusion_path,
+                source_gate="gate4",
+                source_artifact_relative_path=gate4_confusion_path,
                 source_field_or_metric="recall_precision_at_0.5",
                 extracted_value={
                     "recall": confusion_entry["recall"],
                     "precision": confusion_entry["precision"],
                 },
-                verification_method=f"direct read from Gate 4's real gate4_confusion_matrix.json, key={outcome_field!r}",
+                verification_method=(
+                    "direct read from Gate 4's real gate4_confusion_matrix.json, " f"key={outcome_field!r}"
+                ),
             ),
         ],
     }

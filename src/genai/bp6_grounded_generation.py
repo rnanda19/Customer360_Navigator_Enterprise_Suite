@@ -131,7 +131,10 @@ def select_real_narrative_sample(
     reproducible (sorted by real text, then seeded sample of 1), not the CSV's on-disk row order,
     so re-running this function twice on unchanged real data returns the identical real row."""
     df = pd.read_csv(pii_screened_csv_path)
-    eligible = df[(df["pii_detected"] == False) & (df["common_taxonomy_bucket"].isin(eligible_buckets))]
+    eligible = df[
+        (df["pii_detected"] == False)  # noqa: E712 - pandas Series comparison, not plain-Python truthiness
+        & (df["common_taxonomy_bucket"].isin(eligible_buckets))
+    ]
     if eligible.empty:
         raise ValueError(
             "No real PII-clear row found in any Gate 3/4 cross-corpus-hit bucket - cannot select "
@@ -211,7 +214,7 @@ def call_grounded_generation(
             "real, free Gemini API key from https://aistudio.google.com/apikey (Google AI Studio "
             "auto-creates a default project and key for you - no separate GCP billing setup is "
             "required for the free tier), (2) set it as an environment variable before starting "
-            f"Jupyter, e.g. in Windows: `setx {api_key_env_var} \"AIza...\"` (then restart the "
+            f'Jupyter, e.g. in Windows: `setx {api_key_env_var} "AIza..."` (then restart the '
             f'kernel), or for the current session only: `import os; os.environ["{api_key_env_var}"]'
             f' = "AIza..."` in a cell BEFORE this one. (3) Optionally set {model_env_var} to a '
             f"specific model ID if {default_model!r} is not current or not free-tier-eligible for "
@@ -351,10 +354,25 @@ def validate_citations_in_generated_text(
 # ======================================================================================
 
 UDAAP_BANNED_DECEPTIVE_PATTERNS: list[str] = [
-    "guaranteed", "guarantee", "100% certain", "no risk", "risk-free", "risk free",
-    "promise", "promises", "promised", "definitely will", "always works", "never fails",
-    "act now", "limited time", "you must", "immediately resolve", "instantly fix",
-    "fully resolve", "completely resolve",
+    "guaranteed",
+    "guarantee",
+    "100% certain",
+    "no risk",
+    "risk-free",
+    "risk free",
+    "promise",
+    "promises",
+    "promised",
+    "definitely will",
+    "always works",
+    "never fails",
+    "act now",
+    "limited time",
+    "you must",
+    "immediately resolve",
+    "instantly fix",
+    "fully resolve",
+    "completely resolve",
 ]
 
 

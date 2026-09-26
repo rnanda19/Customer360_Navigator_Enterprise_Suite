@@ -61,6 +61,13 @@ where = ["src"]
 # dense, heavily-commented documentation style. .flake8's max-line-length is set to match exactly.
 [tool.black]
 line-length = 110
+# target-version pinned explicitly (2026-09-26 CI incident): an unpinned black auto-detected a
+# target of py315 from this file's own unbounded "requires-python = ">=3.10"", then refused to
+# run its safety re-parse under CI's actual python-version (3.11, set in .github/workflows/
+# ci.yml) - "Python 3.11 cannot parse code formatted for Python 3.15" - and flagged every real,
+# already-correctly-formatted file as "would reformat". Not a real formatting regression; pinning
+# this to the runner's actual Python version is the fix black's own warning names.
+target-version = ["py311"]
 
 # profile = "black" resolves the one real, well-documented isort/black conflict (import-wrapping
 # style) without any manual per-file fixing - the standard pairing, not a project-specific tweak.

@@ -60,8 +60,12 @@ PALETTE = {
 }
 # Fixed categorical order (dataviz non-negotiable: never cycled, assigned by entity not rank).
 CATEGORICAL_SEQUENCE = [
-    PALETTE["primary_navy"], PALETTE["accent_blue"], PALETTE["success_green"],
-    PALETTE["warning_amber"], PALETTE["danger_red"], PALETTE["neutral_gray"],
+    PALETTE["primary_navy"],
+    PALETTE["accent_blue"],
+    PALETTE["success_green"],
+    PALETTE["warning_amber"],
+    PALETTE["danger_red"],
+    PALETTE["neutral_gray"],
 ]
 
 
@@ -150,7 +154,9 @@ def per_class_report_to_df(classification_report: dict[str, Any]) -> pd.DataFram
     return df.sort_values("f1-score", ascending=False, kind="mergesort").reset_index(drop=True)
 
 
-def worst_best_intents(classification_report: dict[str, Any], n: int = 10) -> tuple[pd.DataFrame, pd.DataFrame]:
+def worst_best_intents(
+    classification_report: dict[str, Any], n: int = 10
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     df = per_class_report_to_df(classification_report)
     best = df.head(n).reset_index(drop=True)
     worst = df.tail(n).sort_values("f1-score", kind="mergesort").reset_index(drop=True)
@@ -169,7 +175,12 @@ def top_confused_pairs(confusion_df: pd.DataFrame, n: int = 15) -> pd.DataFrame:
             count = int(confusion_df.loc[true_label, pred_label])
             if count > 0:
                 rows.append({"true_intent": true_label, "predicted_intent": pred_label, "count": count})
-    df = pd.DataFrame(rows).sort_values("count", ascending=False, kind="mergesort").head(n).reset_index(drop=True)
+    df = (
+        pd.DataFrame(rows)
+        .sort_values("count", ascending=False, kind="mergesort")
+        .head(n)
+        .reset_index(drop=True)
+    )
     return df
 
 
@@ -186,83 +197,106 @@ def build_smart_suggestions(bundle: dict[str, Any]) -> list[dict[str, str]]:
 
     near_random = gate3_cv_df[(gate3_cv_df["status"] == "OK") & (gate3_cv_df["mean_f1_macro"] < 0.05)]
     high_variance = gate3_cv_df[
-        (gate3_cv_df["status"] == "OK") & (gate3_cv_df["mean_f1_macro"] > 0)
+        (gate3_cv_df["status"] == "OK")
+        & (gate3_cv_df["mean_f1_macro"] > 0)
         & ((gate3_cv_df["std_f1_macro"] / gate3_cv_df["mean_f1_macro"]) > 0.5)
     ]
     if len(near_random) > 0:
         row = near_random.iloc[0]
-        suggestions.append({
-            "title": f"Root-cause {row['model']}'s near-random CV score",
-            "specific": (
-                f"{row['model']} scored a real CV mean F1-macro of {row['mean_f1_macro']:.4f} "
-                f"(near the {model_inventory['n_classes']}-class random baseline of "
-                f"~{1 / model_inventory['n_classes']:.4f}) while consuming {row['elapsed_seconds']:.0f}s "
-                "of real CV wall-clock time - by far the most expensive candidate for the worst result."
-            ),
-            "measurable": f"Target: either a mean F1-macro above the weakest currently-passing candidate "
-                           f"({gate3_cv_df[gate3_cv_df['status']=='OK']['mean_f1_macro'].nsmallest(2).max():.3f}) "
-                           "after the fix, or a documented decision to drop this candidate from future benchmarks.",
-            "timebound": "Before the next BP1 model refresh cycle.",
-            "owner_placeholder": "ML engineering owner - assign.",
-        })
+        suggestions.append(
+            {
+                "title": f"Root-cause {row['model']}'s near-random CV score",
+                "specific": (
+                    f"{row['model']} scored a real CV mean F1-macro of {row['mean_f1_macro']:.4f} "
+                    f"(near the {model_inventory['n_classes']}-class random baseline of "
+                    f"~{1 / model_inventory['n_classes']:.4f}) while consuming {row['elapsed_seconds']:.0f}s "
+                    "of real CV wall-clock time - by far the most expensive candidate for the worst result."
+                ),
+                "measurable": f"Target: either a mean F1-macro above the weakest currently-passing candidate "
+                f"({gate3_cv_df[gate3_cv_df['status']=='OK']['mean_f1_macro'].nsmallest(2).max():.3f}) "
+                "after the fix, or a documented decision to drop this candidate from future benchmarks.",
+                "timebound": "Before the next BP1 model refresh cycle.",
+                "owner_placeholder": "ML engineering owner - assign.",
+            }
+        )
     if len(high_variance) > 0:
         row = high_variance.sort_values("std_f1_macro", ascending=False).iloc[0]
         ratio = row["std_f1_macro"] / row["mean_f1_macro"]
-        suggestions.append({
-            "title": f"Stabilize {row['model']}'s fold-to-fold variance",
-            "specific": (
-                f"{row['model']}'s real CV fold std ({row['std_f1_macro']:.4f}) is {ratio:.1f}x its mean "
-                f"({row['mean_f1_macro']:.4f}) - too unstable to trust for production without investigation."
-            ),
-            "measurable": "Target: std/mean ratio below 0.3 after tuning (hyperparameters, class weighting, "
-                           "or a fixed early-stopping schedule).",
-            "timebound": "Before this candidate is considered for an ensemble or a champion re-evaluation.",
-            "owner_placeholder": "ML engineering owner - assign.",
-        })
+        suggestions.append(
+            {
+                "title": f"Stabilize {row['model']}'s fold-to-fold variance",
+                "specific": (
+                    f"{row['model']}'s real CV fold std ({row['std_f1_macro']:.4f}) is "
+                    f"{ratio:.1f}x its mean ({row['mean_f1_macro']:.4f}) - too unstable to "
+                    "trust for production without investigation."
+                ),
+                "measurable": (
+                    "Target: std/mean ratio below 0.3 after tuning (hyperparameters, "
+                    "class weighting, or a fixed early-stopping schedule)."
+                ),
+                "timebound": (
+                    "Before this candidate is considered for an ensemble or a champion " "re-evaluation."
+                ),
+                "owner_placeholder": "ML engineering owner - assign.",
+            }
+        )
 
     overlap = gate5_summary["overlap_count_with_gate4"]
-    suggestions.append({
-        "title": "Increase SHAP sample size for more stable global explanations",
-        "specific": (
-            f"Gate 4 and Gate 5 independently computed SHAP importance from two different "
-            f"{gate4['shap_sample_size']}-row samples of real held-out data, and only "
-            f"{overlap}/10 top terms overlapped."
-        ),
-        "measurable": f"Target: overlap of 7/10 or higher at a larger, fixed sample size "
-                       "(re-run both gates with an increased SHAP_SAMPLE_SIZE and compare).",
-        "timebound": "Next explainability review cycle.",
-        "owner_placeholder": "Model risk / explainability owner - assign.",
-    })
+    suggestions.append(
+        {
+            "title": "Increase SHAP sample size for more stable global explanations",
+            "specific": (
+                f"Gate 4 and Gate 5 independently computed SHAP importance from two different "
+                f"{gate4['shap_sample_size']}-row samples of real held-out data, and only "
+                f"{overlap}/10 top terms overlapped."
+            ),
+            "measurable": "Target: overlap of 7/10 or higher at a larger, fixed sample size "
+            "(re-run both gates with an increased SHAP_SAMPLE_SIZE and compare).",
+            "timebound": "Next explainability review cycle.",
+            "owner_placeholder": "Model risk / explainability owner - assign.",
+        }
+    )
 
     accuracy = model_inventory["held_out_test_accuracy"]
     n_classes = model_inventory["n_classes"]
-    suggestions.append({
-        "title": "Monitor per-intent recall for the weakest-performing classes in production",
-        "specific": (
-            f"Overall held-out test accuracy is real and strong ({accuracy:.2%} across {n_classes} classes), "
-            "but per-class performance is uneven by construction of a 77-class problem - track the bottom-decile "
-            "intents (see the Known Limitations / worst-performing intents table) once in production."
-        ),
-        "measurable": "Target: no individual intent's real production F1-score drifting more than 10 "
-                       "percentage points below its Gate 3 held-out test value without an alert.",
-        "timebound": "From first production deployment onward (standing monitoring, not one-time).",
-        "owner_placeholder": "MLOps / monitoring owner - assign.",
-    })
+    suggestions.append(
+        {
+            "title": "Monitor per-intent recall for the weakest-performing classes in production",
+            "specific": (
+                f"Overall held-out test accuracy is real and strong ({accuracy:.2%} across "
+                f"{n_classes} classes), but per-class performance is uneven by construction of "
+                "a 77-class problem - track the bottom-decile intents (see the Known "
+                "Limitations / worst-performing intents table) once in production."
+            ),
+            "measurable": (
+                "Target: no individual intent's real production F1-score drifting more than "
+                "10 percentage points below its Gate 3 held-out test value without an alert."
+            ),
+            "timebound": "From first production deployment onward (standing monitoring, not one-time).",
+            "owner_placeholder": "MLOps / monitoring owner - assign.",
+        }
+    )
 
     n_with_reason_codes = gate5_summary["n_with_reason_codes"]
     n_records = gate5_summary["n_decision_records"]
-    suggestions.append({
-        "title": "Expand grounded reason-code coverage beyond the current SHAP sample bound",
-        "specific": (
-            f"Only {n_with_reason_codes:,} of {n_records:,} real decision records "
-            f"({n_with_reason_codes / n_records:.1%}) currently carry a grounded per-instance reason code, "
-            "bounded by the 150-row SHAP sample size for laptop safety."
-        ),
-        "measurable": "Target: 100% reason-code coverage once compute budget allows removing the sample bound, "
-                       "or a documented, deliberate sampling policy if full coverage is not pursued.",
-        "timebound": "Next Gate 5 hardening pass.",
-        "owner_placeholder": "ML engineering owner - assign.",
-    })
+    suggestions.append(
+        {
+            "title": "Expand grounded reason-code coverage beyond the current SHAP sample bound",
+            "specific": (
+                f"Only {n_with_reason_codes:,} of {n_records:,} real decision records "
+                f"({n_with_reason_codes / n_records:.1%}) currently carry a grounded "
+                "per-instance reason code, "
+                "bounded by the 150-row SHAP sample size for laptop safety."
+            ),
+            "measurable": (
+                "Target: 100% reason-code coverage once compute budget allows removing the "
+                "sample bound, or a documented, deliberate sampling policy if full coverage "
+                "is not pursued."
+            ),
+            "timebound": "Next Gate 5 hardening pass.",
+            "owner_placeholder": "ML engineering owner - assign.",
+        }
+    )
 
     return suggestions
 
@@ -336,8 +370,12 @@ def build_kpi_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
     gate6_summary = bundle["gate6_summary"]
     gate2_coverage_df = bundle["gate2_coverage_df"]
 
-    out_of_scope_row = gate2_coverage_df[gate2_coverage_df["common_taxonomy_bucket"] == "OUT_OF_SCOPE_NO_BANKING77_OVERLAP"]
-    out_of_scope_fraction = float(out_of_scope_row["cfpb_fraction"].iloc[0]) if len(out_of_scope_row) else None
+    out_of_scope_row = gate2_coverage_df[
+        gate2_coverage_df["common_taxonomy_bucket"] == "OUT_OF_SCOPE_NO_BANKING77_OVERLAP"
+    ]
+    out_of_scope_fraction = (
+        float(out_of_scope_row["cfpb_fraction"].iloc[0]) if len(out_of_scope_row) else None
+    )
 
     return {
         "champion_model": model_inventory["model_name"],
@@ -423,6 +461,7 @@ def build_gate6_governance_detail(bundle: dict[str, Any]) -> dict[str, Any]:
 # Each returns raw PNG bytes so callers never touch a live pyplot Figure object more than once.
 # ============================================================================
 
+
 def _fig_to_png_bytes(fig, dpi: int = 150) -> bytes:
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight", facecolor="white")
@@ -432,8 +471,12 @@ def _fig_to_png_bytes(fig, dpi: int = 150) -> bytes:
 
 
 def fig_model_comparison_bar(gate3_cv_df: pd.DataFrame, champion_model: str) -> bytes:
-    df = gate3_cv_df[gate3_cv_df["status"] == "OK"].sort_values("mean_f1_macro", ascending=True, kind="mergesort")
-    colors = [PALETTE["primary_navy"] if m == champion_model else PALETTE["neutral_gray"] for m in df["model"]]
+    df = gate3_cv_df[gate3_cv_df["status"] == "OK"].sort_values(
+        "mean_f1_macro", ascending=True, kind="mergesort"
+    )
+    colors = [
+        PALETTE["primary_navy"] if m == champion_model else PALETTE["neutral_gray"] for m in df["model"]
+    ]
     fig, ax = plt.subplots(figsize=(8, 4.2))
     bars = ax.barh(df["model"], df["mean_f1_macro"], xerr=df["std_f1_macro"], color=colors, capsize=3)
     ax.set_xlabel("CV mean F1-macro (real, error bars = real fold std)")
@@ -457,12 +500,17 @@ def fig_shap_top_features(gate4_shap_df: pd.DataFrame, n: int = 10) -> bytes:
 
 
 def fig_taxonomy_bucket_pie(gate2_coverage_df: pd.DataFrame) -> bytes:
-    df = gate2_coverage_df[gate2_coverage_df["cfpb_row_count"] > 0].sort_values("cfpb_row_count", ascending=False)
+    df = gate2_coverage_df[gate2_coverage_df["cfpb_row_count"] > 0].sort_values(
+        "cfpb_row_count", ascending=False
+    )
     colors = (CATEGORICAL_SEQUENCE * ((len(df) // len(CATEGORICAL_SEQUENCE)) + 1))[: len(df)]
     fig, ax = plt.subplots(figsize=(6.5, 6.5))
     wedges, _texts, autotexts = ax.pie(
-        df["cfpb_row_count"], labels=df["common_taxonomy_bucket"], autopct="%1.1f%%",
-        colors=colors, textprops={"fontsize": 8},
+        df["cfpb_row_count"],
+        labels=df["common_taxonomy_bucket"],
+        autopct="%1.1f%%",
+        colors=colors,
+        textprops={"fontsize": 8},
     )
     ax.set_title("Real CFPB Complaint Volume by Common-Taxonomy Bucket")
     fig.tight_layout()
@@ -473,8 +521,12 @@ def fig_confidence_distribution(gate5_decision_df: pd.DataFrame) -> bytes:
     fig, ax = plt.subplots(figsize=(7.5, 4.2))
     correct = gate5_decision_df[gate5_decision_df["correct"]]["confidence_top1"]
     incorrect = gate5_decision_df[~gate5_decision_df["correct"]]["confidence_top1"]
-    ax.hist(correct, bins=30, alpha=0.75, label=f"Correct (n={len(correct):,})", color=PALETTE["success_green"])
-    ax.hist(incorrect, bins=30, alpha=0.75, label=f"Incorrect (n={len(incorrect):,})", color=PALETTE["danger_red"])
+    ax.hist(
+        correct, bins=30, alpha=0.75, label=f"Correct (n={len(correct):,})", color=PALETTE["success_green"]
+    )
+    ax.hist(
+        incorrect, bins=30, alpha=0.75, label=f"Incorrect (n={len(incorrect):,})", color=PALETTE["danger_red"]
+    )
     ax.set_xlabel("Top-1 prediction confidence (real, Gate 5 decision records)")
     ax.set_ylabel("Count")
     ax.set_title("Confidence Distribution — Correct vs. Incorrect Predictions")
@@ -484,11 +536,15 @@ def fig_confidence_distribution(gate5_decision_df: pd.DataFrame) -> bytes:
     return _fig_to_png_bytes(fig)
 
 
-def fig_confusion_heatmap_top(confusion_df: pd.DataFrame, top_pairs_df: pd.DataFrame, n_intents: int = 20) -> bytes:
+def fig_confusion_heatmap_top(
+    confusion_df: pd.DataFrame, top_pairs_df: pd.DataFrame, n_intents: int = 20
+) -> bytes:
     """A readable static heatmap: the top-N intents by real total confusion involvement (as true OR
     predicted label in the top confused pairs), not the full 77x77 grid (illegible at document
     resolution) - the full matrix is still exported in full in the XLSX and the interactive HTML."""
-    involved = pd.unique(pd.concat([top_pairs_df["true_intent"], top_pairs_df["predicted_intent"]]))[:n_intents]
+    involved = pd.unique(pd.concat([top_pairs_df["true_intent"], top_pairs_df["predicted_intent"]]))[
+        :n_intents
+    ]
     sub = confusion_df.loc[confusion_df.index.isin(involved), confusion_df.columns.isin(involved)]
     fig, ax = plt.subplots(figsize=(9, 8))
     im = ax.imshow(sub.values, cmap="Blues")
@@ -506,6 +562,7 @@ def fig_confusion_heatmap_top(confusion_df: pd.DataFrame, top_pairs_df: pd.DataF
 # DOCX export (python-docx). US Letter page size set explicitly (docx skill gotcha: defaults to
 # A4), Calibri professional font throughout. Covers all 6 gates' real recorded output.
 # ============================================================================
+
 
 def write_docx_report(
     bundle: dict[str, Any],
@@ -564,13 +621,24 @@ def write_docx_report(
         ("Held-out F1-macro (real)", f"{kpis['held_out_test_f1_macro']:.4f}"),
         ("CV mean F1-macro (real)", f"{kpis['cv_mean_f1_macro']:.4f}"),
         ("ROC-AUC, one-vs-rest macro (real)", f"{kpis['roc_auc_ovr_macro']:.4f}"),
-        ("Classes / Train rows / Test rows (real)", f"{kpis['n_classes']} / {kpis['n_train_rows']:,} / {kpis['n_test_rows']:,}"),
+        (
+            "Classes / Train rows / Test rows (real)",
+            f"{kpis['n_classes']} / {kpis['n_train_rows']:,} / {kpis['n_test_rows']:,}",
+        ),
         ("Decision records (real)", f"{kpis['n_decision_records']:,}"),
         ("Reason-code coverage (real)", f"{kpis['reason_code_coverage']:.1%}"),
-        ("Governance — pytest (real)", f"{kpis['pytest_counts']['passed']} passed / {kpis['pytest_counts']['failed']} failed"),
-        ("Governance — notebook syntax audit (real)", "all passed" if kpis["notebook_syntax_all_passed"] else "issues found"),
-        ("Open governance items — Gate 3 anomalies (real, near-random / high-variance)",
-         f"{kpis['n_gate3_near_random_anomalies']} / {kpis['n_gate3_high_variance_anomalies']}"),
+        (
+            "Governance — pytest (real)",
+            f"{kpis['pytest_counts']['passed']} passed / {kpis['pytest_counts']['failed']} failed",
+        ),
+        (
+            "Governance — notebook syntax audit (real)",
+            "all passed" if kpis["notebook_syntax_all_passed"] else "issues found",
+        ),
+        (
+            "Open governance items — Gate 3 anomalies (real, near-random / high-variance)",
+            f"{kpis['n_gate3_near_random_anomalies']} / {kpis['n_gate3_high_variance_anomalies']}",
+        ),
         ("Governance gates complete (real)", f"{kpis['governance_gates_complete']}/6"),
     ]
     t = doc.add_table(rows=1, cols=2)
@@ -582,8 +650,12 @@ def write_docx_report(
 
     doc.add_heading("Gate 1 — Business Understanding & Policy (real)", level=1)
     doc.add_paragraph(f"Primary target: {gate1['primary_target']} — {gate1['primary_target_description']}")
-    doc.add_paragraph(f"Secondary target: {gate1['secondary_target']} — {gate1['secondary_target_description']}")
-    doc.add_paragraph(f"Feature variable: {gate1['feature_variable']}. Train/test split: {gate1['train_test_split_source']}")
+    doc.add_paragraph(
+        f"Secondary target: {gate1['secondary_target']} — {gate1['secondary_target_description']}"
+    )
+    doc.add_paragraph(
+        f"Feature variable: {gate1['feature_variable']}. Train/test split: {gate1['train_test_split_source']}"
+    )
     doc.add_paragraph(f"Compliance touchpoint — {gate1['compliance_requirement']}:")
     doc.add_paragraph(gate1["compliance_statement"])
     doc.add_heading("Leakage Rules (real, enforced live every Gate 1 run)", level=2)
@@ -601,8 +673,15 @@ def write_docx_report(
     for label, val in [
         ("Shared CFPB/BANKING77 columns", str(len(gate1["shared_columns_cfpb_banking77"]))),
         ("Train/test exact-text overlap rows", str(gate1["train_test_exact_text_overlap_rows"])),
-        ("77-class imbalance (min / max / ratio)", f"{ci77['min_class_count']} / {ci77['max_class_count']} / {ci77['imbalance_ratio_max_over_min']}x"),
-        ("9-bucket imbalance (min / max / ratio)", f"{ci9['min_bucket_count']} / {ci9['max_bucket_count']} / {ci9['imbalance_ratio_max_over_min']}x"),
+        (
+            "77-class imbalance (min / max / ratio)",
+            f"{ci77['min_class_count']} / {ci77['max_class_count']} / "
+            f"{ci77['imbalance_ratio_max_over_min']}x",
+        ),
+        (
+            "9-bucket imbalance (min / max / ratio)",
+            f"{ci9['min_bucket_count']} / {ci9['max_bucket_count']} / {ci9['imbalance_ratio_max_over_min']}x",
+        ),
     ]:
         row = dq_table.add_row().cells
         row[0].text, row[1].text = label, val
@@ -613,19 +692,28 @@ def write_docx_report(
     bt.style = "Light List Accent 1"
     for i, h in enumerate(["Model", "Mean F1-macro", "Std F1-macro", "Mean Accuracy"]):
         bt.rows[0].cells[i].text = h
-    cv_ok = bundle["gate3_cv_df"][bundle["gate3_cv_df"]["status"] == "OK"].sort_values("mean_f1_macro", ascending=False)
+    cv_ok = bundle["gate3_cv_df"][bundle["gate3_cv_df"]["status"] == "OK"].sort_values(
+        "mean_f1_macro", ascending=False
+    )
     for r in cv_ok.itertuples():
         row = bt.add_row().cells
-        row[0].text, row[1].text, row[2].text, row[3].text = r.model, f"{r.mean_f1_macro:.4f}", f"{r.std_f1_macro:.4f}", f"{r.mean_accuracy:.4f}"
+        row[0].text, row[1].text, row[2].text, row[3].text = (
+            r.model,
+            f"{r.mean_f1_macro:.4f}",
+            f"{r.std_f1_macro:.4f}",
+            f"{r.mean_accuracy:.4f}",
+        )
 
     doc.add_heading("Explainability & Statistical Validation — Gate 4 (real)", level=1)
     doc.add_picture(io.BytesIO(figures["shap_top"]), width=Inches(6.0))
     g4 = bundle["gate4"]
     doc.add_paragraph(
         f"Champion {g4['champion_model']} vs. runner-up {g4['runner_up_model']}: paired t-test statistic "
-        f"{g4.get('paired_ttest_statistic')}, p-value {g4.get('paired_ttest_pvalue')} (n={len(g4.get('champion_fold_f1_macro', []))} "
-        f"real CV folds — {g4.get('statistical_test_limitation', '')}). Held-out test F1-macro "
-        f"{g4['held_out_test_f1_macro_point_estimate']}, 95% bootstrap CI {g4['held_out_test_f1_macro_bootstrap_ci_95']} "
+        f"{g4.get('paired_ttest_statistic')}, p-value {g4.get('paired_ttest_pvalue')} "
+        f"(n={len(g4.get('champion_fold_f1_macro', []))} real CV folds — "
+        f"{g4.get('statistical_test_limitation', '')}). Held-out test F1-macro "
+        f"{g4['held_out_test_f1_macro_point_estimate']}, 95% bootstrap CI "
+        f"{g4['held_out_test_f1_macro_bootstrap_ci_95']} "
         f"({g4.get('bootstrap_n_iterations')} resamples). SHAP sample size {g4.get('shap_sample_size')}, "
         f"background size {g4.get('shap_background_size')}."
     )
@@ -642,7 +730,10 @@ def write_docx_report(
     )
     ct5 = g5.get("compliance_touchpoint", {})
     if ct5:
-        doc.add_paragraph(f"Compliance — GenAI API used: {ct5.get('genai_api_used')}. {ct5.get('udaap_language_review', '')}")
+        doc.add_paragraph(
+            f"Compliance — GenAI API used: {ct5.get('genai_api_used')}. "
+            f"{ct5.get('udaap_language_review', '')}"
+        )
 
     doc.add_heading("Taxonomy Coverage — Gate 2 (real)", level=1)
     doc.add_picture(io.BytesIO(figures["taxonomy_pie"]), width=Inches(5.3))
@@ -665,7 +756,12 @@ def write_docx_report(
         best_table.rows[0].cells[i].text = h
     for _, r in best_intents.iterrows():
         row = best_table.add_row().cells
-        row[0].text, row[1].text, row[2].text, row[3].text = r['intent'], f"{r['precision']:.3f}", f"{r['recall']:.3f}", f"{r['f1-score']:.3f}"
+        row[0].text, row[1].text, row[2].text, row[3].text = (
+            r["intent"],
+            f"{r['precision']:.3f}",
+            f"{r['recall']:.3f}",
+            f"{r['f1-score']:.3f}",
+        )
     doc.add_paragraph("Bottom 10 by real F1-score:")
     worst_table = doc.add_table(rows=1, cols=4)
     worst_table.style = "Light List Accent 1"
@@ -673,13 +769,21 @@ def write_docx_report(
         worst_table.rows[0].cells[i].text = h
     for _, r in worst_intents.iterrows():
         row = worst_table.add_row().cells
-        row[0].text, row[1].text, row[2].text, row[3].text = r["intent"], f"{r['precision']:.3f}", f"{r['recall']:.3f}", f"{r['f1-score']:.3f}"
+        row[0].text, row[1].text, row[2].text, row[3].text = (
+            r["intent"],
+            f"{r['precision']:.3f}",
+            f"{r['recall']:.3f}",
+            f"{r['f1-score']:.3f}",
+        )
 
     doc.add_heading("Gate 6 — Governance, Known Limitations & Compliance (real)", level=1)
     doc.add_paragraph(
-        f"pytest suite: {gate6['pytest_counts']['passed']} passed / {gate6['pytest_counts']['failed']} failed "
+        f"pytest suite: {gate6['pytest_counts']['passed']} passed / "
+        f"{gate6['pytest_counts']['failed']} failed "
         f"(skipped {gate6['pytest_counts'].get('skipped', 0)}). Notebook syntax audit: "
-        f"{gate6['notebook_syntax_check_n_passed']}/{gate6['notebook_syntax_check_n_passed'] + gate6['notebook_syntax_check_n_failed']} passed."
+        f"{gate6['notebook_syntax_check_n_passed']}/"
+        f"{gate6['notebook_syntax_check_n_passed'] + gate6['notebook_syntax_check_n_failed']} "
+        "passed."
     )
     doc.add_paragraph(
         "Open item — Gate 3 candidate-level anomalies detected live, not yet root-caused: "
@@ -688,14 +792,20 @@ def write_docx_report(
     )
     doc.add_paragraph(f"Model card: {gate6['model_card_path']} | Changelog: {gate6['changelog_path']}")
     if gate6.get("model_inventory_compliance_touchpoint"):
-        doc.add_paragraph(f"Model inventory compliance touchpoint: {gate6['model_inventory_compliance_touchpoint']}")
+        doc.add_paragraph(
+            f"Model inventory compliance touchpoint: {gate6['model_inventory_compliance_touchpoint']}"
+        )
     if gate6.get("model_family"):
-        doc.add_paragraph(f"Model family: {gate6['model_family']}. Training data: {gate6.get('training_data', '')}")
+        doc.add_paragraph(
+            f"Model family: {gate6['model_family']}. Training data: {gate6.get('training_data', '')}"
+        )
     doc.add_paragraph(f"Gate 3 candidates evaluated (real): {', '.join(gate6['candidates_evaluated'])}.")
     if gate6["candidates_failed"]:
         doc.add_paragraph(f"Gate 3 candidates failed (real): {', '.join(gate6['candidates_failed'])}.")
     else:
-        doc.add_paragraph("Gate 3 candidates failed: none (0 exceptions across all real candidates evaluated).")
+        doc.add_paragraph(
+            "Gate 3 candidates failed: none (0 exceptions across all real candidates evaluated)."
+        )
 
     doc.add_heading("SMART Suggestions", level=1)
     for s in suggestions:
@@ -714,6 +824,7 @@ def write_docx_report(
 # XLSX export (openpyxl). Every sheet is built from a real Gate 1-6 artifact - no assumption-based
 # or illustrative content anywhere in this workbook.
 # ============================================================================
+
 
 def write_xlsx_workbook(
     bundle: dict[str, Any],
@@ -779,14 +890,26 @@ def write_xlsx_workbook(
     ws["A6"].font = Font(bold=True, color="1E2761")
     sheets_index = [
         ("01_Executive_KPIs", "Top-line real KPIs across all 6 gates."),
-        ("02_Gate1_Business_Policy", "Gate 1 real target definition, leakage rules, assumptions, compliance, live checks."),
+        (
+            "02_Gate1_Business_Policy",
+            "Gate 1 real target definition, leakage rules, assumptions, compliance, live checks.",
+        ),
         ("03_Model_Benchmark", "Gate 3 real 6-model 5-fold CV benchmark."),
-        ("04_Statistical_Validation", "Gate 4 real paired t-test, Wilcoxon test, bootstrap CI, ROC-AUC, per-fold CV scores."),
+        (
+            "04_Statistical_Validation",
+            "Gate 4 real paired t-test, Wilcoxon test, bootstrap CI, ROC-AUC, per-fold CV scores.",
+        ),
         ("05_Explainability_SHAP", "Gate 4 real global SHAP top features."),
-        ("06_Decision_Layer", "Gate 5 real decision-record summary, compliance touchpoint + full 3,080-row export."),
+        (
+            "06_Decision_Layer",
+            "Gate 5 real decision-record summary, compliance touchpoint + full 3,080-row export.",
+        ),
         ("07_Taxonomy_Coverage", "Gate 2 real CFPB/BANKING77 common-taxonomy coverage."),
         ("08_Confusion_Analysis", "Gate 3 real top confused intent pairs."),
-        ("09_Gate6_Governance_Limitations", "Gate 6 real governance status, open items, model card/changelog refs."),
+        (
+            "09_Gate6_Governance_Limitations",
+            "Gate 6 real governance status, open items, model card/changelog refs.",
+        ),
         ("10_SMART_Suggestions", "Data-grounded SMART recommendations."),
     ]
     for i, (name, desc) in enumerate(sheets_index):
@@ -840,10 +963,16 @@ def write_xlsx_workbook(
         ("Train/test exact-text overlap rows", gate1["train_test_exact_text_overlap_rows"]),
         ("77-class imbalance — min class count", gate1["class_imbalance_77_class"]["min_class_count"]),
         ("77-class imbalance — max class count", gate1["class_imbalance_77_class"]["max_class_count"]),
-        ("77-class imbalance — ratio (max/min)", gate1["class_imbalance_77_class"]["imbalance_ratio_max_over_min"]),
+        (
+            "77-class imbalance — ratio (max/min)",
+            gate1["class_imbalance_77_class"]["imbalance_ratio_max_over_min"],
+        ),
         ("9-bucket imbalance — min bucket count", gate1["class_imbalance_9_bucket"]["min_bucket_count"]),
         ("9-bucket imbalance — max bucket count", gate1["class_imbalance_9_bucket"]["max_bucket_count"]),
-        ("9-bucket imbalance — ratio (max/min)", gate1["class_imbalance_9_bucket"]["imbalance_ratio_max_over_min"]),
+        (
+            "9-bucket imbalance — ratio (max/min)",
+            gate1["class_imbalance_9_bucket"]["imbalance_ratio_max_over_min"],
+        ),
         ("Generated at (UTC)", gate1["generated_at_utc"]),
     ]:
         ws.cell(row=row_idx, column=1, value=_safe(label))
@@ -856,7 +985,9 @@ def write_xlsx_workbook(
         ws.cell(row=row_idx, column=1, value=_safe(rule))
         row_idx += 1
     row_idx += 1
-    ws.cell(row=row_idx, column=1, value="Scope Assumptions Documented at Gate 1 (real)").font = Font(bold=True, color="1E2761")
+    ws.cell(row=row_idx, column=1, value="Scope Assumptions Documented at Gate 1 (real)").font = Font(
+        bold=True, color="1E2761"
+    )
     row_idx += 1
     for a in gate1["assumptions"]:
         ws.cell(row=row_idx, column=1, value=_safe(a))
@@ -869,7 +1000,15 @@ def write_xlsx_workbook(
 
     # --- 03_Model_Benchmark ---
     ws = wb.create_sheet("03_Model_Benchmark")
-    cols = ["model", "status", "elapsed_seconds", "mean_f1_macro", "std_f1_macro", "mean_f1_weighted", "mean_accuracy"]
+    cols = [
+        "model",
+        "status",
+        "elapsed_seconds",
+        "mean_f1_macro",
+        "std_f1_macro",
+        "mean_f1_weighted",
+        "mean_accuracy",
+    ]
     ws.append(cols)
     _style_header(ws, 1, len(cols))
     for r in bundle["gate3_cv_df"][cols].itertuples(index=False):
@@ -882,15 +1021,31 @@ def write_xlsx_workbook(
     ws.append(["Field", "Value"])
     _style_header(ws, 1, 2)
     for k in [
-        "champion_model", "runner_up_model", "recomputed_champion_mean_cv_f1_macro",
-        "gate3_recorded_champion_mean_cv_f1_macro", "consistency_check_diff",
-        "paired_ttest_statistic", "paired_ttest_pvalue", "wilcoxon_statistic", "wilcoxon_pvalue",
-        "statistical_test_limitation", "held_out_test_f1_macro_point_estimate", "bootstrap_n_iterations",
-        "roc_auc_ovr_macro", "n_classes", "shap_sample_size", "shap_background_size", "shap_error",
+        "champion_model",
+        "runner_up_model",
+        "recomputed_champion_mean_cv_f1_macro",
+        "gate3_recorded_champion_mean_cv_f1_macro",
+        "consistency_check_diff",
+        "paired_ttest_statistic",
+        "paired_ttest_pvalue",
+        "wilcoxon_statistic",
+        "wilcoxon_pvalue",
+        "statistical_test_limitation",
+        "held_out_test_f1_macro_point_estimate",
+        "bootstrap_n_iterations",
+        "roc_auc_ovr_macro",
+        "n_classes",
+        "shap_sample_size",
+        "shap_background_size",
+        "shap_error",
         "generated_at_utc",
     ]:
         ws.append(_safe_row([k, str(g4.get(k))]))
-    ws.append(_safe_row(["held_out_test_f1_macro_bootstrap_ci_95", str(g4.get("held_out_test_f1_macro_bootstrap_ci_95"))]))
+    ws.append(
+        _safe_row(
+            ["held_out_test_f1_macro_bootstrap_ci_95", str(g4.get("held_out_test_f1_macro_bootstrap_ci_95"))]
+        )
+    )
     ws.append([])
     fold_header_row = ws.max_row + 1
     ws.cell(row=fold_header_row, column=1, value="Real per-fold CV F1-macro (5-fold)")
@@ -925,22 +1080,43 @@ def write_xlsx_workbook(
     ws.append(["Field", "Value"])
     _style_header(ws, 1, 2)
     for k in [
-        "champion_model", "n_decision_records", "n_with_reason_codes", "shap_sample_size_bound",
-        "n_reason_codes_per_record", "shap_error", "overall_test_accuracy_recomputed",
-        "gate3_recorded_test_accuracy", "accuracy_consistency_diff",
-        "mean_confidence_correct_predictions", "mean_confidence_incorrect_predictions",
-        "overlap_count_with_gate4", "reason_code_grounding_failures",
-        "reason_code_grounding_method", "generated_at_utc",
+        "champion_model",
+        "n_decision_records",
+        "n_with_reason_codes",
+        "shap_sample_size_bound",
+        "n_reason_codes_per_record",
+        "shap_error",
+        "overall_test_accuracy_recomputed",
+        "gate3_recorded_test_accuracy",
+        "accuracy_consistency_diff",
+        "mean_confidence_correct_predictions",
+        "mean_confidence_incorrect_predictions",
+        "overlap_count_with_gate4",
+        "reason_code_grounding_failures",
+        "reason_code_grounding_method",
+        "generated_at_utc",
     ]:
         ws.append(_safe_row([k, str(g5.get(k))]))
-    ws.append(_safe_row(["gate5_aggregated_top_reason_code_terms", ", ".join(g5.get("gate5_aggregated_top_reason_code_terms", []))]))
+    ws.append(
+        _safe_row(
+            [
+                "gate5_aggregated_top_reason_code_terms",
+                ", ".join(g5.get("gate5_aggregated_top_reason_code_terms", [])),
+            ]
+        )
+    )
     ws.append(_safe_row(["gate4_global_top10_terms", ", ".join(g5.get("gate4_global_top10_terms", []))]))
     ws.append(_safe_row(["overlap_terms_with_gate4", ", ".join(g5.get("overlap_terms_with_gate4", []))]))
     ct5 = g5.get("compliance_touchpoint", {}) or {}
     ws.append([])
     ws.append(["Compliance touchpoint (real)", ""])
     ws.cell(row=ws.max_row, column=1).font = Font(bold=True, color="1E2761")
-    for k in ["genai_api_used", "udaap_language_review", "nist_ai_rmf_measure_manage", "scope_decision_confirmed_by_user_utc"]:
+    for k in [
+        "genai_api_used",
+        "udaap_language_review",
+        "nist_ai_rmf_measure_manage",
+        "scope_decision_confirmed_by_user_utc",
+    ]:
         ws.append(_safe_row([k, str(ct5.get(k))]))
     ws.append([])
     dec_cols = ["row_index", "true_label", "predicted_label", "correct", "confidence_top1", "reason_codes"]
@@ -988,8 +1164,14 @@ def write_xlsx_workbook(
         ("Notebook syntax check — passed", gate6["notebook_syntax_check_n_passed"]),
         ("Notebook syntax check — failed", gate6["notebook_syntax_check_n_failed"]),
         ("Notebook syntax all passed", gate6["notebook_syntax_all_passed"]),
-        ("Open item — Gate 3 near-random anomalies detected", gate6["n_gate3_near_random_anomalies_detected"]),
-        ("Open item — Gate 3 high-variance anomalies detected", gate6["n_gate3_high_variance_anomalies_detected"]),
+        (
+            "Open item — Gate 3 near-random anomalies detected",
+            gate6["n_gate3_near_random_anomalies_detected"],
+        ),
+        (
+            "Open item — Gate 3 high-variance anomalies detected",
+            gate6["n_gate3_high_variance_anomalies_detected"],
+        ),
         ("Model card path", gate6["model_card_path"]),
         ("Changelog path", gate6["changelog_path"]),
         ("Model inventory compliance touchpoint", gate6.get("model_inventory_compliance_touchpoint")),
@@ -1013,7 +1195,9 @@ def write_xlsx_workbook(
     ws.append(["Title", "Specific", "Measurable", "Time-bound", "Owner"])
     _style_header(ws, 1, 5)
     for s in suggestions:
-        ws.append(_safe_row([s["title"], s["specific"], s["measurable"], s["timebound"], s["owner_placeholder"]]))
+        ws.append(
+            _safe_row([s["title"], s["specific"], s["measurable"], s["timebound"], s["owner_placeholder"]])
+        )
     for col in "ABCDE":
         ws.column_dimensions[col].width = 42
         for cell in ws[col]:
@@ -1029,6 +1213,7 @@ def write_xlsx_workbook(
 # slide is built from real Gate 1-6 recorded output - no assumption-based content.
 # ============================================================================
 
+
 def write_pptx_deck(
     bundle: dict[str, Any],
     kpis: dict[str, Any],
@@ -1038,12 +1223,10 @@ def write_pptx_deck(
 ) -> Path:
     from pptx import Presentation
     from pptx.dml.color import RGBColor as PptxRGBColor
-    from pptx.enum.text import PP_ALIGN
     from pptx.util import Inches as PptxInches
     from pptx.util import Pt as PptxPt
 
     NAVY = PptxRGBColor(0x1E, 0x27, 0x61)
-    ACCENT = PptxRGBColor(0x4C, 0x6E, 0xF5)
     WHITE = PptxRGBColor(0xFF, 0xFF, 0xFF)
     GRAY = PptxRGBColor(0x4B, 0x54, 0x68)
     AMBER = PptxRGBColor(0xE8, 0xA3, 0x3D)
@@ -1074,14 +1257,16 @@ def write_pptx_deck(
         run.font.bold = True
         run.font.color.rgb = WHITE if dark else NAVY
         if subtitle:
-            box2 = slide.shapes.add_textbox(PptxInches(0.6), PptxInches(1.05), PptxInches(12.1), PptxInches(0.5))
+            box2 = slide.shapes.add_textbox(
+                PptxInches(0.6), PptxInches(1.05), PptxInches(12.1), PptxInches(0.5)
+            )
             tf2 = box2.text_frame
             tf2.word_wrap = True
             p2 = tf2.paragraphs[0]
             r2 = p2.add_run()
             r2.text = subtitle
             r2.font.size = PptxPt(14)
-            r2.font.color.rgb = (WHITE if dark else GRAY)
+            r2.font.color.rgb = WHITE if dark else GRAY
 
     def _fill_bg(slide, color: PptxRGBColor):
         slide.background.fill.solid()
@@ -1107,7 +1292,9 @@ def write_pptx_deck(
         r2.font.color.rgb = GRAY
 
     def _add_bullets(slide, lines, top=PptxInches(1.4), color=None, size=15):
-        box = slide.shapes.add_textbox(PptxInches(0.6), top, PptxInches(12.1), PptxInches(7.5) - top - PptxInches(0.4))
+        box = slide.shapes.add_textbox(
+            PptxInches(0.6), top, PptxInches(12.1), PptxInches(7.5) - top - PptxInches(0.4)
+        )
         tf = box.text_frame
         tf.word_wrap = True
         for i, line in enumerate(lines):
@@ -1120,12 +1307,18 @@ def write_pptx_deck(
     # --- Slide 1: Title ---
     s = _add_slide()
     _fill_bg(s, NAVY)
-    _add_title(s, "BP1 Customer Intent Classification", "Executive Rollup — Customer360 Navigator Enterprise Suite", dark=True)
+    _add_title(
+        s,
+        "BP1 Customer Intent Classification",
+        "Executive Rollup — Customer360 Navigator Enterprise Suite",
+        dark=True,
+    )
     box = s.shapes.add_textbox(PptxInches(0.6), PptxInches(5.6), PptxInches(11), PptxInches(1.2))
     p = box.text_frame.paragraphs[0]
     r = p.add_run()
     r.text = (
-        f"Champion model: {kpis['champion_model']}  |  Held-out accuracy: {kpis['held_out_test_accuracy']:.2%} (real)  |  "
+        f"Champion model: {kpis['champion_model']}  |  "
+        f"Held-out accuracy: {kpis['held_out_test_accuracy']:.2%} (real)  |  "
         f"Generated {kpis['generated_at_utc'][:10]}"
     )
     r.font.size = PptxPt(15)
@@ -1148,9 +1341,13 @@ def write_pptx_deck(
         ("Decision Records", f"{kpis['n_decision_records']:,}"),
         ("Reason-code Coverage", f"{kpis['reason_code_coverage']:.1%}"),
         ("pytest", f"{kpis['pytest_counts']['passed']} passed"),
-        ("Gate 3 Open Anomalies", f"{kpis['n_gate3_near_random_anomalies']} near-random / {kpis['n_gate3_high_variance_anomalies']} high-var"),
+        (
+            "Gate 3 Open Anomalies",
+            f"{kpis['n_gate3_near_random_anomalies']} near-random / "
+            f"{kpis['n_gate3_high_variance_anomalies']} high-var",
+        ),
     ]
-    cols, rows = 4, 2
+    cols = 4  # 2 rows x 4 cols KPI grid - row count isn't read directly, divmod(i, cols) derives it
     cell_w = PptxInches(2.9)
     cell_h = PptxInches(1.6)
     for i, (label, val) in enumerate(kpi_cells):
@@ -1164,21 +1361,28 @@ def write_pptx_deck(
     _add_title(s, "Gate 1 — Business Understanding & Policy (real)")
     ci77 = gate1["class_imbalance_77_class"]
     ci9 = gate1["class_imbalance_9_bucket"]
-    _add_bullets(s, [
-        f"Primary target: {gate1['primary_target']} ({gate1['primary_target_description']})",
-        f"Secondary target: {gate1['secondary_target']} ({gate1['secondary_target_description']})",
-        f"Feature variable: {gate1['feature_variable']} | Split: {gate1['train_test_split_source']}",
-        f"Compliance touchpoint: {gate1['compliance_requirement']}",
-        f"Live check — shared CFPB/BANKING77 columns: {len(gate1['shared_columns_cfpb_banking77'])}",
-        f"Live check — train/test exact-text overlap rows: {gate1['train_test_exact_text_overlap_rows']}",
-        f"77-class imbalance ratio: {ci77['imbalance_ratio_max_over_min']}x (min {ci77['min_class_count']} / max {ci77['max_class_count']})",
-        f"9-bucket imbalance ratio: {ci9['imbalance_ratio_max_over_min']}x (min {ci9['min_bucket_count']} / max {ci9['max_bucket_count']})",
-    ])
+    _add_bullets(
+        s,
+        [
+            f"Primary target: {gate1['primary_target']} ({gate1['primary_target_description']})",
+            f"Secondary target: {gate1['secondary_target']} ({gate1['secondary_target_description']})",
+            f"Feature variable: {gate1['feature_variable']} | Split: {gate1['train_test_split_source']}",
+            f"Compliance touchpoint: {gate1['compliance_requirement']}",
+            f"Live check — shared CFPB/BANKING77 columns: {len(gate1['shared_columns_cfpb_banking77'])}",
+            f"Live check — train/test exact-text overlap rows: {gate1['train_test_exact_text_overlap_rows']}",
+            f"77-class imbalance ratio: {ci77['imbalance_ratio_max_over_min']}x "
+            f"(min {ci77['min_class_count']} / max {ci77['max_class_count']})",
+            f"9-bucket imbalance ratio: {ci9['imbalance_ratio_max_over_min']}x "
+            f"(min {ci9['min_bucket_count']} / max {ci9['max_bucket_count']})",
+        ],
+    )
 
     # --- Slide 4: Model benchmark ---
     s = _add_slide()
     _add_title(s, "Model Benchmark — Gate 3 (real 5-fold CV)")
-    _add_picture_bytes(s, figures["model_benchmark"], PptxInches(1.3), PptxInches(1.5), width=PptxInches(10.7))
+    _add_picture_bytes(
+        s, figures["model_benchmark"], PptxInches(1.3), PptxInches(1.5), width=PptxInches(10.7)
+    )
 
     # --- Slide 5: Explainability ---
     s = _add_slide()
@@ -1188,7 +1392,9 @@ def write_pptx_deck(
     # --- Slide 6: Decision layer ---
     s = _add_slide()
     _add_title(s, "Decision Layer — Gate 5 (real)")
-    _add_picture_bytes(s, figures["confidence_dist"], PptxInches(1.3), PptxInches(1.5), width=PptxInches(10.7))
+    _add_picture_bytes(
+        s, figures["confidence_dist"], PptxInches(1.3), PptxInches(1.5), width=PptxInches(10.7)
+    )
 
     # --- Slide 7: Taxonomy coverage ---
     s = _add_slide()
@@ -1198,7 +1404,9 @@ def write_pptx_deck(
     # --- Slide 8: Confusion analysis ---
     s = _add_slide()
     _add_title(s, "Confusion Analysis — Gate 3 (real)")
-    _add_picture_bytes(s, figures["confusion_heatmap"], PptxInches(2.3), PptxInches(1.3), width=PptxInches(8.7))
+    _add_picture_bytes(
+        s, figures["confusion_heatmap"], PptxInches(2.3), PptxInches(1.3), width=PptxInches(8.7)
+    )
 
     # --- Slide 9: SMART suggestions ---
     s = _add_slide()
@@ -1229,16 +1437,25 @@ def write_pptx_deck(
     s = _add_slide()
     _fill_bg(s, NAVY)
     _add_title(s, "Gate 6 — Governance & Known Limitations (real)", dark=True)
-    _add_bullets(s, [
-        f"pytest suite: {gate6['pytest_counts']['passed']} passed / {gate6['pytest_counts']['failed']} failed",
-        f"Notebook syntax audit: {gate6['notebook_syntax_check_n_passed']}/{gate6['notebook_syntax_check_n_passed'] + gate6['notebook_syntax_check_n_failed']} passed",
-        f"Open item: {gate6['n_gate3_near_random_anomalies_detected']} near-random + "
-        f"{gate6['n_gate3_high_variance_anomalies_detected']} high-variance Gate 3 candidate anomaly(ies), not yet root-caused",
-        f"Model card: {gate6['model_card_path']}",
-        f"Changelog: {gate6['changelog_path']}",
-        f"Gate 3 candidates evaluated: {', '.join(gate6.get('candidates_evaluated', []))}",
-        f"BP1 governance gates complete: {kpis['governance_gates_complete']}/6",
-    ], top=PptxInches(1.6), color=WHITE, size=16)
+    _add_bullets(
+        s,
+        [
+            f"pytest suite: {gate6['pytest_counts']['passed']} passed / "
+            f"{gate6['pytest_counts']['failed']} failed",
+            f"Notebook syntax audit: {gate6['notebook_syntax_check_n_passed']}/"
+            f"{gate6['notebook_syntax_check_n_passed'] + gate6['notebook_syntax_check_n_failed']} passed",
+            f"Open item: {gate6['n_gate3_near_random_anomalies_detected']} near-random + "
+            f"{gate6['n_gate3_high_variance_anomalies_detected']} high-variance Gate 3 "
+            f"candidate anomaly(ies), not yet root-caused",
+            f"Model card: {gate6['model_card_path']}",
+            f"Changelog: {gate6['changelog_path']}",
+            f"Gate 3 candidates evaluated: {', '.join(gate6.get('candidates_evaluated', []))}",
+            f"BP1 governance gates complete: {kpis['governance_gates_complete']}/6",
+        ],
+        top=PptxInches(1.6),
+        color=WHITE,
+        size=16,
+    )
 
     # --- Slide 11: Recommended for Production ---
     s = _add_slide()

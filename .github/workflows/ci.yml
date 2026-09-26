@@ -7,7 +7,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: pip install black flake8 isort mypy
+      # Pinned exactly, matching requirements.txt's own pins (2026-09-26 CI incident -
+      # see that file's comment) - an unversioned install here silently drifted to
+      # whatever each tool's newest PyPI release was at run time and broke this job with
+      # no code change on this project's side at all.
+      - run: pip install black==24.10.0 flake8==7.4.1 isort==9.0.1 mypy==1.11.2
       - run: black --check src/ tests/
       - run: flake8 src/ tests/
       - run: isort --check-only src/ tests/
@@ -31,7 +35,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: pip install bandit
+      # Pinned exactly, same reasoning as the lint job above.
+      - run: pip install bandit==1.9.4
       # -c pyproject.toml picks up [tool.bandit] skips = ["B101", "B404"] (see that section's
       # comments for why each is a documented, non-security-relevant project convention here).
       # Every other finding is a real blocker for this job, matching the AMEX RiskIQ platform's

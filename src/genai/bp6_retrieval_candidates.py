@@ -41,7 +41,7 @@ from typing import Any
 import numpy as np
 import polars as pl
 
-from taxonomy.taxonomy_mapper import load_mapping_config, _product_to_bucket_lookup
+from taxonomy.taxonomy_mapper import _product_to_bucket_lookup
 
 # Structural non-evidence buckets shared by every function in this module that needs to exclude
 # them (see taxonomy_bucket_match_coverage's own docstring for why these can never have a
@@ -76,9 +76,7 @@ def load_taxonomy_linked_bucket_counts(
     return b77_counts, cfpb_counts
 
 
-def taxonomy_bucket_match_coverage(
-    b77_counts: pl.DataFrame, cfpb_counts: pl.DataFrame
-) -> dict[str, Any]:
+def taxonomy_bucket_match_coverage(b77_counts: pl.DataFrame, cfpb_counts: pl.DataFrame) -> dict[str, Any]:
     """Strategy A: for every real bucket value present on EITHER side (excluding the two
     structural non-evidence buckets OUT_OF_SCOPE_NO_BANKING77_OVERLAP / UNMAPPED_UNKNOWN_* on the
     CFPB side, which by construction can never have a BANKING77-side counterpart - see
@@ -207,9 +205,7 @@ def bootstrap_champion_coverage_ci(
     b77_buckets = set(b77_counts["common_taxonomy_bucket"].to_list()) - _NON_EVIDENCE_BUCKETS
     cfpb_buckets = set(cfpb_counts["common_taxonomy_bucket"].to_list()) - _NON_EVIDENCE_BUCKETS
     query_buckets = sorted(b77_buckets | cfpb_buckets)
-    hit_flags = np.array(
-        [1.0 if (b in b77_buckets and b in cfpb_buckets) else 0.0 for b in query_buckets]
-    )
+    hit_flags = np.array([1.0 if (b in b77_buckets and b in cfpb_buckets) else 0.0 for b in query_buckets])
     n = len(hit_flags)
     rng = np.random.default_rng(random_state)
     boot_rates = np.empty(n_bootstrap, dtype=float)
@@ -232,9 +228,7 @@ def bootstrap_champion_coverage_ci(
     }
 
 
-def build_bucket_availability_crosstab(
-    b77_counts: pl.DataFrame, cfpb_counts: pl.DataFrame
-) -> dict[str, Any]:
+def build_bucket_availability_crosstab(b77_counts: pl.DataFrame, cfpb_counts: pl.DataFrame) -> dict[str, Any]:
     """Real 2x2 cross-tab of bucket presence (BANKING77-side Y/N x CFPB-side Y/N) over every real
     bucket value present on either side — the structural analog of Gate 4's generic "confusion
     matrix" output. Not a classifier confusion matrix: there is no predicted-vs-actual label pair
@@ -284,18 +278,14 @@ def build_explainability_trace(
                 "real_cfpb_subproduct_candidates": bucket_def.get("cfpb_subproduct_candidates", []),
                 "crosswalk_confidence": bucket_def.get("confidence", "UNKNOWN"),
                 "crosswalk_rationale": bucket_def.get("rationale", ""),
-                "real_banking77_categories_mapped_here": sorted(
-                    reverse_b77_lookup.get(bucket, [])
-                ),
+                "real_banking77_categories_mapped_here": sorted(reverse_b77_lookup.get(bucket, [])),
                 "n_real_banking77_categories_mapped_here": len(reverse_b77_lookup.get(bucket, [])),
             }
         )
     return trace
 
 
-def reconfirm_no_raw_column_leakage(
-    banking77_gold_path: Path, cfpb_gold_path: Path
-) -> dict[str, Any]:
+def reconfirm_no_raw_column_leakage(banking77_gold_path: Path, cfpb_gold_path: Path) -> dict[str, Any]:
     """Independent re-check, performed fresh in THIS gate's own kernel session (never trusting
     Gate 1's/Gate 2's own recorded claim), that the two real Gold layers still share no raw column
     beyond the one deliberate, disclosed join field (common_taxonomy_bucket) — the "leakage

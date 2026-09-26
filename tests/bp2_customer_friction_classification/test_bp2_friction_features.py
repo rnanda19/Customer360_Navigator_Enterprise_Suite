@@ -13,20 +13,26 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
 
 from features import bp2_friction_features as bff
 
-
 # ---------------------------------------------------------------------------
 # Constants - must exactly match what Gates 3/4/5's delivered notebooks define inline.
 # ---------------------------------------------------------------------------
 
+
 def test_feature_cols_categorical_matches_gate3_4_5_definitions():
     assert bff.FEATURE_COLS_CATEGORICAL == [
-        "Product", "Sub-product", "Issue", "Sub-issue", "State", "Submitted via", "common_taxonomy_bucket",
+        "Product",
+        "Sub-product",
+        "Issue",
+        "Sub-issue",
+        "State",
+        "Submitted via",
+        "common_taxonomy_bucket",
     ]
 
 
@@ -37,8 +43,14 @@ def test_company_col_and_catboost_cols_match_gate3_4_5_definitions():
 
 def test_barred_columns_matches_gate3_4_5_definitions():
     assert bff.BARRED_COLUMNS == [
-        "Company response to consumer", "Timely response?", "Date received",
-        "Date sent to company", "Company public response", "Complaint ID", "ZIP code", "Tags",
+        "Company response to consumer",
+        "Timely response?",
+        "Date received",
+        "Date sent to company",
+        "Company public response",
+        "Complaint ID",
+        "ZIP code",
+        "Tags",
     ]
 
 
@@ -53,12 +65,16 @@ def test_needs_dense_and_uses_raw_categorical_match_gate3_4_5_definitions():
 # make_candidates
 # ---------------------------------------------------------------------------
 
+
 def test_make_candidates_returns_all_five_models():
     # 5 models since 2026-09-22 - CatBoost removed (Lesson #22 in LESSONS_LEARNED_APPLIED.md).
     candidates = bff.make_candidates(random_state=42)
     assert set(candidates.keys()) == {
-        "logistic_regression", "random_forest", "hist_gradient_boosting",
-        "xgboost", "lightgbm",
+        "logistic_regression",
+        "random_forest",
+        "hist_gradient_boosting",
+        "xgboost",
+        "lightgbm",
     }
 
 
@@ -82,9 +98,12 @@ def test_make_candidates_hist_gradient_boosting_and_xgboost_never_pass_class_wei
     # never explicitly set to "balanced" the way the other three candidates are.
     candidates = bff.make_candidates(random_state=42)
     assert isinstance(candidates["hist_gradient_boosting"], HistGradientBoostingClassifier)
-    assert "class_weight" not in candidates["hist_gradient_boosting"].get_params(deep=False) or \
-        candidates["hist_gradient_boosting"].get_params(deep=False).get("class_weight") is None
+    assert (
+        "class_weight" not in candidates["hist_gradient_boosting"].get_params(deep=False)
+        or candidates["hist_gradient_boosting"].get_params(deep=False).get("class_weight") is None
+    )
     from xgboost import XGBClassifier
+
     assert isinstance(candidates["xgboost"], XGBClassifier)
     assert candidates["xgboost"].get_params(deep=False).get("class_weight") is None
 
@@ -93,18 +112,21 @@ def test_make_candidates_hist_gradient_boosting_and_xgboost_never_pass_class_wei
 # build_shared_preprocessing
 # ---------------------------------------------------------------------------
 
+
 def _tiny_raw_frame(n=6):
     products = ["Checking or savings account", "Credit card"] * (n // 2)
-    return pd.DataFrame({
-        "Product": products,
-        "Sub-product": ["Checking account"] * n,
-        "Issue": ["Some issue"] * n,
-        "Sub-issue": ["Some sub-issue"] * n,
-        "State": ["CA", "NY"] * (n // 2),
-        "Submitted via": ["Web"] * n,
-        "common_taxonomy_bucket": ["BUCKET_A", "BUCKET_B"] * (n // 2),
-        "Company": [f"Company_{i % 3}" for i in range(n)],
-    })
+    return pd.DataFrame(
+        {
+            "Product": products,
+            "Sub-product": ["Checking account"] * n,
+            "Issue": ["Some issue"] * n,
+            "Sub-issue": ["Some sub-issue"] * n,
+            "State": ["CA", "NY"] * (n // 2),
+            "Submitted via": ["Web"] * n,
+            "common_taxonomy_bucket": ["BUCKET_A", "BUCKET_B"] * (n // 2),
+            "Company": [f"Company_{i % 3}" for i in range(n)],
+        }
+    )
 
 
 def test_build_shared_preprocessing_shapes_and_feature_names():
@@ -135,8 +157,10 @@ def test_build_shared_preprocessing_unseen_test_company_gets_zero_frequency():
 # to_dense
 # ---------------------------------------------------------------------------
 
+
 def test_to_dense_converts_sparse():
     from scipy import sparse as sp
+
     sparse_matrix = sp.csr_matrix(np.array([[1.0, 0.0], [0.0, 2.0]]))
     dense = bff.to_dense(sparse_matrix)
     assert isinstance(dense, np.ndarray)
@@ -152,6 +176,7 @@ def test_to_dense_passthrough_for_already_dense():
 # is_linear_champion (the real bug Gate 4 fixed before delivery)
 # ---------------------------------------------------------------------------
 
+
 def test_is_linear_champion_true_for_logistic_regression():
     assert bff.is_linear_champion(LogisticRegression()) is True
 
@@ -160,6 +185,7 @@ def test_is_linear_champion_false_for_tree_based_models_not_in_needs_dense():
     # The whole point of the Gate 4 fix: xgboost is NOT in NEEDS_DENSE (that set only has
     # hist_gradient_boosting) but must still be treated as non-linear for SHAP densification.
     from xgboost import XGBClassifier
+
     assert bff.is_linear_champion(XGBClassifier()) is False
     assert bff.is_linear_champion(HistGradientBoostingClassifier()) is False
     assert "xgboost" not in bff.NEEDS_DENSE  # the exact gap the Gate 4 bug fix closed
@@ -169,9 +195,11 @@ def test_is_linear_champion_false_for_tree_based_models_not_in_needs_dense():
 # reorder_predict_proba
 # ---------------------------------------------------------------------------
 
+
 class _FakeRawCategoricalModel:
     """Stand-in for a fitted CatBoostClassifier whose classes_ order need not match
     label_encoder.classes_ - the exact scenario Gate 4/5's real fix addresses."""
+
     def __init__(self, classes_):
         self.classes_ = classes_
 
@@ -201,6 +229,7 @@ def test_reorder_predict_proba_identity_when_orders_already_match():
 # reason_codes_for_row_shared (reused verbatim from bp1_intent_classifier - HYPER)
 # ---------------------------------------------------------------------------
 
+
 def test_reason_codes_for_row_shared_only_returns_nonzero_valued_features():
     feature_names = np.array(["Product_Checking", "State_CA", "Company_freq", "State_NY"])
     shap_values = np.array([0.9, 0.5, 0.1, 5.0])  # State_NY has the HIGHEST |shap| ...
@@ -213,6 +242,7 @@ def test_reason_codes_for_row_shared_only_returns_nonzero_valued_features():
 def test_reason_codes_for_row_shared_is_the_bp1_module_function():
     # Explicit HYPER reuse assertion - this is not a re-implementation, it is the same object.
     from models.bp1_intent_classifier import reason_codes_for_row
+
     assert bff.reason_codes_for_row_shared is reason_codes_for_row
 
 
@@ -220,12 +250,11 @@ def test_reason_codes_for_row_shared_is_the_bp1_module_function():
 # reason_codes_for_row_raw_categorical (genuinely new for BP2's CatBoost path)
 # ---------------------------------------------------------------------------
 
+
 def test_reason_codes_for_row_raw_categorical_formats_column_equals_value():
     feature_names = np.array(["Product", "State", "Company"])
     shap_values = np.array([0.2, 0.9, 0.1])
-    row_values = pd.Series(
-        {"Product": "Checking or savings account", "State": "CA", "Company": "Bank A"}
-    )
+    row_values = pd.Series({"Product": "Checking or savings account", "State": "CA", "Company": "Bank A"})
     codes = bff.reason_codes_for_row_raw_categorical(shap_values, feature_names, row_values, n_reason_codes=2)
     assert codes == ["State=CA", "Product=Checking or savings account"]  # ranked by |shap| descending
 
