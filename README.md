@@ -11,7 +11,7 @@
 [![Zero Fabrication](https://img.shields.io/badge/policy-zero--fabrication-blueviolet)](#execution-boundary-standing-rule-disclosed-on-purpose)
 [![Business problems](https://img.shields.io/badge/business%20problems-8%2F8%20real--run%20confirmed-success)](#business-problems)
 
-**[⚡ Why it's different](#why-this-repo-is-different)** · **[📊 Real headline results](#at-a-glance)** · **[📈 Live reports](#live-reports-and-dashboards)** · **[⚠️ The fairness finding](#leading-with-the-fairness-finding)** · **[🧭 Business problems](#business-problems)** · **[🏗️ Architecture](#system-architecture)** · **[🗂️ Structure](#structure)** · **[🚀 Quickstart](#reproducing-this-locally)** · **[📌 What this is / isn't](#execution-boundary-standing-rule-disclosed-on-purpose)**
+**[🗺️ Start here](#start-here-live-suite-dashboard)** · **[⚡ Why it's different](#why-this-repo-is-different)** · **[📊 Real headline results](#at-a-glance)** · **[📈 Live reports](#live-reports-and-dashboards)** · **[⚠️ The fairness finding](#leading-with-the-fairness-finding)** · **[🧭 Business problems](#business-problems)** · **[🏗️ Architecture](#system-architecture)** · **[🗂️ Structure](#structure)** · **[🚀 Quickstart](#reproducing-this-locally)** · **[📌 What this is / isn't](#execution-boundary-standing-rule-disclosed-on-purpose)**
 
 </div>
 
@@ -20,6 +20,22 @@
 Enterprise AI-driven customer complaint, friction, and journey intelligence platform built on the real CFPB
 Consumer Complaint Database (1,048,575 rows) and Banking77 (13,083 rows). Independent professional
 portfolio project. Not affiliated with Capital One, PolyAI, or any financial institution.
+
+<br>
+
+## Start Here: Live Suite Dashboard
+
+**[View the live Suite Dashboard](https://htmlpreview.github.io/?https://github.com/rnanda19/Customer360_Navigator_Enterprise_Suite/blob/main/reports/00_suite_executive_rollup/00_suite_executive_rollup_dashboard.html)** -
+the 00 Suite Executive Rollup comprehends all 8 Business Problems in one place: real headline
+metrics, each BP's production tier, and the disclosed fairness finding. Start here for the
+clearest roadmap through the whole platform - every other dashboard below is one click away from
+it too.
+
+<p align="center">
+  <img src="docs/architecture/c360_architecture_diagram.svg" alt="Customer360 Navigator full-suite system architecture: CFPB and BANKING77 feed a shared Gold layer that fans out to BP1-BP5; BANKING77 also feeds BP6's GenAI layer through a PII-screened evidence step; BP2, BP3, BP4 and BP5 feed BP7's decision engine; BP1 through BP5 plus BP7 feed BP8's Power BI Gold-layer aggregation (BP6 is intentionally excluded); BP8 feeds Power BI Desktop and the 00 Suite Executive Rollup, which separately comprehends all eight BPs." width="100%">
+</p>
+
+<p align="center"><sub>Full-suite architecture, real data flow only - no illustrative boxes. Deep-dive version (shared-infrastructure table, cross-cutting governance matrix, per-BP status): <a href="docs/architecture/README.md">docs/architecture/README.md</a>.</sub></p>
 
 <br>
 
@@ -207,71 +223,14 @@ than being silently double-counted.
 
 ## System Architecture
 
-```mermaid
-flowchart TD
-    subgraph SRC["Source data (real)"]
-        CFPB["CFPB Consumer Complaint Database\n1,048,575 rows"]
-        B77["BANKING77 intent dataset\n13,083 rows (derived taxonomy overlay)"]
-    end
+This repo shows the full-suite architecture as **one diagram, in one place**: the vibrant SVG
+right after the project description above, covering all 8 Business Problems end to end. This
+section is kept only as a stable anchor for the nav bar above and as a pointer, deliberately not
+a second, flatter re-drawing of the same picture that could drift out of sync with it.
 
-    subgraph GOLD["Shared Gold layer (Polars / DuckDB)"]
-        TAX["taxonomy_mapper.py"]
-        FEAT["per-BP feature engineering, BP1-BP5"]
-    end
-
-    CFPB --> TAX
-    B77 --> TAX
-    TAX --> FEAT
-
-    FEAT --> BP1["BP1 Intent Classification\nLogReg - Acc 0.8224"]
-    FEAT --> BP2["BP2 Friction Classification\nXGBoost - F1 0.4559"]
-    FEAT --> BP3["BP3 Escalation Prediction\nXGBoost - ECOA flagged 0.139"]
-    FEAT --> BP4["BP4 Journey Analytics\nPolars - 29.5x speedup"]
-    FEAT --> BP5["BP5 Root-Cause Analytics\nAssociation-only"]
-
-    B77 --> BP6EV["PII screen + evidence registry"]
-    BP6EV --> BP6["BP6 GenAI Resolution Assistant\nGemini-grounded - human-gated"]
-
-    BP2 --> CTX["BP7 context re-scoring"]
-    BP3 --> CTX
-    BP4 --> CTX
-    BP5 -.->|context| CTX
-    CTX --> BP7["BP7 Decision Engine\nAIR 0.908, not flagged"]
-
-    BP1 --> BP8G["BP8 Gold-layer aggregation\n11 real Parquet tables"]
-    BP2 --> BP8G
-    BP3 --> BP8G
-    BP4 --> BP8G
-    BP5 --> BP8G
-    BP7 --> BP8G
-    BP8G --> PBI["Power BI Desktop\n(human step)"]
-
-    BP1 --> ROLLUP["Per-BP + Suite\nExecutive Rollups"]
-    BP7 --> ROLLUP
-    BP8G --> ROLLUP
-
-    classDef srcClass fill:#1565C0,stroke:#0D47A1,color:#fff
-    classDef goldClass fill:#5E35B1,stroke:#4527A0,color:#fff
-    classDef bpClass fill:#00897B,stroke:#00695C,color:#fff
-    classDef genaiClass fill:#6A1B9A,stroke:#4A148C,color:#fff
-    classDef decisionClass fill:#00695C,stroke:#004D40,color:#fff
-    classDef analyticsClass fill:#283593,stroke:#1A237E,color:#fff
-    classDef outClass fill:#F57C00,stroke:#E65100,color:#fff
-    class CFPB,B77 srcClass
-    class TAX,FEAT,BP6EV,CTX goldClass
-    class BP1,BP2,BP3,BP4,BP5 bpClass
-    class BP6 genaiClass
-    class BP7 decisionClass
-    class BP8G,PBI analyticsClass
-    class ROLLUP outClass
-```
-
-One shared CFPB + BANKING77 Gold layer feeds five independently-gated predictive/analytical BPs (BP1-BP5);
-BP6 layers retrieval-grounded GenAI on top of BANKING77's narrative text; BP7 re-scores BP2/BP3/BP4/BP5's
-own outputs into one deterministic, transparent decision layer; BP8 aggregates every upstream BP's real
-Gold-layer output into Power BI-ready tables; the suite-wide rollup comprehends all eight. Full diagram,
-shared-infrastructure table, and the cross-cutting ECOA/Reg B - UDAAP - NIST AI RMF - GLBA governance
-matrix: [`docs/architecture/README.md`](docs/architecture/README.md).
+For the fully-labeled deep-dive version of that same mechanism - plus the shared-infrastructure
+table, the cross-cutting ECOA/Reg B / UDAAP / NIST AI RMF / GLBA governance matrix, and the
+per-BP gate-by-gate status table - see [`docs/architecture/README.md`](docs/architecture/README.md).
 
 <br>
 

@@ -11,6 +11,12 @@ owner has not yet executed a step for real, it is disclosed as such rather than 
 here currently carries that caveat (all 8 BPs are real-run confirmed), but the convention stays in force
 for anything added later.
 
+<p align="center">
+  <img src="c360_architecture_diagram.svg" alt="Customer360 Navigator full-suite system architecture diagram, all 8 Business Problems" width="100%">
+</p>
+
+<br>
+
 ## How to read this set
 
 | Document | Covers |
