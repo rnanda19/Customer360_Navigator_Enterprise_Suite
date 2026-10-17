@@ -61,7 +61,7 @@
 # library plus fastapi/pydantic already installed). It backs the new GET /metrics/prometheus
 # endpoint (real Prometheus exposition-format metrics). See MONITORING.md at the repo root.
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 LABEL org.opencontainers.image.title="Customer360 Navigator - BP7 Customer Navigator Decision Engine"
 LABEL org.opencontainers.image.description="Read-only lookup service over BP7's real, persisted, full-population priority-decision records - never a live model/API call, never a prediction, never a fabricated result. Self-test performs a real internal-consistency check, makes zero external network calls."
