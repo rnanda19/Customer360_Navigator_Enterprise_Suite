@@ -37,7 +37,7 @@
 # dependency list above is UNCHANGED - the new services.service_auth import needs only fastapi
 # (already installed above), nothing new.
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 LABEL org.opencontainers.image.title="Customer360 Navigator - BP5 Root-Cause & Driver Analytics (Reporting)"
 LABEL org.opencontainers.image.description="Read-only reporting service over BP5's real, committed Gate 5 prioritized root-cause reports and Gate 7 executive rollup manifest - not an ML inference service and not a GenAI service. Association only, never causal."
