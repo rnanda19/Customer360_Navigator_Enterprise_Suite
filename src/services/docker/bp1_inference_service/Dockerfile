@@ -26,7 +26,7 @@
 # dependency list above is UNCHANGED - the new services.service_auth import needs only fastapi
 # (already installed above), nothing new.
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 LABEL org.opencontainers.image.title="Customer360 Navigator - BP1 Inference Service"
 LABEL org.opencontainers.image.description="Predicts a BANKING77 customer-intent class from raw complaint text."
