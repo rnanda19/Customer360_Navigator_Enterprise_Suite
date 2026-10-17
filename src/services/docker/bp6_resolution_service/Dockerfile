@@ -35,7 +35,7 @@
 # dependency list above is UNCHANGED - the new services.service_auth import needs only fastapi
 # (already installed above), nothing new.
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 LABEL org.opencontainers.image.title="Customer360 Navigator - BP6 GenAI Resolution Assistant"
 LABEL org.opencontainers.image.description="Real, live, grounded-generation resolution-recommendation service. Every /resolve call makes one real external call to the Google Gemini API - never a mock or cached response."
