@@ -52,7 +52,7 @@
 # dependency list above is UNCHANGED - the new services.service_auth import needs only fastapi
 # (already installed above), nothing new.
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 LABEL org.opencontainers.image.title="Customer360 Navigator - BP4 Customer Journey Analytics (Decision Records)"
 LABEL org.opencontainers.image.description="Read-only lookup/query service over BP4's real, persisted per-issue-cluster review-priority decision/reporting records - not an ML inference service (BP4 fits no model)."
