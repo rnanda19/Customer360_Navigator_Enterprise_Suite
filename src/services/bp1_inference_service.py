@@ -17,6 +17,7 @@ naming exactly what to run.
 
 from __future__ import annotations
 
+import logging
 import sys
 import time
 from contextlib import asynccontextmanager
@@ -41,11 +42,17 @@ from services.service_common import (  # noqa: E402
     resolve_project_root,
     top3_from_proba,
 )
+from services.serving_contracts import (  # noqa: E402
+    get_correlation_id,
+    install_serving_contracts,
+    log_event,
+)
 
 BP_ID = "bp1"
 MAX_BATCH_SIZE = 100
 
 _handle: Optional[ModelBundleHandle] = None
+_logger = logging.getLogger("services.bp1_inference_service")
 
 
 def _default_joblib_path() -> Path:
@@ -74,6 +81,12 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# Phase H: centralized model serving contracts (src/services/serving_contracts.py) - additive,
+# header-only (X-Correlation-ID, X-API-Version); does not change any response model above or
+# below this line. BP1 is this phase's reference-instance wiring (see serving_contracts.py's own
+# module docstring); generalizing to BP2-BP8 is an explicit, disclosed follow-up.
+install_serving_contracts(app, api_version="1.0")
 
 
 class BP1PredictRequest(BaseModel):
@@ -129,7 +142,10 @@ def health():
     tags=["inference"],
     dependencies=[Depends(require_api_key)],
 )
-def predict(request: BP1PredictRequest):
+def predict(
+    request: BP1PredictRequest,
+    correlation_id: str = Depends(get_correlation_id),
+):
     if _handle is None or not _handle.is_loaded:
         error = _handle.error if _handle is not None else "Model handle not initialized."
         raise HTTPException(status_code=503, detail=f"BP1 model is not loaded: {error}")
@@ -172,10 +188,20 @@ def predict(request: BP1PredictRequest):
                 batch_latency_ms,
                 prediction.predicted_label,
             )
-    except Exception:  # noqa: BLE001 - deliberately broad: ANY monitoring failure must degrade
-        # silently from the caller's point of view, never surface as a 5xx on a real prediction.
-        pass  # nosec B110 - intentional: monitoring is best-effort observability, never a
-        # dependency of inference; the failure itself is swallowed by design, not hidden by accident.
+        log_event(
+            _logger,
+            bp_id=BP_ID,
+            event="predict_succeeded",
+            correlation_id=correlation_id,
+            n_predictions=len(predictions),
+            latency_ms=round(batch_latency_ms, 3),
+        )
+    except Exception:  # noqa: BLE001 - deliberately broad: ANY monitoring/logging failure must
+        # degrade silently from the caller's point of view, never surface as a 5xx on a real
+        # prediction.
+        pass  # nosec B110 - intentional: monitoring/structured-logging is best-effort
+        # observability, never a dependency of inference; the failure itself is swallowed by
+        # design, not hidden by accident.
 
     return BP1PredictResponse(
         champion_model=_handle.bundle["champion_name"],

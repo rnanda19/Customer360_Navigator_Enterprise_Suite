@@ -33,6 +33,7 @@ from sklearn.preprocessing import LabelEncoder
 from models.model_persistence import save_model_bundle
 from monitoring import prediction_monitor
 from services.service_common import resolve_project_root
+from services.serving_contracts import API_VERSION_HEADER, CORRELATION_ID_HEADER
 
 MODULE_PATH = "services.bp1_inference_service"
 TEST_API_KEY = "test-api-key-for-ci"
@@ -242,6 +243,28 @@ def test_predict_writes_one_event_per_prediction_in_a_batch(
 
     events = prediction_monitor.read_prediction_events(log_path=fake_log)
     assert len(events) == 2
+
+
+def test_predict_response_carries_phase_h_serving_contract_headers(loaded_client):
+    """Proves Phase H's additive serving-contracts module is actually wired into this real
+    endpoint - not merely imported. The response body shape (checked in the other predict tests
+    above) is completely unaffected; this only checks the two new, additive headers."""
+    response = loaded_client.post("/predict", json={"texts": ["my card was lost please block it"]})
+    assert response.status_code == 200
+    assert response.headers.get(API_VERSION_HEADER) == "1.0"
+    correlation_id = response.headers.get(CORRELATION_ID_HEADER)
+    assert correlation_id
+    assert len(correlation_id) == 36
+
+
+def test_predict_echoes_back_a_caller_supplied_correlation_id(loaded_client):
+    response = loaded_client.post(
+        "/predict",
+        json={"texts": ["my card was lost please block it"]},
+        headers={CORRELATION_ID_HEADER: "caller-supplied-789"},
+    )
+    assert response.status_code == 200
+    assert response.headers.get(CORRELATION_ID_HEADER) == "caller-supplied-789"
 
 
 def test_predict_still_succeeds_when_monitoring_write_fails(loaded_client, service_module, monkeypatch):
