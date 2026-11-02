@@ -102,7 +102,14 @@ USER c360service
 
 EXPOSE 8007
 
+# Production-hardening addition (platform PORT binding - BP7 hardening pass Gap 2): Render (and
+# most PaaS platforms) inject a real PORT environment variable the container must listen on,
+# rather than always the EXPOSE'd 8007. HEALTHCHECK and CMD below both read it live via shell
+# expansion (${PORT:-8007}), falling back to 8007 unchanged for local `docker run`/Compose use
+# where PORT is never set - no behavior change for the existing local/CI workflow.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8007/health', timeout=3).status == 200 else 1)"
+    CMD python -c "import os,urllib.request,sys; port=os.environ.get('PORT','8007'); sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{port}/health', timeout=3).status == 200 else 1)"
 
-CMD ["uvicorn", "services.bp7_decision_engine_service:app", "--host", "0.0.0.0", "--port", "8007"]
+# Shell form (not the exec-array form used before this change) so ${PORT:-8007} is expanded by
+# the shell at container start.
+CMD uvicorn services.bp7_decision_engine_service:app --host 0.0.0.0 --port ${PORT:-8007}
