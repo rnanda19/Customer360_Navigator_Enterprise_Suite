@@ -1,0 +1,3 @@
+{"bp_id": "bp4", "change_type": "initial", "config_champion_identifier": "polars_lazy_streaming", "previous_identifier": null, "problem_type": "benchmark_pipeline", "recorded_at_utc": "2026-11-02T11:17:45.344603+00:00"}
+{"bp_id": "bp6", "change_type": "initial", "config_champion_identifier": "taxonomy_bucket_match", "previous_identifier": null, "problem_type": "retrieval_strategy", "recorded_at_utc": "2026-11-02T11:17:45.378205+00:00"}
+{"bp_id": "bp7", "change_type": "initial", "config_champion_identifier": "correlation_aware_plus_lr_diagnostic", "previous_identifier": null, "problem_type": "rule_engine", "recorded_at_utc": "2026-11-02T11:17:45.394519+00:00"}
