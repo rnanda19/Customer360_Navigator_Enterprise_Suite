@@ -18,7 +18,7 @@ tokenizers>=0.20
 # Classical ML (BP3, BP5, BP7) - the 6-model benchmark set
 scikit-learn>=1.5
 xgboost>=2.1
-catboost>=1.2
+catboost>=1.2.10
 lightgbm>=4.5
 
 # Explainability / stats
