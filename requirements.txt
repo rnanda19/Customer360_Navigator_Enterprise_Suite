@@ -12,7 +12,7 @@ PyYAML>=6.0
 # NLP (BP1, BP2, BP6)
 spacy>=3.7
 sentence-transformers>=3.1
-transformers>=4.44
+transformers>=5.17.0
 tokenizers>=0.20
 
 # Classical ML (BP3, BP5, BP7) - the 6-model benchmark set
