@@ -171,6 +171,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
 import os
 import subprocess
 import threading
@@ -200,9 +201,10 @@ from prometheus_client.platform_collector import PlatformCollector
 from prometheus_client.process_collector import ProcessCollector
 from pydantic import BaseModel, Field
 
-from services.service_auth import require_api_key
+from services.service_auth import API_KEY_ENV_VAR, require_api_key
 
 BP_ID = "bp7"
+logger = logging.getLogger("c360.bp7_decision_engine_service")
 DEFAULT_SELF_TEST_SAMPLE_SIZE = 25
 MAX_SELF_TEST_SAMPLE_SIZE = 500
 
@@ -678,6 +680,18 @@ async def _self_test_metrics_refresh_loop(interval_seconds: float) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _handle, _self_test_background_task
+    # Production-hardening addition (startup config validation - BP7 hardening pass Gap 4):
+    # C360_API_KEY's absence was previously only discovered lazily, on the first protected
+    # request (see services.service_auth.require_api_key's own 503). This surfaces the same
+    # real misconfiguration at startup, in whatever log stream the deploy platform captures -
+    # a warning, not a hard failure, since /health must stay reachable (and does, unauthenticated)
+    # even when misconfigured, matching this project's existing fail-closed-per-request design.
+    if not os.environ.get(API_KEY_ENV_VAR):
+        logger.warning(
+            "%s is not set at startup. Every protected endpoint will refuse requests with a "
+            "503 until it is set to a real secret - see SECURITY.md and .env.example.",
+            API_KEY_ENV_VAR,
+        )
     project_root = resolve_project_root()
     _handle = DecisionEngineHandle(
         _default_records_csv_path(project_root), _default_summary_json_path(project_root)
@@ -800,6 +814,18 @@ _ERROR_CODE_BY_STATUS = {
 }
 
 
+def _apply_security_headers(response: Response) -> None:
+    """Baseline response headers (BP7 hardening pass Gap 3) - cheap, standard, and safe
+    defaults for a JSON-only API with no browser-rendered HTML anywhere in this service:
+    refuses MIME-sniffing, refuses being framed, and never forwards the full request URL as a
+    Referer header to a downstream link. Applied to every response this service returns,
+    including the 429 rate-limit response (set directly before this function exists in the
+    code, so applied there explicitly too)."""
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+
+
 def _request_id_of(request: Request) -> str:
     existing = getattr(request.state, "request_id", None)
     if existing:
@@ -836,6 +862,7 @@ async def observability_middleware(request: Request, call_next):
         response = JSONResponse(status_code=429, content=payload)
         response.headers["X-Request-ID"] = request_id
         response.headers["Retry-After"] = str(retry_after)
+        _apply_security_headers(response)
         _record_request_metric(request.url.path, 429, latency_ms)
         HTTP_REQUESTS_TOTAL.labels(method=request.method, route=request.url.path, status_code="429").inc()
         HTTP_REQUEST_DURATION_SECONDS.labels(method=request.method, route=request.url.path).observe(
@@ -858,6 +885,7 @@ async def observability_middleware(request: Request, call_next):
 
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Response-Time-Ms"] = f"{latency_ms:.2f}"
+    _apply_security_headers(response)
     return response
 
 
