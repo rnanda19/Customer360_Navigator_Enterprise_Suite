@@ -1,11 +1,11 @@
 # Core data / performance (WARP standard)
 polars>=1.9
-duckdb>=1.1
-pyarrow>=17.0
+duckdb>=1.5.5
+pyarrow>=25.0.1
 numpy>=1.26
 pandas>=2.2
 numba>=0.60
-psutil>=6.0
+psutil>=7.2.2
 joblib>=1.3
 PyYAML>=6.0
 
@@ -18,13 +18,13 @@ tokenizers>=0.20
 # Classical ML (BP3, BP5, BP7) - the 6-model benchmark set
 scikit-learn>=1.5
 xgboost>=2.1
-catboost>=1.2
+catboost>=1.2.10
 lightgbm>=4.5
 
 # Explainability / stats
-shap>=0.46
+shap>=0.49.1
 scipy>=1.13
-statsmodels>=0.14
+statsmodels>=0.15.0
 
 # Reporting (HYPER shared reporting module)
 python-docx>=1.1
@@ -69,7 +69,7 @@ google-genai>=1.0
 mlflow>=2.9
 
 # Quality / CI (HYPER)
-pytest>=8.3
+pytest>=9.1.1
 black>=24.8
 flake8>=7.1
 ruff>=0.16
@@ -91,11 +91,22 @@ isort==9.0.1
 # ruff: added 2026-09-26 as a second, independent lint gate (see pyproject.toml's [tool.ruff]
 # for exact scope/rationale) - pinned exactly, same reasoning as the other tools above.
 ruff==0.16.9
-# mypy pinned below 2.x deliberately: mypy 2.3.1 (the version an unpinned install would currently
-# resolve to) crashes with an INTERNAL ERROR against this codebase (verified directly, 2026-09-26)
-# - not a real type-checking finding, a genuine mypy regression on this combination of files.
-# 1.11.2 is the newest 1.x release verified to run cleanly here.
-mypy==1.11.2
+# mypy bumped to 2.3.1 (Phase J Dependabot triage, 2026-11-02 - Dependabot PR #5): the prior
+# comment here (through 2026-09-26) claimed mypy 2.3.1 crashed with an INTERNAL ERROR against
+# this codebase. Re-verified directly before merging this bump, using the exact invocation
+# code-quality.yml's CI job runs (`mypy src/ --config-file pyproject.toml`): no crash was
+# reproduced. mypy 2.3.1 completes cleanly and reports 62 real findings across 22 files - fewer
+# than 1.11.2's own 90 findings across 29 files on the identical command (2.3.1 drops several
+# `import-untyped` yaml-stub warnings that `ignore_missing_imports = true` apparently now also
+# suppresses, plus a couple of python-docx `Any`-attribute narrowing cases; the real substantive
+# findings - e.g. the pydantic create_model overloads, the polars type-alias issue - are present
+# under both versions). mypy remains a non-blocking CI check (`|| true` in code-quality.yml) and
+# this bump does not fix or hide any of those 62 findings - they are real, disclosed, pre-existing
+# gaps for a future cleanup pass, not addressed in this dependency-triage phase. Either the
+# original 2026-09-26 claim was specific to a different mypy 2.3.1 build/environment than the one
+# tested here, or it no longer reproduces - this project does not know which, and says so plainly
+# rather than re-asserting a claim it could not itself reproduce.
+mypy==2.3.1
 bandit==1.9.4
 # nbformat/pyflakes: back scripts/check_notebook_syntax.py's real methodology (nbformat.read()
 # + ast.parse() + pyflakes per notebook cell) - the script referenced by Makefile's
@@ -104,7 +115,7 @@ bandit==1.9.4
 # script itself had never actually been committed, so both call sites were silent no-ops.
 nbformat==5.11.1
 pyflakes==4.0.0
-pre-commit>=3.8
+pre-commit>=4.6.2
 # pydantic-settings: src/utils/settings.py (hygiene pass, 2026-09-26) - pydantic v2 split
 # BaseSettings out of pydantic core into this separate package.
 pydantic-settings>=2.5

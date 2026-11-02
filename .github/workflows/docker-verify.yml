@@ -19,7 +19,7 @@ jobs:
   docker-validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Phase C correction (BP7 hardening pass): actions/checkout does NOT fetch real
           # Git LFS object content by default - without this, the BP7 Gate 5 CSV checks out
