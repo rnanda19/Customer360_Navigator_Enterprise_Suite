@@ -81,6 +81,27 @@ the fully manual path below configures the identical service by hand.
    placeholder file instead of the real data — the build will likely still succeed, but the
    deployed service would serve wrong/empty results. This is why step 1 above says to **confirm**
    the artifacts are real and committed, not just "committed."
+
+   **Phase C correction (verified 2026-11-02):** an earlier CI run (41402956096) proved this
+   exact failure mode for real — `actions/checkout@v4` without `lfs: true` checked out the
+   pointer, BP7's own `/health`/`/model-info` correctly (if confusingly) reported
+   `status: "not_configured"` with a real HTTP 200, and the job still reported overall success.
+   `.github/workflows/docker-verify.yml` now sets `lfs: true` on checkout and runs a dedicated,
+   no-placeholder-fallback validation step (exact byte size, sha256, schema, row count) before
+   building BP7's image at all — a missing or invalid real artifact now fails the CI job outright,
+   the same signal you'd want before trusting a Render deploy. Separately, the real LFS object's
+   presence on GitHub's own storage was directly confirmed (not assumed) via a signed download URL
+   from GitHub's LFS batch API reporting the exact expected size (542,882,377 bytes) for this
+   artifact's sha256 — so as of that date, a fresh Render build pulling this repo gets the real
+   file, not the pointer.
+
+   **Bandwidth note:** GitHub's free plan includes 10 GiB/month of Git LFS bandwidth. With
+   `lfs: true` now set, every `docker-verify.yml` run (it currently triggers on every push and
+   pull request) downloads the real ~540MB object again, which is roughly 19 runs before that
+   free monthly quota is used up. If this repo pushes more often than that in a month, either
+   narrow the workflow's trigger (e.g. `paths:` filtering, or `workflow_dispatch` for on-demand
+   runs) or budget for the overage - this wasn't changed here since it's a scope/cost trade-off,
+   not a correctness issue.
 2. **Generate a real API key** for this deployment (do not reuse a local dev value):
    ```
    python -c "import secrets; print(secrets.token_urlsafe(32))"

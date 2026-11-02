@@ -20,6 +20,90 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Phase C correction (BP7 hardening pass): actions/checkout does NOT fetch real
+          # Git LFS object content by default - without this, the BP7 Gate 5 CSV checks out
+          # as its ~130-byte LFS pointer text, not the real ~540MB file, and every step below
+          # silently operates on the wrong file. Confirmed as the real, reproduced root cause
+          # of run 41402956096 reporting BP7 health status "not_configured" despite an overall
+          # green job.
+          lfs: true
+      - name: "Validate BP7's real Gate 5 artifact (Phase C correction - hard gate, no placeholder fallback)"
+        run: |
+          set -e
+          CSV=notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv
+          JSON=notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_decision_layer_summary.json
+          EXPECTED_SIZE=542882377
+          EXPECTED_SHA256=fe1202c39aae6bdf00be242d3dce14f867cf53354c3a5e11d75d796184e01d85
+
+          echo "--- BP7 Gate 5 artifact validation (Phase C correction) ---"
+          echo "This step deliberately has NO placeholder fallback for BP7: a missing or invalid"
+          echo "real artifact fails this job, it never substitutes fake data and reports success."
+
+          if [ ! -f "$CSV" ]; then
+            echo "FAIL: $CSV does not exist in this checkout."
+            exit 1
+          fi
+          if [ ! -f "$JSON" ]; then
+            echo "FAIL: $JSON does not exist in this checkout."
+            exit 1
+          fi
+
+          # A Git LFS pointer file (what checkout leaves behind WITHOUT 'lfs: true', or if the real
+          # object was never actually pushed to GitHub) is ~130 bytes of plain text starting with
+          # this exact line - checked explicitly so the failure message names the real cause
+          # instead of a generic size mismatch.
+          if head -c 60 "$CSV" | grep -q "^version https://git-lfs.github.com/spec/v1"; then
+            echo "FAIL: $CSV is a Git LFS POINTER, not the real file."
+            echo "      Either 'lfs: true' above did not take effect, or the real LFS object was"
+            echo "      never pushed to GitHub in the first place (a push from a machine without"
+            echo "      Git LFS installed silently uploads only the pointer - see"
+            echo "      RENDER_DEPLOYMENT.md's Git LFS note)."
+            exit 1
+          fi
+
+          ACTUAL_SIZE=$(stat -c%s "$CSV")
+          if [ "$ACTUAL_SIZE" != "$EXPECTED_SIZE" ]; then
+            echo "FAIL: $CSV is $ACTUAL_SIZE bytes, expected exactly $EXPECTED_SIZE."
+            exit 1
+          fi
+
+          ACTUAL_SHA256=$(sha256sum "$CSV" | cut -d' ' -f1)
+          if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+            echo "FAIL: $CSV sha256 is $ACTUAL_SHA256, expected $EXPECTED_SHA256."
+            exit 1
+          fi
+
+          HEADER=$(head -1 "$CSV")
+          case ",$HEADER," in
+            *",Complaint ID,"*) ;;
+            *)
+              echo "FAIL: $CSV header is missing the required 'Complaint ID' column."
+              echo "      Header: $HEADER"
+              exit 1
+              ;;
+          esac
+
+          ACTUAL_ROWS=$(( $(wc -l < "$CSV") - 1 ))
+          SUMMARY_ROWS=$(python3 -c "import json; print(json.load(open('$JSON'))['live_row_count'])")
+          if [ "$ACTUAL_ROWS" != "$SUMMARY_ROWS" ]; then
+            echo "FAIL: CSV has $ACTUAL_ROWS real data rows but $JSON's live_row_count says $SUMMARY_ROWS."
+            exit 1
+          fi
+          if [ "$ACTUAL_ROWS" != "1048575" ]; then
+            echo "FAIL: CSV has $ACTUAL_ROWS real data rows, expected exactly 1048575 for this pinned artifact."
+            exit 1
+          fi
+
+          # A real Complaint ID from the validated artifact itself (the first real data row),
+          # carried into later steps for a genuine authenticated GET /decide/{complaint_id} lookup
+          # - never a hardcoded or fabricated id.
+          REAL_COMPLAINT_ID=$(sed -n '2p' "$CSV" | cut -d',' -f1)
+          echo "Real Complaint ID from validated artifact: $REAL_COMPLAINT_ID"
+          echo "BP7_REAL_COMPLAINT_ID=$REAL_COMPLAINT_ID" >> "$GITHUB_ENV"
+          echo "BP7_VALIDATED_ROW_COUNT=$ACTUAL_ROWS" >> "$GITHUB_ENV"
+
+          echo "PASS: BP7 Gate 5 artifact is real, correctly sized, correct checksum, correct schema, correct row count ($ACTUAL_ROWS)."
       - name: Validate docker-compose configs (BP1 + BP2 + BP3 inference services + BP4 decision service + BP5 driver-reporting service + BP6 resolution-assistant service + BP7 decision-engine service)
         run: |
           # C360_API_KEY is a required-at-config-time var in every one of these 7 compose files
@@ -106,9 +190,9 @@ jobs:
           # is ~540MB, never reproduced here) is written ONLY if the real file is genuinely absent
           # from this checkout (e.g. a fork/branch predating that gate's first real run) - this job
           # never overwrites a real, already-committed artifact with a fake one.
-          mkdir -p notebooks/bp7_customer_navigator_decision_engine/artifacts
-          [ -f notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv ] || echo 'Complaint ID,priority_score,intervention_flag,recommended_action,reason_codes,contribution_bp2,contribution_bp3,contribution_bp4,bp2_predicted_label,bp2_confidence,bp3_predicted_label,bp3_probability_positive_class,bp4_review_priority_tier,bp4_review_priority_score,bp4_join_status,bp1_context_status,bp5_outcome_1_context,bp5_outcome_2_context,tags_group' > notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv
-          [ -f notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_decision_layer_summary.json ] || echo '{"live_row_count": 0, "champion_rule_scheme": "placeholder", "champion_weights_normalized": {"bp2": 0.33, "bp3": 0.33, "bp4": 0.34}, "intervention_threshold": 0.5, "generated_at_utc": "1970-01-01T00:00:00+00:00"}' > notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_decision_layer_summary.json
+          # No placeholder fallback for BP7 here (Phase C correction) - the dedicated validation
+          # step right after checkout above already hard-failed the job if the real artifact were
+          # missing or invalid, so by this point it is guaranteed real.
           docker build -f src/services/docker/bp7_decision_engine_service/Dockerfile -t c360-bp7-decision-engine-service:ci-smoke .
           # Activation Layer needs no placeholder artifact at all - it has no model/data COPY step
           # (see its own Dockerfile header: the lightest image in the suite).
@@ -157,13 +241,14 @@ jobs:
           check_health c360-bp5-driver-service c360-bp5-driver-service:ci-smoke 8005
           check_health c360-bp6-resolution-service c360-bp6-resolution-service:ci-smoke 8006 -e GEMINI_API_KEY=ci-smoke-test-placeholder-not-real
           check_health c360-bp7-decision-engine-service c360-bp7-decision-engine-service:ci-smoke 8007
-          # --- Gap 5 (BP7 hardening pass): authenticated smoke test ---
+          # --- Gap 5 (BP7 hardening pass) + Phase C correction: authenticated smoke test ---
           # check_health() above only ever probes the two UNauthenticated routes (/ and
           # /health) - it never proves the real auth path (service_auth.require_api_key)
-          # actually works end-to-end in CI, only that the container starts. This block does
-          # NOT modify check_health(); it starts a SEPARATE, fresh BP7 container from the same
-          # already-built image on a different host port, and exercises one real protected
-          # route (GET /model-info) both with and without a real X-API-Key header.
+          # actually works end-to-end, that the artifact actually LOADED (status: ok, not
+          # not_configured), or that a real decision lookup succeeds. This block does NOT modify
+          # check_health(); it starts a SEPARATE, fresh BP7 container from the same already-built
+          # image on a different host port, using BP7_REAL_COMPLAINT_ID/BP7_VALIDATED_ROW_COUNT
+          # exported by the artifact-validation step near the top of this job.
           echo "--- c360-bp7-decision-engine-service authenticated smoke test ---"
           docker run -d --name c360-bp7-authed-smoke -p 8017:8007 -e C360_API_KEY=ci-smoke-test-key c360-bp7-decision-engine-service:ci-smoke
           ok=""
@@ -189,20 +274,68 @@ jobs:
             docker rm -f c360-bp7-authed-smoke >/dev/null 2>&1 || true
             exit 1
           fi
+          # Phase C correction: a 200 status code alone is not enough - run 41402956096 returned
+          # a real HTTP 200 with a JSON body reporting status: "not_configured" (the artifact had
+          # silently been the LFS pointer, not the real file). Assert the BODY actually says "ok"
+          # and carries real, non-null Gate 5 metadata, and that the reported row count matches
+          # the artifact this job independently validated above - never trust the status code alone.
           python3 -c "
-          import json
+          import json, os, sys
           with open('/tmp/bp7_model_info.json') as f:
               body = json.load(f)
           assert isinstance(body, dict) and body, f'Empty or non-object /model-info body: {body}'
+          status_val = body.get('status')
+          error_val = body.get('error')
+          if status_val != 'ok':
+              print('FAIL: /model-info status is {!r}, not ok - error: {}'.format(status_val, error_val))
+              sys.exit(1)
+          expected_rows = int(os.environ['BP7_VALIDATED_ROW_COUNT'])
+          actual_rows = body.get('live_row_count')
+          if actual_rows != expected_rows:
+              print('FAIL: /model-info live_row_count is {}, expected {}.'.format(actual_rows, expected_rows))
+              sys.exit(1)
+          for field in ('champion_rule_scheme', 'champion_weights_normalized', 'generated_at_utc'):
+              if body.get(field) is None:
+                  print(f'FAIL: /model-info field {field!r} is null/missing.')
+                  sys.exit(1)
+          print('PASS: /model-info reports status=ok, live_row_count matches the validated artifact, required metadata present.')
           print('Real authenticated /model-info body keys:', sorted(body.keys()))
           "
           unauth_status=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8017/model-info")
-          echo "Unauthenticated GET /model-info status (must be 401, never 200): ${unauth_status}"
-          if [ "${unauth_status}" = "200" ]; then
-            echo "SECURITY REGRESSION: /model-info returned 200 with no API key - auth is not enforced."
+          echo "Unauthenticated GET /model-info status (must be exactly 401): ${unauth_status}"
+          if [ "${unauth_status}" != "401" ]; then
+            echo "SECURITY REGRESSION: /model-info with no API key returned ${unauth_status}, expected exactly 401."
+            docker logs c360-bp7-authed-smoke
             docker rm -f c360-bp7-authed-smoke >/dev/null 2>&1 || true
             exit 1
           fi
+          # Phase C correction: a real decision lookup, using a real Complaint ID read from the
+          # validated artifact itself (never a hardcoded or fabricated id) - proves the service
+          # actually serves real, already-computed Gate 5 output, not just that /health and
+          # /model-info respond.
+          decide_status=$(curl -s -o /tmp/bp7_decide.json -w "%{http_code}" -H "X-API-Key: ci-smoke-test-key" "http://localhost:8017/decide/${BP7_REAL_COMPLAINT_ID}")
+          echo "Authenticated GET /decide/${BP7_REAL_COMPLAINT_ID} status: ${decide_status}"
+          cat /tmp/bp7_decide.json
+          if [ "${decide_status}" != "200" ]; then
+            echo "FAIL: real decision lookup for Complaint ID ${BP7_REAL_COMPLAINT_ID} did not return 200 - dumping logs:"
+            docker logs c360-bp7-authed-smoke
+            docker rm -f c360-bp7-authed-smoke >/dev/null 2>&1 || true
+            exit 1
+          fi
+          python3 -c "
+          import json, os, sys
+          with open('/tmp/bp7_decide.json') as f:
+              body = json.load(f)
+          expected_id = int(os.environ['BP7_REAL_COMPLAINT_ID'])
+          actual_id = body.get('complaint_id')
+          if actual_id != expected_id:
+              print('FAIL: /decide/{} returned complaint_id={!r}.'.format(expected_id, actual_id))
+              sys.exit(1)
+          if not body.get('recommended_action'):
+              print('FAIL: /decide response is missing recommended_action.')
+              sys.exit(1)
+          print('PASS: real GET /decide/{}/ returned a real decision record:'.format(expected_id), body.get('recommended_action'))
+          "
           docker logs c360-bp7-authed-smoke
           docker rm -f c360-bp7-authed-smoke >/dev/null 2>&1 || true
           check_health c360-activation-service c360-activation-service:ci-smoke 8010
