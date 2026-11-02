@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
       # Hygiene pass (2026-09-26): real coverage reporting (pytest-cov, already a declared
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "3.11" }
       # nbformat/pyflakes pinned in requirements.txt (2026-09-26): scripts/check_notebook_syntax.py
       # itself had never actually been committed until now - this step and the Makefile's

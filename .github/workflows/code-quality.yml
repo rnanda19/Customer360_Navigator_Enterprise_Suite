@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "3.11" }
       # Pinned exactly, matching requirements.txt's own pins (2026-09-26 CI incident -
       # see that file's comment) - an unversioned install here silently drifted to
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "3.11" }
       # Pinned exactly, same reasoning as the lint job above.
       - run: pip install bandit==1.9.4
