@@ -1,0 +1,47 @@
+name: MLOps Governance & Registry Verification
+
+# PHASE D (Enterprise MLOps, Model Registry and Model Governance) CI gate. Runs the real,
+# isolated (temp-sqlite) src/mlops/ + src/monitoring/prediction_monitor.py test suite on every
+# push/PR, then runs a standalone governance/promotion/rollback demonstration against a tiny,
+# genuinely-fit-in-CI synthetic model so this gate exercises the real mechanics end to end without
+# needing the real BANKING77 CSVs (intentionally gitignored, per data/.gitignore - the actual real
+# fresh refit against BANKING77 was run and verified locally; see
+# scripts/mlops/bp1_train_and_register.py and MLOPS_TEST_REPORT.md for that evidence, which this
+# CI job does not and cannot reproduce by design). This workflow does NOT claim to validate BP1's
+# real accuracy - only that the registry/governance/promotion/rollback CODE works correctly,
+# exactly like the synthetic-data unit tests it runs.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  mlops-governance-and-registry:
+    name: Real MLflow registry + governance + promotion + rollback mechanics
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install mlflow + runtime deps needed by src/mlops and src/monitoring
+        run: |
+          pip install mlflow>=2.9 scikit-learn>=1.5 numpy>=1.26 pandas>=2.2 joblib>=1.3 PyYAML>=6.0 pytest>=8.3
+
+      - name: Run the real (isolated, temp-sqlite) MLOps test suite
+        run: |
+          pytest tests/mlops/ tests/monitoring/test_prediction_monitor.py -v --cov=src/mlops --cov=src/monitoring --cov-report=term-missing | tee mlops_pytest_report.txt
+          echo "## MLOps test report" >> "$GITHUB_STEP_SUMMARY"
+          grep -A 200 "^Name " mlops_pytest_report.txt >> "$GITHUB_STEP_SUMMARY" || tail -n 30 mlops_pytest_report.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: End-to-end governance/promotion/rejection/rollback demonstration (synthetic model, real mechanics)
+        run: python3 scripts/mlops/ci_demo.py
+
+      - name: Lint the new MLOps modules (bandit security scan, same tool/config this project already uses)
+        run: |
+          pip install bandit==1.9.4
+          bandit -c pyproject.toml -r src/mlops/ src/monitoring/prediction_monitor.py

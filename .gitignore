@@ -12,6 +12,12 @@ models/**/*.pkl
 models/**/*.onnx
 *.parquet
 
+# Phase D MLOps: local MLflow tracking store + registry (sqlite + artifact files) - machine-local
+# training/registration output, same rule already applied to models/**/*.joblib above. The real
+# governance/audit JSONL logs under governance/ are NOT ignored - those are small, real,
+# append-only evidence this project intentionally commits.
+mlruns/
+
 # Notebook checkpoints / caches
 .ipynb_checkpoints/
 **/__pycache__/

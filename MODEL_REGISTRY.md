@@ -2,6 +2,13 @@
 
 What's actually persisted on disk per business problem, and why some BPs have no entry here at all.
 
+**Phase D note (2026-11-02):** this file is the pre-existing, static, filesystem-level record of
+what each BP persists locally — it is unchanged by Phase D and remains accurate. Phase D added a
+separate, real MLflow-backed Model Registry (versioning, governance, promotion, rollback) for
+BP1 — see `MODEL_REGISTRY_GUIDE.md` and `MLOPS_ARCHITECTURE.md`. The two are complementary, not
+competing: this table is "what file is on disk, and does its hash match"; the MLflow registry is
+"which version is approved for production, and can we prove a rollback actually restores it."
+
 | BP | Persisted artifact | Champion | Real size | Fidelity check |
 |---|---|---|---|---|
 | BP1 | `models/bp1_customer_intent_classification/bp1_champion_pipeline.joblib` | logistic_regression | 2,965,623 bytes | Fresh-refit accuracy 0.822403, reload diff 0.0 |

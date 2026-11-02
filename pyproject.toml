@@ -54,6 +54,10 @@ dependencies = [
     # managed Prometheus/Grafana deployment (see that module's own docstring and MONITORING.md).
     # Floor matches requirements.txt's own new entry for consistency across the two files.
     "prometheus-client>=0.20",
+    # mlflow: src/mlops/tracking.py and src/mlops/registry.py directly import it (Phase D -
+    # Enterprise MLOps, Model Registry and Model Governance). Floor matches requirements.txt's
+    # new entry for consistency across the two files; see that file's comment for the reasoning.
+    "mlflow>=2.9",
 ]
 
 [tool.setuptools.packages.find]

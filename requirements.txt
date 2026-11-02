@@ -60,6 +60,14 @@ prometheus-client>=0.20
 # so installing it is only required to run BP6 Gate 5 for real, never for Gates 1-4.
 google-genai>=1.0
 
+# MLOps (Phase D - Enterprise MLOps, Model Registry and Model Governance). Floor chosen the same
+# way this file's own google-genai/PyYAML/joblib floors were chosen - no existing project
+# convention to match, so pinned to a version comfortably below what was actually installed and
+# tested in this delivery (3.17.2) rather than exactly matching it, so routine patch releases do
+# not force a floor bump. MLflow's alias-based Model Registry API (used by src/mlops/registry.py
+# instead of the deprecated stage-transition API) stabilized at 2.9.
+mlflow>=2.9
+
 # Quality / CI (HYPER)
 pytest>=8.3
 black>=24.8

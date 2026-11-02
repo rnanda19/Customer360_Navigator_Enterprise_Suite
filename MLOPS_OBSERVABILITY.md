@@ -45,11 +45,17 @@ staging it.
   wired to Slack/email/PagerDuty. Building that integration with nothing real running in production
   to alert about would itself be a hollow, untested-in-practice addition — exactly what this
   project's zero-fabrication standard exists to avoid.
-- **No MLflow-style model registry, approval workflow, or rollback pipeline.** The reviewer
-  checklist that prompted this work suggested a full `MLflow -> Model Registry -> Validation ->
-  Approval -> Deployment -> Monitoring -> Rollback` lifecycle. That is genuinely not built. Standing
-  up an actual MLflow tracking server, a real approval gate, and a real rollback mechanism would
-  require live infrastructure this project doesn't have a deployed target for yet, and a set of
-  empty directories that look like that lifecycle without ever being exercised would be worse than
-  not having them — it would look more finished than it is. `model_registry.py` above is the
-  honest, real subset of that idea: a consolidated view of what already exists, nothing more.
+- **UPDATE (Phase D, 2026-11-02): an MLflow-style model registry, approval workflow, and
+  rollback pipeline now exist for real** — see `MLOPS_ARCHITECTURE.md`, `src/mlops/`, and
+  `MLOPS_TEST_REPORT.md` for the full, verified picture. A real sqlite-backed MLflow tracking
+  store and Model Registry, a real governance gate with per-BP thresholds, a real
+  champion-challenger comparison, and a real promotion/approval/rollback state machine were all
+  built and locally run end to end against BP1's real BANKING77-trained champion — including a
+  real rejection of a deliberately weak candidate and a real rollback, independently re-verified
+  by re-querying the registry rather than trusting the rollback call's own report. What remains
+  genuinely not built: the same pipeline has not been re-run against BP2-BP8 (their real training
+  data lives outside this repo and was not re-fit in this pass — see `MLOPS_ARCHITECTURE.md` §3),
+  and no real external MLflow server or Vault-credential wiring exists (`MLFLOW_DEPLOYMENT_GUIDE.md`
+  §4-5) — only a local, file/sqlite-backed store. `model_registry.py` above (the pre-Phase-D,
+  read-only YAML-backed view) is unchanged and still serves its original, narrower purpose; it is
+  not superseded, since it reads live config state rather than requiring a prior registration step.
