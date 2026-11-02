@@ -71,7 +71,7 @@ Most complaint-analytics portfolios stop at a confusion matrix and a clean-looki
 | BP7 — Customer Navigator Decision Engine | Deterministic weighted-rule engine | Adverse impact ratio **0.908** (not flagged) | MEASURED — RECOMMENDED FOR PRODUCTION |
 | BP8 — Executive/Product Analytics | Power BI Gold-layer aggregation | **11** real Gold Parquet tables | MEASURED — build complete, all 3 gates confirmed |
 
-Suite-wide: **1,048,575** real CFPB rows, **13,083** real Banking77 rows, **1,000+** tests across the suite, **0** fabricated figures. Full detail, per BP, in `notebooks/<bp>/README.md` and `reports/<bp>/README.md`.
+Suite-wide: **1,048,575** real CFPB rows, **13,083** real Banking77 rows, **66** Jupyter notebooks across BP1-BP8, **646** tests across the suite (real, deduplicated `pytest tests/ --collect-only` count — not a sum of each BP's own scoped Production Readiness Matrix count, which re-includes shared/common test files and overcounts if added up), **0** fabricated figures. Full detail, per BP, in `notebooks/<bp>/README.md` and `reports/<bp>/README.md`.
 
 <br>
 
@@ -362,8 +362,8 @@ there is no separate web frontend; BP8's Power BI layer plays that role, see Bus
 above). `configs/` — per-BP YAML, gate results appended as marker-delimited blocks. `reports/` —
 MODEL_CARD.md, CHANGELOG.md, and each BP's executive rollup (dashboard/report/workbook/deck).
 `powerbi/gold_tables/` — BP8's Python-built Gold/semantic layer, plus `powerbi/pbix/` — the built,
-committed 7-page interactive `.pbix` executive report over those same real tables. `tests/` — 1,000+
-tests, mirroring `src/`
+committed 7-page interactive `.pbix` executive report over those same real tables. `tests/` — 646
+tests (full-suite, deduplicated `pytest tests/ --collect-only` count), mirroring `src/`
 1:1. `docs/` — architecture notes, BRD/FRD, data dictionary, and `evidence_ledger/EVIDENCE_LEDGER.md`,
 the append-only record of every real run. `scripts/` — the notebook-syntax and structural-check tooling
 every gate uses. `.github/workflows/` — 5 separate workflows, each its own real badge above:
@@ -391,7 +391,7 @@ A root `docker-compose.yml` builds and runs all 7 FastAPI services (BP1-BP7; BP8
 
 Each notebook resolves its own project root (env override, else a bounded upward walk for a directory
 containing both `configs/` and `src/`) rather than assuming a fixed path. `pytest tests/ -v` runs the full
-suite (1,000+ tests across BP1-8, services, and deployment-readiness modules). Docker Compose files for
+suite (646 tests across BP1-8, services, and deployment-readiness modules — the Production Readiness Matrix's per-BP counts each re-include shared/common test files, so summing them across all 8 BPs overcounts; 646 is the real, deduplicated, single full-suite number). Docker Compose files for
 each BP's inference/decision service live under `src/services/docker/` — built and validated in CI, never
 run behind a live public endpoint (see [Execution boundary](#execution-boundary-standing-rule-disclosed-on-purpose)
 below).
