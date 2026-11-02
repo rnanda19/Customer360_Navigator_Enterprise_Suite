@@ -157,4 +157,52 @@ jobs:
           check_health c360-bp5-driver-service c360-bp5-driver-service:ci-smoke 8005
           check_health c360-bp6-resolution-service c360-bp6-resolution-service:ci-smoke 8006 -e GEMINI_API_KEY=ci-smoke-test-placeholder-not-real
           check_health c360-bp7-decision-engine-service c360-bp7-decision-engine-service:ci-smoke 8007
+          # --- Gap 5 (BP7 hardening pass): authenticated smoke test ---
+          # check_health() above only ever probes the two UNauthenticated routes (/ and
+          # /health) - it never proves the real auth path (service_auth.require_api_key)
+          # actually works end-to-end in CI, only that the container starts. This block does
+          # NOT modify check_health(); it starts a SEPARATE, fresh BP7 container from the same
+          # already-built image on a different host port, and exercises one real protected
+          # route (GET /model-info) both with and without a real X-API-Key header.
+          echo "--- c360-bp7-decision-engine-service authenticated smoke test ---"
+          docker run -d --name c360-bp7-authed-smoke -p 8017:8007 -e C360_API_KEY=ci-smoke-test-key c360-bp7-decision-engine-service:ci-smoke
+          ok=""
+          for i in $(seq 1 15); do
+            if curl -sf "http://localhost:8017/health" > /dev/null; then
+              ok="1"
+              break
+            fi
+            sleep 2
+          done
+          if [ -z "${ok}" ]; then
+            echo "c360-bp7-authed-smoke never responded on /health - dumping logs:"
+            docker logs c360-bp7-authed-smoke
+            docker rm -f c360-bp7-authed-smoke >/dev/null 2>&1 || true
+            exit 1
+          fi
+          status=$(curl -s -o /tmp/bp7_model_info.json -w "%{http_code}" -H "X-API-Key: ci-smoke-test-key" "http://localhost:8017/model-info")
+          echo "Authenticated GET /model-info status: ${status}"
+          cat /tmp/bp7_model_info.json
+          if [ "${status}" != "200" ]; then
+            echo "Authenticated /model-info did not return a real 200 - dumping logs:"
+            docker logs c360-bp7-authed-smoke
+            docker rm -f c360-bp7-authed-smoke >/dev/null 2>&1 || true
+            exit 1
+          fi
+          python3 -c "
+          import json
+          with open('/tmp/bp7_model_info.json') as f:
+              body = json.load(f)
+          assert isinstance(body, dict) and body, f'Empty or non-object /model-info body: {body}'
+          print('Real authenticated /model-info body keys:', sorted(body.keys()))
+          "
+          unauth_status=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8017/model-info")
+          echo "Unauthenticated GET /model-info status (must be 401, never 200): ${unauth_status}"
+          if [ "${unauth_status}" = "200" ]; then
+            echo "SECURITY REGRESSION: /model-info returned 200 with no API key - auth is not enforced."
+            docker rm -f c360-bp7-authed-smoke >/dev/null 2>&1 || true
+            exit 1
+          fi
+          docker logs c360-bp7-authed-smoke
+          docker rm -f c360-bp7-authed-smoke >/dev/null 2>&1 || true
           check_health c360-activation-service c360-activation-service:ci-smoke 8010

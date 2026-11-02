@@ -3,6 +3,13 @@
 # reused as-is from BP1/BP2/BP3/BP4 - fully generic, parameterized by config_path); Gates 2-5 each own
 # exactly one marker-delimited block appended after it via write_gate_block() - do not hand-edit either
 # section, re-run the owning notebook instead.
+# Scope note (BP7 hardening pass, Gap 7): this file is read by the BP7 notebook-stage
+# pipeline (Gates 1-5) only. src/services/bp7_decision_engine_service.py - the live FastAPI
+# service - does NOT read this file at runtime; it loads its decisions straight from the
+# Gate 5 artifacts (gate5_full_population_decision_records.csv / gate5_decision_layer_summary.json)
+# via its own _default_records_csv_path()/_default_summary_json_path() helpers. Changing a value
+# here has no effect on the running service until the owning notebook is re-run to regenerate
+# those Gate 5 artifacts.
 bp_id: "bp7"
 bp_name: "bp7_customer_navigator_decision_engine"
 status: "gate1_confirmed_gate2_confirmed_gate3_confirmed_gate4_confirmed_gate5_confirmed"   # not_started|gate1|gate2|gate3|gate4|gate5|gate6_complete
