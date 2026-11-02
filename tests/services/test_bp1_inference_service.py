@@ -20,6 +20,7 @@ artifact skip-if-missing pattern):
 
 from __future__ import annotations
 
+import functools
 import importlib
 
 import pytest
@@ -30,10 +31,30 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 
 from models.model_persistence import save_model_bundle
+from monitoring import prediction_monitor
 from services.service_common import resolve_project_root
 
 MODULE_PATH = "services.bp1_inference_service"
 TEST_API_KEY = "test-api-key-for-ci"
+
+
+@pytest.fixture(autouse=True)
+def _isolate_prediction_monitor_writes(monkeypatch, tmp_path, service_module):
+    """Phase G wired real prediction_monitor.record_prediction_event() calls into /predict, which
+    means every test below that hits /predict now performs a real governance write by default.
+    governance/prediction_events.jsonl is an intentionally-committed, real evidence file (same
+    convention as governance/audit_log.jsonl - see .gitignore's own comment on this), so running
+    this test suite must never silently accumulate synthetic test traffic into it on every CI run.
+    This autouse fixture redirects that write to a per-test tmp_path file by default; a test that
+    wants to assert on the written event (below) overrides this with its own later
+    monkeypatch.setattr call in the same test body, which wins because monkeypatch applies setattr
+    calls in call order."""
+    default_log = tmp_path / "prediction_events_test_default.jsonl"
+    monkeypatch.setattr(
+        service_module.prediction_monitor,
+        "record_prediction_event",
+        functools.partial(prediction_monitor.record_prediction_event, log_path=default_log),
+    )
 
 
 def _build_synthetic_bp1_bundle_file(tmp_path):
@@ -175,6 +196,72 @@ def test_predict_rejects_missing_texts_field(loaded_client):
 
 
 # ---------------------------------------------------------------------------
+# Phase G: real monitoring write-through and its resilience guarantee
+# ---------------------------------------------------------------------------
+
+
+def test_predict_writes_a_real_prediction_monitor_event(loaded_client, tmp_path, monkeypatch, service_module):
+    """Proves the Phase G wiring actually writes a real, readable prediction_monitor event for a
+    real /predict call - not merely that the endpoint calls some function. Monkeypatches
+    record_prediction_event's own log_path default via functools.partial (rather than monkey-
+    patching prediction_monitor.PREDICTION_LOG_PATH, which would have no effect here -
+    record_prediction_event's log_path parameter uses the pre-existing, documented signature-
+    default-bound-at-import-time pattern from Phase D, unchanged by this phase)."""
+    fake_log = tmp_path / "prediction_events_for_test.jsonl"
+    monkeypatch.setattr(
+        service_module.prediction_monitor,
+        "record_prediction_event",
+        functools.partial(prediction_monitor.record_prediction_event, log_path=fake_log),
+    )
+
+    response = loaded_client.post("/predict", json={"texts": ["my card was lost please block it"]})
+    assert response.status_code == 200
+
+    events = prediction_monitor.read_prediction_events(log_path=fake_log)
+    assert len(events) == 1
+    assert events[0]["bp_id"] == "bp1"
+    assert events[0]["predicted_label"] == "lost_or_stolen_card"
+    assert events[0]["latency_ms"] >= 0.0
+
+
+def test_predict_writes_one_event_per_prediction_in_a_batch(
+    loaded_client, tmp_path, monkeypatch, service_module
+):
+    fake_log = tmp_path / "prediction_events_batch.jsonl"
+    monkeypatch.setattr(
+        service_module.prediction_monitor,
+        "record_prediction_event",
+        functools.partial(prediction_monitor.record_prediction_event, log_path=fake_log),
+    )
+
+    response = loaded_client.post(
+        "/predict",
+        json={"texts": ["card was stolen yesterday", "please process my pending transfer"]},
+    )
+    assert response.status_code == 200
+
+    events = prediction_monitor.read_prediction_events(log_path=fake_log)
+    assert len(events) == 2
+
+
+def test_predict_still_succeeds_when_monitoring_write_fails(loaded_client, service_module, monkeypatch):
+    """The resilience guarantee this phase's design principle requires: a real failure inside the
+    monitoring write path (simulating, e.g., the real governance/ Docker permissions gap this
+    phase also fixed) must never surface as a broken /predict response - monitoring is best-
+    effort observability, never a dependency of inference."""
+
+    def _boom(*args, **kwargs):
+        raise OSError("simulated governance/ write failure")
+
+    monkeypatch.setattr(service_module.prediction_monitor, "record_prediction_event", _boom)
+
+    response = loaded_client.post("/predict", json={"texts": ["my card was lost please block it"]})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["predictions"][0]["predicted_label"] == "lost_or_stolen_card"
+
+
+# ---------------------------------------------------------------------------
 # Degraded-startup (zero-fabrication) tests
 # ---------------------------------------------------------------------------
 
@@ -208,7 +295,7 @@ def real_project_root():
         pytest.skip("Not running inside the Customer360 Navigator project tree - set C360_PROJECT_ROOT.")
 
 
-def test_real_bp1_champion_bundle_serves_predictions(real_project_root):
+def test_real_bp1_champion_bundle_serves_predictions(real_project_root, tmp_path, monkeypatch):
     joblib_path = (
         real_project_root / "models" / "bp1_customer_intent_classification" / "bp1_champion_pipeline.joblib"
     )
@@ -220,6 +307,15 @@ def test_real_bp1_champion_bundle_serves_predictions(real_project_root):
     if MODULE_PATH in importlib.sys.modules:
         del importlib.sys.modules[MODULE_PATH]
     module = importlib.import_module(MODULE_PATH)
+    # Same isolation rationale as _isolate_prediction_monitor_writes above - this test's own
+    # deliberate "no mocking" design is about exercising the real model/pipeline end-to-end, not
+    # about intentionally mutating the committed governance log with CI-run-timestamped entries.
+    isolated_log = tmp_path / "real_artifact_prediction_events.jsonl"
+    monkeypatch.setattr(
+        module.prediction_monitor,
+        "record_prediction_event",
+        functools.partial(prediction_monitor.record_prediction_event, log_path=isolated_log),
+    )
     with TestClient(module.app, headers={"X-API-Key": TEST_API_KEY}) as client:
         health = client.get("/health")
         assert health.status_code == 200

@@ -73,6 +73,17 @@ ENV C360_PROJECT_ROOT=/app
 ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1
 
+# Phase G (production monitoring): bp1_inference_service's /predict endpoint now writes real
+# prediction events via src/monitoring/prediction_monitor.py, which appends to
+# governance/prediction_events.jsonl relative to C360_PROJECT_ROOT (/app here). /app itself was
+# created by WORKDIR while still root (root:root, mode 755), and no governance/ directory is
+# COPY'd into the image, so without this step the non-root c360service user hitting /predict
+# would get a real PermissionError on that write - caught by bp1_inference_service.py's own
+# try/except (the response would still succeed) but the monitoring event would then silently
+# never be written. Pre-creating and chowning the directory here closes that gap for real,
+# rather than relying on the endpoint's resilience try/except to paper over it.
+RUN mkdir -p /app/governance && chown c360service:c360service /app/governance
+
 USER c360service
 
 EXPOSE 8001

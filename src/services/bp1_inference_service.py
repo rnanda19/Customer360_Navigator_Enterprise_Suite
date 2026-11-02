@@ -18,6 +18,7 @@ naming exactly what to run.
 from __future__ import annotations
 
 import sys
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -31,6 +32,7 @@ if str(_THIS_FILE_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_THIS_FILE_SRC_DIR))
 
 from models.model_persistence import predict_bp1  # noqa: E402
+from monitoring import prediction_monitor  # noqa: E402
 from services.service_auth import require_api_key  # noqa: E402
 from services.service_common import (  # noqa: E402
     HealthResponse,
@@ -132,7 +134,9 @@ def predict(request: BP1PredictRequest):
         error = _handle.error if _handle is not None else "Model handle not initialized."
         raise HTTPException(status_code=503, detail=f"BP1 model is not loaded: {error}")
 
+    start_time = time.perf_counter()
     result = predict_bp1(_handle.bundle, request.texts)
+    batch_latency_ms = (time.perf_counter() - start_time) * 1000.0
     class_names = result["class_names"]
     probabilities = np.asarray(result["probabilities"])
 
@@ -150,6 +154,28 @@ def predict(request: BP1PredictRequest):
                 rank3_confidence=round(conf3, 6),
             )
         )
+
+    # Real monitoring write-through (Phase G): one prediction_monitor event per prediction in
+    # this batch, using the batch's own measured wall-clock latency for every event (per-item
+    # latency within a single predict_bp1() call is not separable - this is documented, not
+    # claimed as per-item timing). model_version is the champion joblib's own SHA-256 (the most
+    # honest available version identifier - no MLflow version is wired into serving today).
+    # Wrapped in try/except so a monitoring-write failure (e.g. a permissions problem on the
+    # governance/ directory) can NEVER break the real HTTP response this endpoint owes the
+    # caller - monitoring is best-effort observability, not a dependency of inference.
+    try:
+        model_version = (_handle.metadata or {}).get("joblib_sha256") or "unknown"
+        for prediction in predictions:
+            prediction_monitor.record_prediction_event(
+                BP_ID,
+                model_version,
+                batch_latency_ms,
+                prediction.predicted_label,
+            )
+    except Exception:  # noqa: BLE001 - deliberately broad: ANY monitoring failure must degrade
+        # silently from the caller's point of view, never surface as a 5xx on a real prediction.
+        pass  # nosec B110 - intentional: monitoring is best-effort observability, never a
+        # dependency of inference; the failure itself is swallowed by design, not hidden by accident.
 
     return BP1PredictResponse(
         champion_model=_handle.bundle["champion_name"],
