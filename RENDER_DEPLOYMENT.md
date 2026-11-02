@@ -61,6 +61,26 @@ the fully manual path below configures the identical service by hand.
    so `notebooks/bp7_customer_navigator_decision_engine/artifacts/gate5_full_population_decision_records.csv`
    and `gate5_decision_layer_summary.json` must actually be present and pushed to `main` — the
    Dockerfile's `COPY` step fails the build otherwise (by design — see its header).
+   **Git LFS note (added during the BP7 production-hardening pass):** the real CSV above is
+   ~540MB — too large for a normal GitHub blob (100MB limit) — so it is tracked with
+   [Git LFS](https://git-lfs.github.com/) (see `.gitattributes`). The working-tree copy and the
+   commit history already hold the real file via LFS; what matters is that **your own push
+   actually uploads the real LFS object, not just its 134-byte pointer file**. Before pushing:
+   1. Install Git LFS once on your machine: `git lfs install` (download from
+      [git-lfs.github.com](https://git-lfs.github.com/) if the `git-lfs` command isn't found).
+   2. From the repo root, run `git lfs push origin main` (or just `git push` — once Git LFS is
+      installed, a normal `git push` uploads any new LFS objects automatically before pushing the
+      commits that reference them).
+   3. Confirm it worked: on GitHub, open the file in the repo's web UI — it should show
+      "Stored with Git LFS" and the real ~540MB size, never the ~134-byte pointer text.
+   Render's own build step downloads real Git LFS content automatically when it clones your repo
+   (confirmed via Render's community forum — LFS objects are fetched during clone with no
+   extra configuration), so once the real object is on GitHub, no further Render-side LFS setup
+   is needed. If you push without Git LFS installed, git silently pushes only the pointer text,
+   GitHub never receives the real 540MB object, and Render's build then bakes in a ~134-byte
+   placeholder file instead of the real data — the build will likely still succeed, but the
+   deployed service would serve wrong/empty results. This is why step 1 above says to **confirm**
+   the artifacts are real and committed, not just "committed."
 2. **Generate a real API key** for this deployment (do not reuse a local dev value):
    ```
    python -c "import secrets; print(secrets.token_urlsafe(32))"
