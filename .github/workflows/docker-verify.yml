@@ -197,6 +197,27 @@ jobs:
           # Activation Layer needs no placeholder artifact at all - it has no model/data COPY step
           # (see its own Dockerfile header: the lightest image in the suite).
           docker build -f src/services/docker/bp_activation_service/Dockerfile -t c360-activation-service:ci-smoke .
+      - name: Install Trivy (container vulnerability scanner)
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.36.0
+          trivy --version
+      - name: Container vulnerability scan - all 8 images (Trivy, non-blocking until a CVE baseline is established)
+        run: |
+          # Soft gate for now (exit-code 0), matching this project's own existing mypy precedent in
+          # code-quality.yml: every run reports a real, disclosed finding count to the step summary
+          # rather than silently never scanning at all, and this becomes a hard gate once a real
+          # baseline has been observed and a deliberate severity/count threshold is chosen - never
+          # an invented threshold set before a single real scan has ever run. Scans the exact 8
+          # placeholder-artifact images this job already built above - proves the base image and
+          # installed OS/Python package layers, never the real model/data artifacts (those are
+          # gitignored placeholders in this job - see the build step's own comment above).
+          echo "## Trivy container vulnerability scan (non-blocking - see step comment)" >> "$GITHUB_STEP_SUMMARY"
+          for image in c360-bp1-inference:ci-smoke c360-bp2-inference:ci-smoke c360-bp3-inference:ci-smoke c360-bp4-decision-service:ci-smoke c360-bp5-driver-service:ci-smoke c360-bp6-resolution-service:ci-smoke c360-bp7-decision-engine-service:ci-smoke c360-activation-service:ci-smoke; do
+            echo "### ${image}" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            trivy image --severity CRITICAL,HIGH --exit-code 0 --format table "${image}" | tee -a "$GITHUB_STEP_SUMMARY" || true
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          done
       - name: Run each of the 8 built images and verify a real /health response
         run: |
           # Real run + health-check, not just a build - each container is started for real from

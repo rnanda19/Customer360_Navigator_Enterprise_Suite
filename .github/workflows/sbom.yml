@@ -1,0 +1,35 @@
+name: SBOM Generation
+
+# Phase J (security) - Master Engineering Directive. Generates a CycloneDX 1.6 Software Bill of
+# Materials from requirements.txt on every push/PR, using cyclonedx-bom (pinned exactly,
+# matching this project's own "pin exactly" convention - see requirements.txt's own comment on
+# why an unversioned tool install previously broke a job with no code change on this project's
+# side). Uploaded as a build artifact rather than committed to the repo: it is a point-in-time
+# snapshot of requirements.txt, and a committed copy would silently drift from the real
+# dependency set on the very next requirements.txt change with nothing to catch it.
+on: [push, pull_request]
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.11" }
+      - run: pip install cyclonedx-bom==7.6.0
+      - name: Generate CycloneDX SBOM from requirements.txt
+        run: |
+          cyclonedx-py requirements requirements.txt -o sbom.cdx.json --of JSON
+          echo "## SBOM summary" >> "$GITHUB_STEP_SUMMARY"
+          python3 -c "
+          import json
+          with open('sbom.cdx.json') as f:
+              doc = json.load(f)
+          print('- bomFormat:', doc.get('bomFormat'))
+          print('- specVersion:', doc.get('specVersion'))
+          print('- component count:', len(doc.get('components', [])))
+          " >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+          retention-days: 90
