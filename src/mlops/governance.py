@@ -18,21 +18,58 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum
 from pathlib import Path
 from typing import Any
+
+
+class LifecycleState(str, Enum):
+    """PHASE E: the 6 named model-lifecycle states Section 2 of the Phase E spec requires.
+
+    Real evidence derives a BP's current state (see src/mlops/enterprise_status.py's
+    _derive_lifecycle_state - the only function in this project that assigns one); nothing here
+    asserts a transition that didn't actually happen. DEPRECATED/ARCHIVED exist as valid values a
+    human or a future real retirement/rollback event can set explicitly - no BP in this project's
+    real history has reached either yet, so no automatic derivation path produces them."""
+
+    DEVELOPMENT = "development"
+    VALIDATION = "validation"
+    STAGING = "staging"
+    PRODUCTION = "production"
+    DEPRECATED = "deprecated"
+    ARCHIVED = "archived"
+
 
 # bp_id -> {metric_name: minimum_acceptable_value}. Only metrics with a real recorded historical
 # value in that BP's configs/*.yaml gate block are listed - a BP not listed here has no governance
 # threshold defined yet (checked explicitly by validate_candidate, never silently passed).
+#
+# PHASE E Stage C: BP2 and BP3's real thresholds below were confirmed against their full,
+# already-committed configs/*.yaml gate3_model_benchmark blocks (read directly, 2026-11-02 - not
+# guessed from a snippet, unlike the placeholder this comment used to carry through Phase D).
+# BP4-BP8 are deliberately NOT listed here - see src/mlops/enterprise_status.py's module
+# docstring for why: their real problem_type (benchmark_pipeline / association_reporting /
+# retrieval_strategy / rule_engine / gold_layer_aggregation, per
+# src/monitoring/model_registry.py's own existing classification) does not fit this
+# classifier-style scalar-threshold schema, and each already has its own real, structurally
+# different governance check elsewhere in this project rather than an invented one here.
 MODEL_PERFORMANCE_THRESHOLDS: dict[str, dict[str, float]] = {
     # BP1 Gate 3/4/5 real champion (logistic_regression): held_out_test_accuracy 0.8224 recorded.
     # Threshold set ~2.5 points below the real recorded value - catches a real regression, tolerates
     # ordinary re-fit noise (BP1's own model_persistence.py reload-fidelity check already tolerates
     # exact equality on a deterministic refit; this threshold is for a genuinely different candidate).
     "bp1": {"held_out_test_accuracy": 0.80, "held_out_test_f1_macro": 0.78},
-    # BP2 Gate 3-5 real champion (xgboost) - no single scalar accuracy is in the YAML snippet
-    # inspected during Phase D's gap analysis; left for a future pass once that BP's exact metric
-    # key is confirmed against its full config rather than guessed.
+    # BP2 Gate 3-5 real champion (xgboost): held_out_test_f1_macro 0.4559, held_out_test_accuracy
+    # 0.7558 recorded (real class_imbalance_ratio 152.0 - this is why f1_macro, not accuracy
+    # alone, is the primary governed metric here: a trivial majority-class predictor would still
+    # score high accuracy on this data). Thresholds set ~2.5-3.5 points below each recorded value.
+    "bp2": {"held_out_test_f1_macro": 0.43, "held_out_test_accuracy": 0.72},
+    # BP3 Gate 3-5 real champion (xgboost): a rare-event classifier (positive_class_ratio_of_
+    # trainable 0.0129) where held_out_test_roc_auc 0.9762 and held_out_test_recall 0.9424 are
+    # the real, meaningful governed metrics - held_out_test_precision (0.151 recorded) is
+    # intrinsically low and noisy at this positive rate and is deliberately NOT thresholded here,
+    # matching this project's "do not invent a check that doesn't fit the real data" standard.
+    "bp3": {"held_out_test_roc_auc": 0.95, "held_out_test_recall": 0.90},
 }
 
 REQUIRED_DOCUMENTATION_FIELDS: tuple[str, ...] = (
