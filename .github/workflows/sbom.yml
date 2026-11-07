@@ -28,7 +28,7 @@ jobs:
           print('- specVersion:', doc.get('specVersion'))
           print('- component count:', len(doc.get('components', [])))
           " >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sbom-cyclonedx
           path: sbom.cdx.json
